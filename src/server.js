@@ -3,13 +3,13 @@ const https = require('https');
 const fs = require('fs');
 const config = require('./config/index');
 const positionModel = require('./PositionModel.js');
-const zmq = require('zeromq');
+const zeromq = require('zeromq');
 
 // Socket to send messages on
-const sender = zmq.socket('push');
+const sender = zeromq.socket('push');
 sender.bindSync(`tcp://*:${config.worker.host1}`);
 
-const receiver = zmq.socket('pull');
+const receiver = zeromq.socket('pull');
 receiver.bindSync(`tcp://*:${config.worker.host2}`);
 
 const httpsOptions = {
