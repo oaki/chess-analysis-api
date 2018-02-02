@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
 <script>
     const socket = io();
-    const FEN = 'K7/4n2p/1pp4k/p4Pq1/P6N/1BP3BP/1PPpb3/6Q1 w - - 0 1';
+    const FEN = '2krr3/ppq2pp1/2pbpn1p/7P/2PP4/5NP1/PP1BQP2/2KR3R w - - 0 1';
     socket.emit('setNewPosition', { FEN });
     socket.emit('delay', 2000);
 //    socket.emit('multiPv', 6);

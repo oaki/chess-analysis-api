@@ -20,12 +20,10 @@ const httpsOptions = {
 const server = https.createServer(httpsOptions, app);
 
 server.listen(config.server.port, () => {
-
   console.log(`Server running at port: ${config.server.port}`);
 });
 
 app.get('/', (req, res) => {
-  console.log('ssss');
   res.sendFile(`${__dirname}/public/index.html`);
 });
 
