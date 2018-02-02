@@ -8,7 +8,7 @@
   "scripts": {
     "run:server": "node src/server.js",
     "run:rediCommander": "redis-commander",
-    "update:git": "git pull"
+    "git:update": "git pull"
   },
   "dependencies": {
     "eslint-config-airbnb": "^16.1.0",
