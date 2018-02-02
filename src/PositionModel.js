@@ -31,7 +31,6 @@ class PositionModel {
     if (this.checkEvaluation(evaluation)) {
       const key = this.getKey(evaluation);
       this.client.get(key, (err, reply) => {
-        console.log('going to check reply', err, reply);
         if (!reply) {
           console.log('added to redis ', JSON.stringify(evaluation));
           const evaluationWithoutUser = {...evaluation};
