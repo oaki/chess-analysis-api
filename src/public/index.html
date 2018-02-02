@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Chess Analysis</title>
+</head>
+<body>
+<div id="txt"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+<script>
+    const socket = io();
+    const FEN = 'K7/4n2p/1pp4k/p4Pq1/P6N/1BP3BP/1PPpb3/6Q1 w - - 0 1';
+    socket.emit('setNewPosition', { FEN });
+    socket.emit('delay', 2000);
+//    socket.emit('multiPv', 6);
+    socket.on('on_result', function (result) {
+        console.log('browser: on_result');
+        document.getElementById("txt").innerHTML = JSON.stringify(result.data);
+    })
+</script>
+
+</body>
+</html>
