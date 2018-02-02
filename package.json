@@ -6,10 +6,9 @@
   "license": "MIT",
   "homepage": "https://github.com/oaki/chess-analysis-api",
   "scripts": {
-    "run": "node src/server.js",
-    "runTestServer": "node src/testServer.js",
-    "runWorker": "node src/worker.js",
-    "run rediCommander": "redis-commander"
+    "run:server": "node src/server.js",
+    "run:rediCommander": "redis-commander",
+    "update:git": "git pull",
   },
   "dependencies": {
     "eslint-config-airbnb": "^16.1.0",
