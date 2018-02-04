@@ -20,7 +20,7 @@ class PositionModel {
     if (evaluation.fen &&
       Number(evaluation.depth) > this.saveCriterium.depth &&
       Number(evaluation.nodes) > this.saveCriterium.nodes &&
-      Number(evaluation.score) < this.saveCriterium.maxScore &&
+      Math.abs(Number(evaluation.score)) < this.saveCriterium.maxScore &&
       evaluation.pv) {
       console.log('Interesting evaluation: ', evaluation, Number(evaluation.depth), Number(evaluation.nodes));
       return true;

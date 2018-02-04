@@ -54,16 +54,6 @@ receiver.on('message', (data) => {
 
 const io = require('socket.io')(server);
 
-// async function foo(fen, position) {
-//   const evaluation = await positionModel.findAllMoves(fen);
-//   console.log('evaluation:', evaluation);
-//   if (!evaluation) {
-//     sender.send(JSON.stringify(position));
-//   } else {
-//     console.log('I have it!!!!', evaluation);
-//   }
-// }
-
 io.on('connection', (socket) => {
   console.log('1. a user connected', socket.id);
 
