@@ -6,7 +6,7 @@ class PositionModel {
   constructor() {
     this.client = redis.client;
     this.saveCriterium = {
-      depth: 25,
+      depth: 28,
       nodes: 30 * 1000000,
       maxScore: 4,
     };
