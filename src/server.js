@@ -7,6 +7,10 @@ const zeromq = require('zeromq');
 const isDev = process.argv.indexOf('env=dev') !== -1;
 const config = isDev ? require('./config/dev') : require('./config/prod');
 
+if (isDev) {
+  console.log('Dev');
+  console.log(config);
+}
 // Socket to send messages on
 const sender = zeromq.socket('push');
 sender.bindSync(`tcp://*:${config.worker.host1}`);
@@ -50,6 +54,16 @@ receiver.on('message', (data) => {
 
 const io = require('socket.io')(server);
 
+// async function foo(fen, position) {
+//   const evaluation = await positionModel.findAllMoves(fen);
+//   console.log('evaluation:', evaluation);
+//   if (!evaluation) {
+//     sender.send(JSON.stringify(position));
+//   } else {
+//     console.log('I have it!!!!', evaluation);
+//   }
+// }
+
 io.on('connection', (socket) => {
   console.log('1. a user connected', socket.id);
 
@@ -62,18 +76,19 @@ io.on('connection', (socket) => {
       fen: data.FEN,
     };
 
-    const evaluation = position.findAllMoves(data.FEN);
-    if (!evaluation) {
-      sender.send(JSON.stringify(position));
-    } else {
-      console.log('I have it!!!!', evaluation);
-    }
+    positionModel.findAllMoves(data.FEN).then((evaluation) => {
+      if (evaluation === null) {
+        sender.send(JSON.stringify(position));
+      } else {
+        const bestVariant = positionModel.getBestVariant(evaluation);
+        console.log('I have it!!!!', bestVariant);
 
+        socket.emit('on_result', {
+          fen: data.FEN, data: JSON.parse(bestVariant)
+        });
+      }
+    });
   });
-
-  // socket.on('setDelay', (delay) => {
-  //   engine.setDelay(delay);
-  // });
 
   socket.on('disconnect', () => {
     console.log('Server: user disconnected', socket.id);
