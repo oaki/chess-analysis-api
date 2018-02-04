@@ -1,9 +1,11 @@
 const app = require('express')();
 const https = require('https');
 const fs = require('fs');
-const config = require('./config/index');
 const positionModel = require('./PositionModel.js');
 const zeromq = require('zeromq');
+
+const isDev = process.argv.indexOf('env=dev') !== -1;
+const config = isDev ? require('./config/dev') : require('./config/prod');
 
 // Socket to send messages on
 const sender = zeromq.socket('push');
@@ -60,7 +62,13 @@ io.on('connection', (socket) => {
       fen: data.FEN,
     };
 
-    sender.send(JSON.stringify(position));
+    const evaluation = position.findAllMoves(data.FEN);
+    if (!evaluation) {
+      sender.send(JSON.stringify(position));
+    } else {
+      console.log('I have it!!!!', evaluation);
+    }
+
   });
 
   // socket.on('setDelay', (delay) => {

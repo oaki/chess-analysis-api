@@ -6,8 +6,9 @@
   "license": "MIT",
   "homepage": "https://github.com/oaki/chess-analysis-api",
   "scripts": {
-    "run:server": "node src/server.js",
-    "run:rediCommander": "redis-commander",
+    "server:start": "node src/server.js",
+    "server:start:dev": "node src/server.js env=dev",
+    "redis-commander:start": "redis-commander",
     "git:update": "git pull"
   },
   "dependencies": {

@@ -44,9 +44,11 @@ class PositionModel {
   }
 
   findAllMoves(fen) {
+    console.log('findAllMoves', fen);
     const result = this.client.get(`${fen}?`);
     if (result) {
-      return JSON.parse(result);
+      console.log('result', result);
+      return result;
     }
     return null;
   }

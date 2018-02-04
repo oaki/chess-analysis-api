@@ -61,6 +61,6 @@ function getFirstMove(pv) {
   return pv.substr(0, 4);
 }
 
-exports.parseLine = parseLine;
-exports.parseResult = parseResult;
-exports.getFirstMove = getFirstMove;
+module.exports.parseLine = parseLine;
+module.exports.parseResult = parseResult;
+module.exports.getFirstMove = getFirstMove;
