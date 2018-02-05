@@ -16,6 +16,19 @@ class PositionModel {
     return `${evaluation.depth}__${evaluation.nodes}__${getFirstMove(evaluation.pv)}`;
   }
 
+  /** https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
+   5. remove Halfmove clock: This is the number of halfmoves since the last capture or pawn advance.
+   This is used to determine if a draw can be claimed under the fifty-move rule.
+   6. Fullmove number: The number of the full move. It starts at 1, and is incremented after Black's move.
+   e.g.
+   'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'.split(' ').splice(0, 4).join(' ');
+   'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -'
+   */
+
+  normalizeFen(fen) {
+    return fen.split(' ').splice(0, 4).join(' ');
+  }
+
   checkEvaluation(evaluation) {
     if (evaluation.fen &&
       Number(evaluation.depth) > this.saveCriterium.depth &&
@@ -33,7 +46,7 @@ class PositionModel {
       const key = this.getKey(evaluation);
       const evaluationWithoutUser = {...evaluation};
       delete evaluationWithoutUser.userId;
-      redis.hmset(evaluation.fen, key, JSON.stringify(evaluationWithoutUser));
+      redis.hmset(this.normalizeFen(evaluation.fen), key, JSON.stringify(evaluationWithoutUser));
 
       console.log('added to DB');
     } else {
@@ -43,9 +56,11 @@ class PositionModel {
 
   findAllMoves(fen) {
     const promise = new Promise((resolve) => {
-      redis.exists(fen).then((res) => {
+
+      const normalizedFen = this.normalizeFen(fen);
+      redis.exists(normalizedFen).then((res) => {
         if (res !== null) {
-          redis.hgetall(fen).then((arr) => {
+          redis.hgetall(normalizedFen).then((arr) => {
             resolve(arr);
           });
         } else {
