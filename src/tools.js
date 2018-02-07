@@ -52,7 +52,7 @@ function parseResult(result) {
 
   lines.forEach((line) => {
     const r = parseLine(line);
-    output[parseInt(r.multipv) - 1] = r;
+    output[parseInt(r.multipv, 10) - 1] = r;
   });
   return output;
 }

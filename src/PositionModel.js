@@ -12,7 +12,7 @@ class PositionModel {
     };
   }
 
-  getKey(evaluation) {
+  static getKey(evaluation) {
     return `${evaluation.depth}__${evaluation.nodes}__${getFirstMove(evaluation.pv)}`;
   }
 
@@ -25,7 +25,7 @@ class PositionModel {
    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -'
    */
 
-  normalizeFen(fen) {
+  static normalizeFen(fen) {
     return fen.split(' ').splice(0, 4).join(' ');
   }
 
@@ -43,10 +43,10 @@ class PositionModel {
 
   add(evaluation) {
     if (this.checkEvaluation(evaluation)) {
-      const key = this.getKey(evaluation);
+      const key = PositionModel.getKey(evaluation);
       const evaluationWithoutUser = {...evaluation};
       delete evaluationWithoutUser.userId;
-      redis.hmset(this.normalizeFen(evaluation.fen), key, JSON.stringify(evaluationWithoutUser));
+      redis.hmset(PositionModel.normalizeFen(evaluation.fen), key, JSON.stringify(evaluationWithoutUser));
 
       console.log('added to DB');
     } else {
@@ -57,7 +57,7 @@ class PositionModel {
   findAllMoves(fen) {
     const promise = new Promise((resolve) => {
 
-      const normalizedFen = this.normalizeFen(fen);
+      const normalizedFen = PositionModel.normalizeFen(fen);
       redis.exists(normalizedFen).then((res) => {
         if (res !== null) {
           redis.hgetall(normalizedFen).then((arr) => {
