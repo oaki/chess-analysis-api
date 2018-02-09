@@ -1,6 +1,6 @@
 const config = {
   server: {
-    port: 443,
+    port: 8080,
   },
 
   worker: {

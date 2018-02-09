@@ -1,5 +1,5 @@
 const app = require('express')();
-const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const positionModel = require('./PositionModel.js');
 const zeromq = require('zeromq');
@@ -18,12 +18,12 @@ sender.bindSync(`tcp://*:${config.worker.host1}`);
 const receiver = zeromq.socket('pull');
 receiver.bindSync(`tcp://*:${config.worker.host2}`);
 
-const httpsOptions = {
-  key: fs.readFileSync(`${__dirname}/key.pem`),
-  cert: fs.readFileSync(`${__dirname}/cert.pem`),
-};
+// const httpsOptions = {
+//   key: fs.readFileSync(`${__dirname}/key.pem`),
+//   cert: fs.readFileSync(`${__dirname}/cert.pem`),
+// };
 
-const server = https.createServer(httpsOptions, app);
+const server = http.createServer(app);
 
 server.listen(config.server.port, () => {
   console.log(`Server running at port: ${config.server.port}`);
