@@ -1,18 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-function pairValues(name, str) {
+export function pairValues(name, str) {
     const tmp = str.split(' ');
+
     const namePosition = tmp.indexOf(name);
+
     if (namePosition === -1) {
         return false;
     }
+
     if (name === 'pv') {
         const tmpArr = tmp.splice(namePosition + 1);
         return tmpArr.join(' ');
     }
     return tmp[namePosition + 1];
 }
-exports.pairValues = pairValues;
+
+
+
+
 /*
 export function parseLine(lineStr) {
     const obj = {};
@@ -49,7 +53,7 @@ export function parseResult(result) {
     return output;
 }
 */
-function getFirstMove(pv) {
+
+export function getFirstMove(pv) {
     return pv.substr(0, 4);
 }
-exports.getFirstMove = getFirstMove;
