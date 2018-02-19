@@ -8,7 +8,7 @@
   "scripts": {
     "server:start": "yarn run build && node dist/index.js",
     "server:start:dev": "node dist/index.js env=dev",
-    "build": "yarn run clear && tsc",
+    "build": "yarn run clear && tsc && cp -rf ./src/books/ ./dist/books/ && cp -rf ./src/games/ ./dist/games/",
     "clear": "del-cli ./dist/*",
     "redis-commander:start": "redis-commander",
     "git:update": "git pull"
