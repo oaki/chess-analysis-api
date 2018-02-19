@@ -6,20 +6,21 @@
   "license": "MIT",
   "homepage": "https://github.com/oaki/chess-analysis-api",
   "scripts": {
-    "server:start": "node src/index.js",
-    "server:start:dev": "node src/index.js env=dev",
+    "server:start": "node dist/index.js",
+    "server:start:dev": "node dist/index.js env=dev",
+    "build": "yarn run clear && tsc",
+    "clear": "del-cli ./dist/*",
     "redis-commander:start": "redis-commander",
     "git:update": "git pull"
   },
   "dependencies": {
-    "@types/node": "^9.4.6",
     "catbox": "^10.0.2",
     "catbox-redis": "^4.0.0",
     "chess-tools": "^0.3.0",
     "chesslib": "^0.9.10",
     "compression": "^1.7.1",
-    "eslint-config-airbnb": "^16.1.0",
-    "express": "^4.16.2",
+    "del": "^3.0.0",
+    "del-cli": "^1.1.0",
     "good": "^8.0.0-rc1",
     "good-file": "^6.0.1",
     "good-squeeze": "^5.0.2",
@@ -30,20 +31,22 @@
     "joi": "^13.1.2",
     "lodash": "^4.17.4",
     "pgn-parser": "0.0.9",
-    "redis": "^2.8.0",
-    "redis-connection": "^5.4.0",
     "socket.io": "^2.0.4",
-    "typescript": "^2.7.1",
-    "vision": "^5.3.1",
     "zeromq": "^4.6.0"
   },
   "devDependencies": {
     "@types/boom": "^7.1.1",
     "@types/catbox": "^7.1.5",
     "@types/joi": "^13.0.5",
+    "@types/node": "^9.4.6",
     "eslint": "^4.16.0",
+    "eslint-config-airbnb": "^16.1.0",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
-    "eslint-plugin-react": "^7.6.1"
+    "eslint-plugin-react": "^7.6.1",
+    "redis": "^2.8.0",
+    "redis-connection": "^5.4.0",
+    "typescript": "^2.7.2",
+    "vision": "^5.3.1"
   }
 }

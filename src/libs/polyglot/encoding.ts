@@ -1,24 +1,8 @@
-"use strict";
-const utils = require("./utils.ts");
+import * as utils from './utils';
 const Uint64BE = require("int64-buffer").Uint64BE;
-
+const PromoPieces = " nbrq".split("");
 const files = utils.board.FILES;
-module.exports.pieceTypes = {
-    bp: 0,
-    wp: 1,
-    bn: 2,
-    wn: 3,
-    bb: 4,
-    wb: 5,
-    br: 6,
-    wr: 7,
-    bq: 8,
-    wq: 9,
-    bk: 10,
-    wk: 11
-};
-
-const Random64 = [
+export const Random64 = [
     Uint64BE(0x9D39247E, 0x33776D41), Uint64BE(0x2AF73980, 0x05AAA5C7), Uint64BE(0x44DB0150, 0x24623547), Uint64BE(0x9C15F73E, 0x62A76AE2),
     Uint64BE(0x75834465, 0x489C0C89), Uint64BE(0x3290AC3A, 0x203001BF), Uint64BE(0x0FBBAD1F, 0x61042279), Uint64BE(0xE83A908F, 0xF2FB60CA),
     Uint64BE(0x0D7E765D, 0x58755C10), Uint64BE(0x1A083822, 0xCEAFE02D), Uint64BE(0x9605D5F0, 0xE25EC3B0), Uint64BE(0xD021FF5C, 0xD13A2ED5),
@@ -216,71 +200,82 @@ const Random64 = [
     Uint64BE(0xCF3145DE, 0x0ADD4289), Uint64BE(0xD0E4427A, 0x5514FB72), Uint64BE(0x77C621CC, 0x9FB3A483), Uint64BE(0x67A34DAC, 0x4356550B),
     Uint64BE(0xF8D626AA, 0xAF278509),
 ];
-module.exports.Random64 = Random64;
-module.exports.RandomPiece = Random64.slice(0,768);
-module.exports.RandomCastle = Random64.slice(768, 768+4);
-module.exports.RandomEnPassant = Random64.slice(764, 764+4);
-module.exports.RandomTurn = Random64.slice(780, 780+1);
-module.exports.PromotionPieces = " nbrq".split("");
-
-const PromotionPieces = " nbrq".split("");
-module.exports.encode_move = function (algebraic_move) {
-
-}
 
 
-module.exports.decode_move = function (move) {
-  /*
-  "move" is a bit field with the following meaning (bit 0 is the least significant bit)
-  bits                meaning
-  ===================================
-  0,1,2               to file
-  3,4,5               to row
-  6,7,8               from file
-  9,10,11             from row
-  12,13,14            promotion piece
-  */
-  let moveStr = [];
-  let from = (move >> 6) & parseInt('077',8);
-  let fromRow = ((from >> 3) & 0x7 )+ 1;
-  let fromFile = from & 0x7;
-  let to = move & parseInt('077',8);
-  let toRow = ((to >> 3) & 0x7) +1;
-  let toFile = to & 0x7;
-  let promotion = (move >> 12) & 0x7;
-  if (fromFile) {
-    moveStr[0] = files[fromFile];
-  } else {
-    moveStr[0] = 'a';
-  }
+export const RandomPiece = Random64.slice(0, 768);
+export const RandomCastle = Random64.slice(768, 768 + 4);
+export const RandomEnPassant = Random64.slice(764, 764 + 4);
+export const RandomTurn = Random64.slice(780, 780 + 1);
+export const PromotionPieces = PromoPieces;
+
+export const pieceTypes = {
+    bp: 0,
+    wp: 1,
+    bn: 2,
+    wn: 3,
+    bb: 4,
+    wb: 5,
+    br: 6,
+    wr: 7,
+    bq: 8,
+    wq: 9,
+    bk: 10,
+    wk: 11
+};
+
+export const encode_move = function (algebraic_move) {}
+export const decode_move = function (move) {
+    /*
+    "move" is a bit field with the following meaning (bit 0 is the least significant bit)
+    bits                meaning
+    ===================================
+    0,1,2               to file
+    3,4,5               to row
+    6,7,8               from file
+    9,10,11             from row
+    12,13,14            promotion piece
+    */
+    let moveStr = [];
+    let from = (move >> 6) & parseInt('077', 8);
+    let fromRow = ((from >> 3) & 0x7) + 1;
+    let fromFile = from & 0x7;
+    let to = move & parseInt('077', 8);
+    let toRow = ((to >> 3) & 0x7) + 1;
+    let toFile = to & 0x7;
+    let promotion = (move >> 12) & 0x7;
+    if (fromFile) {
+        moveStr[0] = files[fromFile];
+    } else {
+        moveStr[0] = 'a';
+    }
     moveStr[1] = fromRow || '1';
-  if (toFile) {
-    moveStr[2] = files[toFile]
-  } else {
-    moveStr[2] = 'a';
-  }
-  moveStr[3] = toRow || '1';
-  if (promotion) {
-      console.log(promotion);
-      
-      console.log(PromotionPieces);
-      moveStr[4] = PromotionPieces[promotion];
-  }
-  let decoded = moveStr.join("");
+    if (toFile) {
+        moveStr[2] = files[toFile]
+    } else {
+        moveStr[2] = 'a';
+    }
+    moveStr[3] = toRow || '1';
+    if (promotion) {
+        console.log(promotion);
+
+        console.log(PromotionPieces);
+        moveStr[4] = PromotionPieces[promotion];
+    }
+    let decoded = moveStr.join("");
 //Convert the castling moves to standard notation
-  if (decoded == "e1h1") {
-    return "e1g1";
-  } else if (decoded ==  "e1a1") {
-    return "e1c1";
-  } else if (decoded ==  "e8h8") {
-    return "e8g8";
-  } else if (decoded == "e8a8") {
-    return "e8c8";
+    if (decoded == "e1h1") {
+        return "e1g1";
+    } else if (decoded == "e1a1") {
+        return "e1c1";
+    } else if (decoded == "e8h8") {
+        return "e8g8";
+    } else if (decoded == "e8a8") {
+        return "e8c8";
 
-  }
+    }
 
-  if (decoded == "a1a1" ) {
-      return "";
-  }
-  return decoded;
+    if (decoded == "a1a1") {
+        return "";
+    }
+    return decoded;
 }

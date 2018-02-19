@@ -1,3 +1,5 @@
 # /bin/sh
-npm run server:start
+cp -rf ./src/books/ ./dist/books/
+cp -rf ./src/games/ ./dist/games/
+yarn run server:start
 

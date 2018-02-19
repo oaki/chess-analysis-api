@@ -1,9 +1,6 @@
 import * as prodConfig from "./prod";
 import * as devConfig from "./dev";
 
-
-
-
 const config = isDev() ? devConfig.config : prodConfig.config;
 if (isDev()) {
     console.log('Dev');

@@ -48,5 +48,6 @@ export async function initServer() {
     ]);
 
     await hapiServer.start();
+
     return hapiServer;
 }

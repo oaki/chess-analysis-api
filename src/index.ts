@@ -6,7 +6,6 @@ process.on('unhandledRejection', function (err) {
     // Logger.error('unhandledRejection', err);
 });
 
-
 process.on('uncaughtException', function (err) {
     console.log(err);
     // Logger.error('uncaughtException', err);

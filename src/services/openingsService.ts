@@ -1,4 +1,4 @@
-import * as Polyglot from '../libs/polyglot';
+import {Polyglot} from '../libs/polyglot';
 import * as fs from 'fs';
 
 interface OpeningResponse {
@@ -8,7 +8,7 @@ interface OpeningResponse {
 
 class OpeningService {
     private path;
-    private book: Polyglot;
+    private book: any;
     private isLoaded: boolean = false;
 
     constructor(path = '../books/book.bin') {
@@ -40,7 +40,7 @@ class OpeningService {
 
     private prepareVariants(polyglotEntries: PolyglotEntry[]): OpeningResponse[] {
         console.log('polyglotEntries', polyglotEntries);
-        if(!polyglotEntries){
+        if (!polyglotEntries) {
             return null;
         }
         return polyglotEntries.map((polyglotEntry: PolyglotEntry) => {
