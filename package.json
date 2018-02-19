@@ -6,7 +6,7 @@
   "license": "MIT",
   "homepage": "https://github.com/oaki/chess-analysis-api",
   "scripts": {
-    "server:start": "node dist/index.js",
+    "server:start": "yarn run build && node dist/index.js",
     "server:start:dev": "node dist/index.js env=dev",
     "build": "yarn run clear && tsc",
     "clear": "del-cli ./dist/*",
