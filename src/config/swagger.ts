@@ -3,5 +3,5 @@ export const optionsSwagger = {
         title: 'Chess analysis api',
         version: '1.0.0'
     },
-    basePath: '/api/v1'
+    basePath: '/v1'
 };

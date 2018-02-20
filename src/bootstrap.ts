@@ -28,7 +28,7 @@ export async function initServer() {
 
     // setup server Hapi
     const hapiServer = Hapi.server(hapiServerOptions);
-    hapiServer.realm.modifiers.route.prefix = `/api/v1`; // prefix pre vsetky route
+    hapiServer.realm.modifiers.route.prefix = `/v1`; // prefix pre vsetky route
 
     initSockets(hapiServer);
 
