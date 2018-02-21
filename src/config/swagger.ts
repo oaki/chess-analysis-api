@@ -3,5 +3,6 @@ export const optionsSwagger = {
         title: 'Chess analysis api',
         version: '1.0.0'
     },
-    basePath: 'https://chess-analysis.com/api/v1'
+    host: 'https://chess-analysis.com/',
+    basePath: '/api/v1'
 };
