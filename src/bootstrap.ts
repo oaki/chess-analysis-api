@@ -9,6 +9,7 @@ import {initSockets} from "./initSockets";
 import {optionsSwagger} from "./config/swagger";
 import {optionsGood} from "./config/optionsGood";
 import {hapiServerOptions} from "./config/hapiServerOptions";
+
 // import * as compression from "compression";
 
 export async function initServer() {
@@ -28,8 +29,16 @@ export async function initServer() {
 
     // setup server Hapi
     const hapiServer = Hapi.server(hapiServerOptions);
-    hapiServer.realm.modifiers.route.prefix = `/api/v1`; // prefix pre vsetky route
+    // hapiServer.realm.modifiers.route.prefix = `/api/v1`; // prefix pre vsetky route
 
+    await hapiServer.register({
+        plugin: require('hapi-api-version'),
+        options: {
+            validVersions: [1],
+            defaultVersion: 1,
+            vendorName: 'chess-analysis-api'
+        }
+    });
     initSockets(hapiServer);
 
     buildRoutes(hapiServer);
@@ -49,5 +58,6 @@ export async function initServer() {
 
     await hapiServer.start();
 
+    console.log(hapiServer.info.uri);
     return hapiServer;
 }
