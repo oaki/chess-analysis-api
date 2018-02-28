@@ -6,7 +6,6 @@ import * as inert from 'inert';
 import {getConfig} from './config/';
 import buildRoutes from './routes/buildRoutes';
 import {initSockets} from "./initSockets";
-import {optionsSwagger} from "./config/swagger";
 import {optionsGood} from "./config/optionsGood";
 import {hapiServerOptions} from "./config/hapiServerOptions";
 
@@ -42,6 +41,17 @@ export async function initServer() {
     initSockets(hapiServer);
 
     buildRoutes(hapiServer);
+
+
+    const optionsSwagger = {
+        info: {
+            title: 'Chess analysis api',
+            version: '1.0.0'
+        },
+        host: 'api.chess-analysis.com',
+        schemes: ['https:'],
+        basePath: '/'
+    };
 
     await hapiServer.register([
         {
