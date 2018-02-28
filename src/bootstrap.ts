@@ -49,7 +49,7 @@ export async function initServer() {
             version: '1.0.0'
         },
         host: 'api.chess-analysis.com',
-        schemes: ['https:'],
+        // schemes: ['https:'],
         basePath: '/'
     };
 
