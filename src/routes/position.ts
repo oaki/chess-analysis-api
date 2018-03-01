@@ -10,16 +10,16 @@ export function positionRoute() {
                 description: 'Get evaluation of the position',
                 tags: ['api'], // section in documentation
                 validate: {
-                    params: {
+                    query: {
                         fen: Joi.required().description('Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. ')
                     }
                 }
             },
             handler: async (request: any, h: any) => {
-                console.log(request.params['fen']);
+                console.log(request.query['fen']);
                 // const promise = await Promise.resolve();
 
-                const evaluation = await positionService.findAllMoves(request.params['fen']);
+                const evaluation = await positionService.findAllMoves(request.query['fen']);
 
                 console.log('evaluation', evaluation);
                 if (evaluation === null) {
