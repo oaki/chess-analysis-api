@@ -5,13 +5,13 @@ export function openingBookRoute() {
     return [
         {
             method: 'GET',
-            path: '/opening-book/{fen}',
+            path: '/opening-book',
             config: {
                 description: 'Get variation from opening book',
                 tags: ['api'], // section in documentation
                 validate: {
-                    params: {
-                        fen: Joi.required().description('Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. ')
+                    query: {
+                        fen: Joi.string().required().min(9).description('Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. ')
                     }
                 }
             },
