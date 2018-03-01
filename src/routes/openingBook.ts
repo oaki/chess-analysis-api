@@ -16,7 +16,7 @@ export function openingBookRoute() {
                 }
             },
             handler: async (request: any, h: any) => {
-                return await openingsService.find(request.params['fen']);
+                return await openingsService.find(request.query['fen']);
             }
         }
 
