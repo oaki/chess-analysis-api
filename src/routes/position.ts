@@ -5,7 +5,7 @@ export function positionRoute() {
     return [
         {
             method: 'GET',
-            path: '/position/{fen}',
+            path: '/position',
             config: {
                 description: 'Get evaluation of the position',
                 tags: ['api'], // section in documentation
