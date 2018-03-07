@@ -70,7 +70,7 @@ export class PositionService {
         return false;
     }
 
-    add(fen, evaluation: IWorkerResponse) {
+    add(fen, evaluation: IEvaluation) {
         console.log('add evaluation', evaluation);
         if (this.checkEvaluation(evaluation)) {
             const key = PositionService.getKey(evaluation);
@@ -84,7 +84,7 @@ export class PositionService {
         }
     }
 
-    public mapWorkerToEvaluation(workerResponse: IWorkerResponse): IEvaluation {
+    public mapWorkerToEvaluation(workerResponse: IEvaluation): IEvaluation {
         return {
             [LINE_MAP.score]: workerResponse[LINE_MAP.score],
             [LINE_MAP.depth]: workerResponse[LINE_MAP.depth],
@@ -97,8 +97,8 @@ export class PositionService {
         }
     }
 
-    public static beforeSaveEvaluation(evaluation: IWorkerResponse): IWorkerResponse {
-        const toSave: IWorkerResponse = {...evaluation};
+    public static beforeSaveEvaluation(evaluation: IEvaluation): IEvaluation {
+        const toSave: IEvaluation = {...evaluation};
 
         toSave[LINE_MAP.nodes] = Math.round(toSave[LINE_MAP.nodes] / 1000);
         // toSave[LINE_MAP.mate] = toSave[LINE_MAP.mate] ? 1 : 0;

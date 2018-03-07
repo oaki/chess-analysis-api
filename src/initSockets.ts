@@ -24,14 +24,15 @@ export async function initSockets(hapiServer) {
         if (json && json[0]) {
             const response: IWorkerResponse = json[0];
 
-            const workerResponse: IWorkerResponse = PositionService.beforeSaveEvaluation(response);
+            console.log('4. Server: message->', JSON.stringify(response));
+            if (sockets[response.userId]) {
 
-            console.log('4. Server: message->', JSON.stringify(workerResponse));
-            if (sockets[workerResponse.userId]) {
-                const socket = sockets[workerResponse.userId];
-                positionService.add(workerResponse.fen, positionService.mapWorkerToEvaluation(workerResponse));
+                const socket = sockets[response.userId];
+                positionService.add(response.fen, positionService.mapWorkerToEvaluation(response));
+
+                const workerResponse: IEvaluation = PositionService.beforeSaveEvaluation(response);
                 socket.emit('on_result', {
-                    fen: workerResponse.fen, data: workerResponse,
+                    fen: response.fen, data: workerResponse,
                 });
             }
         }
