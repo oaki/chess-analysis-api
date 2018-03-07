@@ -16,15 +16,16 @@ export function positionRoute() {
                 }
             },
             handler: async (request: any, h: any) => {
-                console.log(request.query['fen']);
+                const fen:string = request.query['fen'];
+                console.log(fen);
                 // const promise = await Promise.resolve();
 
-                const evaluation = await positionService.findAllMoves(request.query['fen']);
+                const evaluation = await positionService.findAllMoves(fen);
 
                 console.log('evaluation', evaluation);
                 if (evaluation === null) {
                     // sender.send(JSON.stringify(position));
-                    return 'Not yet';
+                    return 'Position is not in DB. ';
                 } else {
                     const bestVariant = positionService.getBestVariant(evaluation);
                     console.log('I have it!!!!', bestVariant);

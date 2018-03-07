@@ -3,7 +3,6 @@ import * as good from 'good';
 import * as hapiSwagger from 'hapi-swagger';
 import * as vision from 'vision';
 import * as inert from 'inert';
-import {getConfig} from './config/';
 import buildRoutes from './routes/buildRoutes';
 import {initSockets} from "./initSockets";
 import {optionsGood} from "./config/optionsGood";

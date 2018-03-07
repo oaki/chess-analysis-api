@@ -1,4 +1,5 @@
 import {getConfig} from './index';
+
 const config = getConfig();
 
 export const hapiServerOptions = {
@@ -10,6 +11,10 @@ export const hapiServerOptions = {
         stripTrailingSlash: true,
     },
     routes: {
+        cors: {
+            origin: ['*'],
+            credentials: true
+        },
         validate: {
             failAction: async (request, h, err) => {
                 throw err;
@@ -20,4 +25,5 @@ export const hapiServerOptions = {
         }
     },
     port: config.server.port,
+
 };

@@ -3,7 +3,7 @@ import {getFirstMove} from "../tools";
 import {isDev} from "../config";
 import {IEvaluation, IWorkerResponse, LINE_MAP} from "../interfaces";
 
-class PositionService {
+export class PositionService {
 
     private saveCriterium;
 
@@ -70,11 +70,12 @@ class PositionService {
         return false;
     }
 
-    add(fen, evaluation: IEvaluation) {
+    add(fen, evaluation: IWorkerResponse) {
         console.log('add evaluation', evaluation);
         if (this.checkEvaluation(evaluation)) {
             const key = PositionService.getKey(evaluation);
-            hmset(PositionService.normalizeFen(fen), key, this.beforeSaveEvaluation(evaluation));
+            const json = JSON.stringify(PositionService.beforeSaveEvaluation(evaluation));
+            hmset(PositionService.normalizeFen(fen), key, json);
 
             console.log('added to DB');
         } else {
@@ -96,14 +97,14 @@ class PositionService {
         }
     }
 
-    private beforeSaveEvaluation(evaluation: IEvaluation): string {
-        const toSave: IEvaluation = {...evaluation};
+    public static beforeSaveEvaluation(evaluation: IWorkerResponse): IWorkerResponse {
+        const toSave: IWorkerResponse = {...evaluation};
 
         toSave[LINE_MAP.nodes] = Math.round(toSave[LINE_MAP.nodes] / 1000);
         // toSave[LINE_MAP.mate] = toSave[LINE_MAP.mate] ? 1 : 0;
         toSave[LINE_MAP.pv] = toSave[LINE_MAP.pv].split(' ').join('');
 
-        return JSON.stringify(toSave);
+        return toSave;
     }
 
     async findAllMoves(fen) {

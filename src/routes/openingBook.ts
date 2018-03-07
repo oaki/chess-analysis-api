@@ -1,5 +1,6 @@
 import * as Joi from 'joi';
 import openingsService from "../services/openingsService";
+import * as Boom from "boom";
 
 export function openingBookRoute() {
     return [
@@ -16,7 +17,15 @@ export function openingBookRoute() {
                 }
             },
             handler: async (request: any, h: any) => {
-                return await openingsService.find(request.query['fen']);
+                const fen: string = request.query['fen'];
+                const result = await openingsService.find(fen);
+                console.log('result',result);
+                if (!result) {
+                    console.log('boom');
+                    return Boom.notFound('Fen in not found.');
+                }
+
+                return result;
             }
         }
 

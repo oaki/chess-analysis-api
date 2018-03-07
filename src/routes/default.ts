@@ -10,10 +10,11 @@ export function defaultRoute(server) {
             handler: async (request: any, h: any) => {
 
                 return `Default route is running
-host: ${server.info.host}
-port: ${server.info.port}
-uri: ${server.info.uri}
-address: ${server.info.address}
+<a href="/documentation">Swagger Documentation</a><br />
+host: ${server.info.host}<br />
+port: ${server.info.port}<br />
+uri: ${server.info.uri}<br />
+address: ${server.info.address}<br />
                 `;
             }
         },

@@ -1,9 +1,9 @@
-import positionService from "./services/positionService";
+import positionService, {PositionService} from "./services/positionService";
 import * as socketIo from 'socket.io';
 import * as zeromq from 'zeromq';
 import {getConfig} from './config';
 
-import {IWorkerResponse} from "./interfaces";
+import {IEvaluation, IWorkerResponse} from "./interfaces";
 import openingsService from "./services/openingsService";
 
 
@@ -22,7 +22,9 @@ export async function initSockets(hapiServer) {
         const json = JSON.parse(data.toString());
 
         if (json && json[0]) {
-            const workerResponse: IWorkerResponse = json[0];
+            const response: IWorkerResponse = json[0];
+
+            const workerResponse: IWorkerResponse = PositionService.beforeSaveEvaluation(response);
 
             console.log('4. Server: message->', JSON.stringify(workerResponse));
             if (sockets[workerResponse.userId]) {
@@ -54,7 +56,7 @@ export async function initSockets(hapiServer) {
             //try to find in book
             const opening = await openingsService.find(position.fen);
             if (opening) {
-                console.log('is Opening',opening);
+                console.log('is Opening', opening);
                 socket.emit('on_result', {
                     fen: position.fen, data: opening
                 });

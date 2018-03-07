@@ -11,6 +11,7 @@ export class ImportsController {
         const filename = name.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
         const path = `${getBasePath()}/src/games/${filename}.pgn`;
 
+        // if(fs.stat().isFile)
         return fs.readFileSync(path).toString();
     }
 
