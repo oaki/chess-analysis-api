@@ -7,7 +7,7 @@ if (isDev()) {
     console.log(config);
 
     // const parsePgn = new ParsePgn(__dirname + '/games/test.pgn');
-    // const parsePgn = new ParsePgn(__dirname + '/games/asmFish_051117_64-bit_4cpu.pgn');
+    // const parsePgn = new ParsePgn(__dirname + '/games/asm_fish_051117_64-bit_4cpu.pgn');
     // const fen = 'rnbqkbnr/pppp1ppp/8/4p3/8/8/PPPPPPPP/RNBQKBNR w KQkq';
 
     // parsePgn.parse();

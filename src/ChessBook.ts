@@ -15,7 +15,7 @@ class ChessBook {
 
   constructor() {
 
-    /*const fileContent = fs.readFileSync(__dirname + '/asmFish_051117_64-bit_4cpu.pgn').toString();
+    /*const fileContent = fs.readFileSync(__dirname + '/asm_fish_051117_64-bit_4cpu.pgn').toString();
     const parts = fileContent.split('[Event');
 
     parts.forEach((part) => {
@@ -49,7 +49,7 @@ class ChessBook {
     const book = new ChessTools();
     // console.log('OpeningBook', OpeningBook);
     // const book = new OpeningBook();
-    // book.load_stream(fs.createReadStream(__dirname + '/asmFish_051117_64-bit_4cpu.pgn'));
+    // book.load_stream(fs.createReadStream(__dirname + '/asm_fish_051117_64-bit_4cpu.pgn'));
     // this.book.load_book(fs.createReadStream(__dirname + '/gm2001.bin'));
     book.load_book(fs.createReadStream(__dirname + '/books/book.bin'));
     // book.load_book(fs.createReadStream(__dirname + '/books/gm2001.bin'));
