@@ -5,8 +5,18 @@ import {getConfig} from './config';
 
 import {IEvaluation, IWorkerResponse} from "./interfaces";
 import openingsService from "./services/openingsService";
+import {countPieces} from "./tools";
 
 
+/**
+ * END GAME API syzygy
+ * https://syzygy-tables.info/api/v2?fen=4k3/8/8/8/8/8/8/4K3%20w%20-%20-%200%201
+
+ alternative
+ http://www.shredderchess.com/online-chess/online-databases/endgame-database/
+ http://www.shredderchess.com/online/playshredder/fetch.php?obid=et30.889997529737792&reqid=req0.357818294665617&hook=null&action=egtb&fen=1r6/1B6/8/8/2K5/4k3/P7/8%20egtb&fen=1r6/1B6/8/8/2K5/4k3/P7/8%20w%20-%20-%200%201
+
+ */
 export async function initSockets(hapiServer) {
 
     // Connect ZeroMQ to send messages on
@@ -62,6 +72,15 @@ export async function initSockets(hapiServer) {
                     fen: position.fen, data: opening
                 });
             } else {
+
+
+                //check how many pieces
+                // if there is only 7 and less then try to load from end-game database
+
+                if(countPieces(data.FEN)<=7){
+
+                }
+
                 const evaluation = await positionService.findAllMoves(data.FEN);
 
                 if (evaluation === null) {

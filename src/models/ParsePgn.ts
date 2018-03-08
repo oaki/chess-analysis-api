@@ -133,7 +133,8 @@ export class ParsePgn {
 
     private checkResultAndWhoIsOnMove(isWhite, gameResult) {
 
-        if (gameResult === '1/2-1/2') {
+        return true; // save all imported moves
+        /*if (gameResult === '1/2-1/2') {
             return true;
         }
 
@@ -145,7 +146,7 @@ export class ParsePgn {
             return true;
         }
 
-        return false;
+        return false;*/
     }
 
 
