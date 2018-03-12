@@ -71,13 +71,14 @@ export class PositionService {
     }
 
     add(fen, evaluation: IEvaluation) {
-        console.log('add evaluation', evaluation);
+
         if (this.checkEvaluation(evaluation)) {
             const key = PositionService.getKey(evaluation);
             const json = JSON.stringify(PositionService.beforeSaveEvaluation(evaluation));
+
             hmset(PositionService.normalizeFen(fen), key, json);
 
-            console.log('added to DB');
+            console.log('added to DB', fen, json);
         } else {
 
             console.log('No reason to save this low analyse', evaluation);

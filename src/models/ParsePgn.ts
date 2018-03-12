@@ -1,5 +1,7 @@
-import positionService from "../services/positionService";
+import positionService, {PositionService} from "../services/positionService";
 import {IEvaluation, IWorkerResponse, LINE_MAP} from "../interfaces";
+import {number} from "joi";
+import {exists, hgetall, hmset} from "../services/redisConnectionService";
 
 const chessJs = require('chess.js');
 const pgnParser = require('pgn-parser');
@@ -28,16 +30,18 @@ interface IGameResult {
 }
 
 export class ParsePgn {
-    private fileContent: string;
+    private content: string;
     private gamesSeparator = '[Event';
+    private beforeSaveCondition;
 
-    constructor(fileContent: string, gamesSeparator: string = '[Event') {
-        this.fileContent = fileContent;
+    constructor(content: string, beforeSaveCondition: (args: any) => boolean, gamesSeparator: string = '[Event') {
+        this.content = content;
         this.gamesSeparator = gamesSeparator;
+        this.beforeSaveCondition = beforeSaveCondition;
     }
 
-    parseFileContent() {
-        const games = this.fileContent.split(this.gamesSeparator);
+    async parseContent() {
+        const games = this.content.split(this.gamesSeparator);
         const output: any[] = [];
 
         games.forEach(async (game, i) => {
@@ -47,7 +51,9 @@ export class ParsePgn {
                 this.saveGame(parsedGame);
             }
         });
-    }
+
+        await new Promise(res => setTimeout(res, 100));
+    };
 
 
     /**
@@ -58,7 +64,6 @@ export class ParsePgn {
      * nodes are approximately 1000000000 :)
      */
     private mappingFromParserToEvaluation(position: IPosition): IEvaluation {
-        console.log('mappingFromParserToEvaluation', position);
 
         return {
             [LINE_MAP.score]: position.score,
@@ -73,7 +78,14 @@ export class ParsePgn {
         parsedGame.forEach((position: IPosition) => {
             const evaluation = this.mappingFromParserToEvaluation(position);
 
-            positionService.add(position.previousFen, evaluation);
+            // const key = PositionService.getKey(evaluation);
+
+            hgetall(PositionService.normalizeFen(position.previousFen)).then((res) => {
+                console.log('beforeSave->isExist', res);
+                if (res === null) {
+                    positionService.add(position.previousFen, evaluation);
+                }
+            });
         })
     }
 
@@ -81,12 +93,26 @@ export class ParsePgn {
         const pgnParser: any = await this.initPgnParser(pgn);
         const parsedGame: IPosition[] = [];
         const [game] = pgnParser.parse(pgn);
+
+        console.log('Parser: -> game ->', game);
         const gameResult: IGameResult = game.result;
         const moves = this.getMoves(game.moves);
+        const eloWhite = game.headers['WhiteElo'];
+        const eloBlack = game.headers['BlackElo'];
 
+        console.log('ELO', eloWhite, eloBlack);
         moves.forEach((move, index) => {
             const isWhite = move.lastMove.color === 'w' ? 1 : 0;
-            if (this.checkResultAndWhoIsOnMove(isWhite, gameResult)) {
+
+            const info = {
+                onMove: move.lastMove.color,
+                eloWhite,
+                eloBlack
+            };
+
+            console.log('info', info);
+
+            if (this.beforeSaveCondition(info) && this.checkResultAndWhoIsOnMove(isWhite, gameResult)) {
                 const pv = this.getPv(moves, index, move.depth);
                 parsedGame.push({...move, pv, import: 1});
             }
@@ -96,11 +122,12 @@ export class ParsePgn {
     }
 
     private async initPgnParser(pgn: string) {
-        return await new Promise((resolve, err) => {
-            pgnParser((err, parser) => {
-                resolve(parser);
+        return await
+            new Promise((resolve, err) => {
+                pgnParser((err, parser) => {
+                    resolve(parser);
+                });
             });
-        });
     }
 
 
@@ -164,7 +191,7 @@ export class ParsePgn {
 
     getInfo(comment: string): IInfo {
 
-        const part1: string[] = comment.split(' ');
+        const part1: string[] = comment.split(' '); // (Ra3) +0.28/22 119s || +0.30/22 56s
         const scoreDepth = part1[0][0] === '(' ? part1[1].split('/') : part1[0].split('/');
 
         return {
