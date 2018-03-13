@@ -52,7 +52,7 @@ export class ParsePgn {
             }
         });
 
-        await new Promise(res => setTimeout(res, 100));
+        await new Promise(res => setTimeout(res, 2));
     };
 
 
@@ -94,11 +94,16 @@ export class ParsePgn {
         const parsedGame: IPosition[] = [];
         const [game] = pgnParser.parse(pgn);
 
-        console.log('Parser: -> game ->', game);
+        // console.log('Parser: -> game ->', game);
         const gameResult: IGameResult = game.result;
         const moves = this.getMoves(game.moves);
         const eloWhite = game.headers['WhiteElo'];
         const eloBlack = game.headers['BlackElo'];
+
+        if (Number(eloWhite) < 3200 && Number(eloBlack) < 3200) {
+            console.log('Elo is less than 3200');
+            return [];
+        }
 
         console.log('ELO', eloWhite, eloBlack);
         moves.forEach((move, index) => {
