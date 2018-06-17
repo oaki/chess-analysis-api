@@ -30,18 +30,14 @@ interface IGameResult {
 }
 
 export class ParsePgn {
-    private content: string;
-    private gamesSeparator = '[Event';
-    private beforeSaveCondition;
+    private gamesSeparator = '[Event ';
 
-    constructor(content: string, beforeSaveCondition: (args: any) => boolean, gamesSeparator: string = '[Event') {
-        this.content = content;
+    constructor(gamesSeparator: string = '[Event') {
         this.gamesSeparator = gamesSeparator;
-        this.beforeSaveCondition = beforeSaveCondition;
     }
 
-    async parseContent() {
-        const games = this.content.split(this.gamesSeparator);
+    async parseContent(content) {
+        const games = content.split(this.gamesSeparator);
         const output: any[] = [];
 
         games.forEach(async (game, i) => {
@@ -53,6 +49,132 @@ export class ParsePgn {
         });
 
         await new Promise(res => setTimeout(res, 2));
+    };
+
+    parseMeta(str: string) {
+
+        let newStr = ParsePgn.replaceAll(str, '{', '');
+        newStr = ParsePgn.replaceAll(newStr, '}', '');
+
+        const vars = newStr.split(', ');
+
+
+        const obj: any = {};
+        vars.forEach((v) => {
+            const h = v.split('=');
+            obj[h[0]] = h[1]
+        });
+
+        return obj;
+    }
+
+    splitHeaderAndContent(game: string) {
+        const tmp = game.split(`\n\n`);
+
+        return {
+            header: tmp[0],
+            content: tmp[1],
+        }
+    }
+
+    parseHeader(header: string) {
+        const eventMatch = header.match(/\[Event \"([a-zA-Z 0-9\.\-\,\:].*)\"\]/);
+        const eventDateMatch = header.match(/\[Date \"([a-zA-Z 0-9].*)\"\]/);
+        const whiteMatch = header.match(/\[White \"([a-zA-Z 0-9].*)\"\]/);
+        const blackMatch = header.match(/\[Black \"([a-zA-Z 0-9].*)\"\]/);
+        const openingMatch = header.match(/\[Opening \"([a-zA-Z 0-9\.\-\,\:].*)\"\]/);
+        const eloWhiteMatch = header.match(/\[WhiteElo \"([0-9].*)\"/);
+        const eloBlackMatch = header.match(/\[BlackElo \"([0-9].*)\"/);
+        const resultMatch = header.match(/\[Result \"([0-9/-].*)\"/);
+        const meta = {
+            whiteElo: '',
+            blackElo: '',
+            result: '',
+            event: '',
+            eventDate: '',
+            whiteName: '',
+            blackName: '',
+            opening: '',
+        };
+
+        if (eventMatch) {
+            meta.event = eventMatch[1];
+        }
+        if (openingMatch) {
+            meta.opening = openingMatch[1];
+        }
+
+        if (eventDateMatch) {
+            meta.eventDate = eventDateMatch[1];
+        }
+
+        if (whiteMatch) {
+            meta.whiteName = whiteMatch[1];
+        }
+
+        if (blackMatch) {
+            meta.blackName = blackMatch[1];
+        }
+
+        if (eloWhiteMatch) {
+            meta.whiteElo = eloWhiteMatch[1];
+        }
+
+        if (eloBlackMatch) {
+            meta.blackElo = eloBlackMatch[1];
+        }
+
+        if (resultMatch) {
+            meta.result = resultMatch[1];
+        }
+
+        return meta;
+    }
+
+    parsePgnWithJson(game: string) {
+        const obj = this.splitHeaderAndContent(game);
+        // console.log('tmp', obj);
+        let pgn = obj.content.split(/[\n\r\r\t]+/g).join(' ');
+        // console.log('pgn', pgn);
+        // pgn = ParsePgn.replaceAll(pgn, '\n',
+
+        pgn = ParsePgn.replaceAll(pgn, '}', '}\n');
+        const meta = this.parseHeader(obj.header);
+
+        const lines = pgn.split('\n');
+        console.log('lines', lines);
+        let startParse = false;
+        const moves = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (startParse) {
+                console.log('line', line);
+                const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
+                // const moveMatch = line.match(/^([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
+                console.log('moveMatch', moveMatch);
+
+                if (moveMatch && moveMatch[2] && moveMatch[3]) {
+                    moves.push({
+                        move: moveMatch[2],
+                        meta: this.parseMeta(moveMatch[3])
+                    })
+                }
+            }
+
+            if (line.indexOf(']') === -1) {
+                startParse = true;
+            }
+        }
+
+        console.log('meta', meta);
+        return {moves, meta};
+    }
+
+    parseContentNew(content) {
+        const games = content.split(this.gamesSeparator);
+
+        return games;
     };
 
 
@@ -100,8 +222,8 @@ export class ParsePgn {
         const eloWhite = game.headers['WhiteElo'];
         const eloBlack = game.headers['BlackElo'];
 
-        if (Number(eloWhite) < 3200 && Number(eloBlack) < 3200) {
-            console.log('Elo is less than 3200');
+        if (Number(eloWhite) < 3000 && Number(eloBlack) < 3000) {
+            console.log('Elo is less than 3000');
             return [];
         }
 
@@ -117,10 +239,9 @@ export class ParsePgn {
 
             console.log('info', info);
 
-            if (this.beforeSaveCondition(info) && this.checkResultAndWhoIsOnMove(isWhite, gameResult)) {
-                const pv = this.getPv(moves, index, move.depth);
-                parsedGame.push({...move, pv, import: 1});
-            }
+            const pv = this.getPv(moves, index, move.depth);
+            parsedGame.push({...move, pv, import: 1});
+
         });
 
         return parsedGame;
@@ -203,6 +324,10 @@ export class ParsePgn {
             score: scoreDepth[0],
             depth: Number(scoreDepth[1]),
         };
+    }
+
+    public static replaceAll(str, searchValue, replaceValue) {
+        return str.replace(new RegExp(searchValue.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'g'), replaceValue);
     }
 
 }

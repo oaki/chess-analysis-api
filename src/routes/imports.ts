@@ -20,7 +20,9 @@ export function importsRoute() {
             },
 
             handler: async (request: any, h: any) => {
-                importController.import(request.params['name']);
+                importController.loadFile(request.params['name'], async (game)=>{
+                    await importController.importToMysql(game);
+                });
                 try {
 
                 } catch (e) {

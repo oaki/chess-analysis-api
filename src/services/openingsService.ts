@@ -11,7 +11,7 @@ class OpeningService {
     private book: any;
     private isLoaded: boolean = false;
 
-    constructor(path = '../books/book.bin') {
+    constructor(path = '../books/gm2001.bin') {
         this.path = path;
         this.book = new Polyglot();
         this.init();
@@ -52,5 +52,6 @@ class OpeningService {
     }
 
 }
+
 
 export default new OpeningService();

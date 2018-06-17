@@ -1,3 +1,4 @@
+require('dotenv').config();
 import {getConfig} from './config/';
 import {initServer} from "./bootstrap";
 

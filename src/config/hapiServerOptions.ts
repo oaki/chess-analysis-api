@@ -1,7 +1,3 @@
-import {getConfig} from './index';
-
-const config = getConfig();
-
 export const hapiServerOptions = {
     debug: {
         request: '*',
@@ -11,10 +7,7 @@ export const hapiServerOptions = {
         stripTrailingSlash: true,
     },
     routes: {
-        cors: {
-            origin: ['*'],
-            credentials: true
-        },
+        cors: true,
         validate: {
             failAction: async (request, h, err) => {
                 throw err;
@@ -24,6 +17,6 @@ export const hapiServerOptions = {
             relativeTo: __dirname + '/public'
         }
     },
-    port: config.server.port,
+    port: process.env.SERVER_PORT,
 
 };
