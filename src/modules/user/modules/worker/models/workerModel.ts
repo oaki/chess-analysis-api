@@ -7,13 +7,18 @@ module.exports = function WorkerModel(sequelize: Sequelize, dataTypes: DataTypes
             primaryKey: true,
             autoIncrement: true,
         },
-        user_id: {type: Sequelize.INTEGER},
+        user_id: {
+            type: Sequelize.INTEGER
+        },
         uuid: {
             type: Sequelize.STRING,
             unique: true
         },
         name: {
             type: Sequelize.STRING,
+        },
+        score: {
+            type: Sequelize.FLOAT,
         },
     });
 };

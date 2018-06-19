@@ -1,9 +1,13 @@
 import {Polyglot} from '../libs/polyglot';
 import * as fs from 'fs';
 
+const Chess = require('chess.js').Chess;
+console.log('chess', Chess);
+
 interface OpeningResponse {
     move: string;
     weight: string;
+    fen: string;
 }
 
 class OpeningService {
@@ -35,16 +39,25 @@ class OpeningService {
             await this.init();
         }
 
-        return this.prepareVariants(this.book.find(fen));
+
+        return this.prepareVariants(this.book.find(fen), fen);
     }
 
-    private prepareVariants(polyglotEntries: PolyglotEntry[]): OpeningResponse[] {
-        console.log('polyglotEntries', polyglotEntries);
+    private prepareVariants(polyglotEntries: PolyglotEntry[], fen: string): OpeningResponse[] {
+
         if (!polyglotEntries) {
             return null;
         }
         return polyglotEntries.map((polyglotEntry: PolyglotEntry) => {
+            const from = polyglotEntry.algebraic_move.substr(0, 2);
+            const to = polyglotEntry.algebraic_move.substr(2, 4);
+
+            const chessInstance = new Chess(fen);
+
+            chessInstance.move({from, to});
+
             return {
+                fen: chessInstance.fen(),
                 move: polyglotEntry.algebraic_move,
                 weight: polyglotEntry.weight,
             }

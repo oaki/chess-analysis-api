@@ -1,5 +1,5 @@
 "use strict";
-const {peiceTypes, Random64, RandomPiece, RandomCastle, RandomEnPassant, RandomTurn, PromotionPieces, encode_move, decode_move} = require("./encoding.js")
+const {encode_move, decode_move} = require("./encoding.js")
 const Uint64BE = require("int64-buffer").Uint64BE;
 
 class PolyglotEntry {

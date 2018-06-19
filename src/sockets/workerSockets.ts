@@ -1,7 +1,11 @@
-import {countPieces} from "../tools";
-import openingsService from "../services/openingsService";
-import positionService from "../services/positionService";
+export default function (workerSocket, usersIo, workerIo) {
+    workerIo.push(workerSocket);
+    console.log('workerSocket.id added to list', workerSocket.id);
 
-export default function (userSocket, workers) {
+    workerSocket.on('workerEvaluation', (data) => {
+        console.log('workerEvaluation', data);
+
+    });
+
 
 }

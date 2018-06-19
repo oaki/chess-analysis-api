@@ -6,6 +6,20 @@ const historyController = new HistoryController();
 export function historyRoute() {
     return [
         {
+            method: 'POST',
+            path: '/user/history',
+            config: {
+                description: 'add new game',
+                tags: ['api', 'history'], // section in documentation
+                auth: 'jwt',
+            },
+            handler: async (request: any) => {
+                return await historyController.addNewGame({
+                    userId: request.auth.credentials.user_id,
+                });
+            }
+        },
+        {
             method: 'GET',
             path: '/user/history',
             config: {

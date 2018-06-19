@@ -42,7 +42,7 @@ class Database {
             ImportGame: this._sequelize.import<ImportGameInstance, ImportGameAttributes>('./importGameModel'),
             User: this._sequelize.import<UserInstance, UserAttributes>('./../modules/user/userModel'),
             Game: this._sequelize.import<GameInstance, GameAttributes>('./../modules/user/modules/history/models/gameModel'),
-            Worker: this._sequelize.import<WorkerInstance, WorkerAttributes>('./../modules/worker/workerModel'),
+            Worker: this._sequelize.import<WorkerInstance, WorkerAttributes>('./../modules/user/modules/worker/models/workerModel'),
         };
 
         this._models.User.hasMany(this._models.Game);

@@ -29,7 +29,6 @@ export class AuthController {
                 }
             });
 
-            console.log('userInstance1', userInstance);
             if (!userInstance) {
                 //register
                 userInstance = await models.User.create({
@@ -44,7 +43,6 @@ export class AuthController {
                 });
             }
 
-            console.log('userInstance2', userInstance);
             const token = JWT.sign({
                 user_id: await userInstance.get('id')
             }, config.jwt.key);

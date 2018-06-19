@@ -5,6 +5,7 @@ import {countPieces} from "../tools";
 export default function (userSocket, usersIo, workerIo) {
     usersIo[userSocket.id] = userSocket;
     console.log('userSocket.id added to list', userSocket.id);
+
     userSocket.on('setNewPosition', async (data) => {
         console.log('2. server->socket: setNewPosition', data);
         const position = {
@@ -17,11 +18,11 @@ export default function (userSocket, usersIo, workerIo) {
         const opening = await openingsService.find(position.fen);
         if (opening) {
             console.log('is Opening', opening);
-            userSocket.emit('on_result', {
+            userSocket.emit('openingMoves', {
                 fen: position.fen, data: opening
             });
         } else {
-            //check how many pieces
+            // @todo check how many pieces
             // if there is only 7 and less then try to load from end-game database
 
             if (countPieces(data.FEN) <= 7) {
@@ -31,17 +32,34 @@ export default function (userSocket, usersIo, workerIo) {
             const evaluation = await positionService.findAllMoves(data.FEN);
             console.log('evaluation', evaluation);
             console.log('workerIo', workerIo);
-            //
-            // if (evaluation === null) {
-            //     sender.send(JSON.stringify(position));
-            // } else {
-            //     const bestVariant = positionService.getBestVariant(evaluation);
-            //     console.log('I have it!!!!', bestVariant);
-            //
-            //     socket.emit('on_result', {
-            //         fen: data.FEN, data: JSON.parse(bestVariant)
-            //     });
-            // }
+            if (evaluation === null) {
+                console.log('Send the position to worker for evaluation.');
+
+
+                // @todo find BEST worker from you
+                const w = workerIo.find((socket) => {
+                    return socket.worker.user_id === userSocket.handshake.user.user_id;
+                });
+                if (w) {
+                    console.log('setPositionToWorker', data);
+                    w.emit('setPositionToWorker', data);
+                    w.on('workerEvaluation', (data)=>{
+                        userSocket.emit('workerEvaluation', data);
+                    });
+                }else{
+                    console.error('No worker available',userSocket.handshake.user.user_id, workerIo);
+                }
+
+                // userSocket.emit('evaluation', JSON.stringify(position));
+            } else {
+                const bestVariant = positionService.getBestVariant(evaluation);
+                console.log('I have it!!!!', bestVariant);
+
+                userSocket.emit('on_result', {
+                    fen: data.FEN,
+                    data: JSON.parse(bestVariant)
+                });
+            }
         }
     });
 }

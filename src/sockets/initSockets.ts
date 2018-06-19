@@ -56,10 +56,10 @@ export async function initSockets(hapiServer) {
 
     io.use(async (socket, next) => {
 
-        console.log('socket.handshake.query', socket.handshake.query);
         if (socket.handshake.query.type === USER) {
             const jwtToken = socket.handshake.query.token;
-            socket.handshake.user = JWT.decode(jwtToken, config.jwt.key);;
+            socket.handshake.user = JWT.decode(jwtToken, config.jwt.key);
+
             next();
         }
 
@@ -67,10 +67,15 @@ export async function initSockets(hapiServer) {
             console.log('It is worker');
             if (socket.handshake.query && socket.handshake.query.token) {
                 const worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
-                console.log(WORKER, worker);
+
                 if (worker) {
-                    workersIo.push(worker);
+                    console.log('Add worker info to the socket', worker);
+                    socket.worker = worker;
+                    next();
+                } else {
+                    next(new Error('Worker is not registered in our database.'));
                 }
+
             } else {
                 next(new Error('Authentication error'));
             }
@@ -79,14 +84,13 @@ export async function initSockets(hapiServer) {
     })
 
     io.on('connection', (socket) => {
-        console.log('A user connected', socket.id, socket.handshake);
 
         if (socket.handshake.query.type === USER) {
             userSockets(socket, usersIo, workersIo);
         }
 
         if (socket.handshake.query.type === WORKER) {
-            workerSockets(socket, workersIo);
+            workerSockets(socket, usersIo, workersIo);
         }
 
         socket.on('disconnect', () => {

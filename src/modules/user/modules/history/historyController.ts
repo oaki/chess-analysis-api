@@ -35,6 +35,16 @@ export class HistoryController {
 
     }
 
+    async addNewGame(props: IAddNewGameProps) {
+        const game = await models.Game.create({
+            user_id: props.userId,
+            moves: JSON.stringify([])
+        });
+
+        return game;
+
+    }
+
     async updateGame(props: IUpdateGameProps) {
 
         let game = await models.Game.findOne({
@@ -64,6 +74,10 @@ interface IGetProps {
 }
 
 interface IGetLastGameProps {
+    userId: number;
+}
+
+interface IAddNewGameProps {
     userId: number;
 }
 

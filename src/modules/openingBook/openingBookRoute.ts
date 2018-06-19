@@ -1,6 +1,7 @@
 import * as Joi from 'joi';
-import openingsService from "../services/openingsService";
-import * as Boom from "boom";
+import {OpeningBookController} from "./openingBookController";
+
+const openingBookController = new OpeningBookController();
 
 export function openingBookRoute() {
     return [
@@ -16,16 +17,9 @@ export function openingBookRoute() {
                     }
                 }
             },
-            handler: async (request: any, h: any) => {
+            handler: async (request: any) => {
                 const fen: string = request.query['fen'];
-                const result = await openingsService.find(fen);
-                console.log('result',result);
-                if (!result) {
-                    console.log('boom');
-                    return Boom.notFound('Fen in not found.');
-                }
-
-                return result;
+                return openingBookController.get({fen});
             }
         }
 

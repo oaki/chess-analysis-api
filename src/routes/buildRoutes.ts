@@ -1,6 +1,6 @@
 import {filesRoute} from "./files";
 import {positionRoute} from "./position";
-import {openingBookRoute} from "./openingBook";
+import {openingBookRoute} from "../modules/openingBook/openingBookRoute";
 import {importsRoute} from "./imports";
 import {defaultRoute} from "./default";
 import {historyRoute} from "../modules/user/modules/history/historyRouter";
