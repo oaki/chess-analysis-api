@@ -1,5 +1,3 @@
-import {isDev} from "./process.env";
-
 const fs = require('fs');
 const ChessTools = require('./libs/polyglot');
 // import ChessTools from './libs/polyglot';
@@ -51,11 +49,11 @@ class ChessBook {
         // this.book.load_book(fs.createReadStream(__dirname + '/gm2001.bin'));
 
 
-        if (isDev()) {
-            // book.load_book(fs.createReadStream(__dirname + '/books/gm2001.bin'));
-        } else {
-            // book.load_book(fs.createReadStream(__dirname + '/books/book.bin'));
-        }
+        // if (isDev()) {
+        //     // book.load_book(fs.createReadStream(__dirname + '/books/gm2001.bin'));
+        // } else {
+        //     // book.load_book(fs.createReadStream(__dirname + '/books/book.bin'));
+        // }
 
         // book.load_book(fs.createReadStream(__dirname + '/books/gm2001.bin'));
         book.on('loaded', () => {
