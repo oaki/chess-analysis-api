@@ -1,5 +1,5 @@
 import * as Joi from "joi";
-import {ImportsController} from "../controllers/importsController";
+import {ImportsController} from "./importController";
 import * as Boom from "boom";
 
 const importController = new ImportsController();
@@ -19,8 +19,8 @@ export function importsRoute() {
                 },
             },
 
-            handler: async (request: any, h: any) => {
-                importController.loadFile(request.params['name'], async (game)=>{
+            handler: async (request: any) => {
+                importController.loadFile(request.params['name'], async (game) => {
                     await importController.importToMysql(game);
                 });
                 try {
@@ -36,7 +36,5 @@ export function importsRoute() {
 
             }
         },
-
-
     ];
 }

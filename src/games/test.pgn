@@ -1,23 +1,81 @@
 [Event "CCRL 40/4"]
 [Site "CCRL"]
-[Date "2017.11.08"]
-[Round "399.6.6"]
-[White "SugaR XPrO 1.2 64-bit 4CPU"]
-[Black "Fire 6.1 64-bit 4CPU"]
-[Result "1-0"]
-[ECO "C11"]
-[Opening "French defence"]
-[PlyCount "128"]
-[WhiteElo "3534"]
-[BlackElo "3352"]
+[Date "2018.01.29"]
+[Round "411.11.372"]
+[White "Stockfish 130118 64-bit 4CPU"]
+[Black "Komodo 11.2 64-bit 4CPU"]
+[Result "1/2-1/2"]
+[ECO "B33"]
+[Opening "Sicilian"]
+[Variation "Pelikan, Chelyabinsk variation"]
+[PlyCount "148"]
+[WhiteElo "3544"]
+[BlackElo "3513"]
 
-1. e4 e6 2. d4 d5 3. Nc3 Nf6 4. exd5 exd5 5. Nf3 a6 6. Bd3 Bd6 7. O-O O-O 8.
-Bg5 Be6 9. Qd2 h6 10. Bxh6 Re8 11. Qg5 Bf8 12. Qg3 Nh5 13. Qe5 Nf6 14. Bg5 Bd6
-15. Qe3 Nbd7 16. Ne5 Be7 17. Nxd7 Qxd7 18. Qf4 b6 19. Qh4 c5 20. dxc5 bxc5 21.
-Rad1 Rab8 22. Bxf6 Bxf6 23. Qh7+ Kf8 24. Bc4 Bd4 25. Bb3 Bxc3 26. bxc3 f5 27.
-Rd3 Qf7 28. Ba4 Re7 29. f4 c4 30. Rg3 a5 31. a3 Qg8 32. Qh5 Rb6 33. Re3 g6 34.
-Qh4 Qg7 35. Rfe1 Kf7 36. Re5 Qf8 37. Kf1 Rd6 38. Bb5 Qg7 39. a4 Qf6 40. Qh3 Qg7
-41. Qe3 Qh8 42. Qd4 Qxh2 43. R1e3 Qh1+ 44. Kf2 Qh4+ 45. Kg1 Qf6 46. Qc5 Rd8 47.
-Qb6 Rg8 48. Bc6 Rf8 49. Rxe6 Rxe6 50. Bxd5 Re8 51. Qd6 Qd8 52. Bxe6+ Kg7 53.
-Qe5+ Qf6 54. Qc7+ Kf8 55. Qd6+ Kg7 56. Rh3 Rxe6 57. Qb8 Rc6 58. Qa8 Rb6 59.
-Qh8+ Kf7 60. Rh7+ Ke6 61. Qg8+ Kd6 62. Qxc4 Rb1+ 63. Kf2 Rb6 64. Qc8 Kd5 1-0
+1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 Nc6 5. Nc3 Nf6 6. Ndb5 d6 7. Bf4 e5 8.
+Bg5 a6 9. Na3 b5 10. Bxf6 gxf6 11. Nd5 Bg7 12. Bd3 Be6 13. Ne3 Bh6 14. O-O Bxe3
+15. fxe3 Rg8 16. Qe1 Rg6 17. Nb1 Qb6 18. Nc3 Nb4 19. Rc1 Rc8 20. Kh1 Kf8 21. a3
+Nxd3 22. cxd3 b4 23. axb4 Qxb4 24. Qe2 Rb8 25. Rf2 Qa5 26. h3 Kg7 27. g4 Rb3
+28. Kh2 Rh6 29. Rg2 Qb6 30. Ra1 a5 31. Qd2 Rb4 32. Ra3 Rg6 33. Ra1 Qd8 34. Rf2
+Rh6 35. Rg1 Rb3 36. Rgg2 Qa8 37. Rf1 a4 38. Ra1 Qc6 39. Nxa4 Qa6 40. Qe1 Qxd3
+41. Nc3 Qc4 42. Qd2 Qc6 43. Ra7 Rg6 44. Rf2 Rg5 45. Rg2 Rb8 46. Qe2 Qc5 47. Ra1
+d5 48. exd5 Bxd5 49. Nxd5 Qxd5 50. e4 Qb5 51. Qc2 Qb6 52. Ra3 Rd8 53. Rb3 Qd4
+54. h4 Rg6 55. Qe2 h6 56. Qf3 Rd6 57. Kh3 Qc4 58. Rc3 Qa6 59. Ra3 Qc6 60. Rc3
+Qd7 61. Qf5 Qb7 62. Rf2 Qb6 63. Rg3 Qc6 64. Rgf3 Qc1 65. Rh2 Rb6 66. Rc3 Qg1
+67. Rf2 Qh1+ 68. Rh2 Qe1 69. Rf3 Rd6 70. Rhf2 Qh1+ 71. Rh2 Qb1 72. Rhf2 Qh1+
+73. Rh2 Qb1 74. Rhf2 Qh1+ 1/2-1/2
+
+
+[Event "CCRL 40/40"]
+[Site "CCRL"]
+[Date "2018.01.27"]
+[Round "596.1.32"]
+[White "asmFish 051117 64-bit 4CPU"]
+[Black "Fizbo 2 64-bit 4CPU"]
+[Result "1/2-1/2"]
+[ECO "E15"]
+[Opening "Queen's Indian"]
+[Variation "4.g3"]
+[PlyCount "115"]
+[WhiteElo "3417"]
+[BlackElo "3286"]
+
+1. Nf3 {+0.00/1 0s} Nf6 {+0.00/1 0s} 2. c4 {+0.00/1 0s} b6 {+0.00/1 0s} 3. d4
+{+0.00/1 0s} e6 {+0.00/1 0s} 4. g3 {+0.00/1 0s} Bb4+ {+0.00/1 0s} 5. Bd2
+{+0.00/1 0s} Bxd2+ {+0.00/1 0s} 6. Qxd2 {+0.00/1 0s} Ba6 {+0.00/1 0s} 7. Qc2
+{+0.00/1 0s} c5 {+0.00/1 0s} 8. Bg2 {+0.00/1 0s} Bb7 {+0.00/1 0s} 9. dxc5
+{+0.00/1 0s} bxc5 {+0.00/1 0s} 10. O-O {+0.00/1 0s} O-O {+0.00/1 0s} 11. Rd1
+{+0.00/1 0s} Nc6 {+0.00/1 0s} 12. Nc3 {+0.16/28 54s} Qe7 {(Qe7) -0.10/19 38s}
+13. Nb5 {(b3) +0.08/31 137s} d5 {(Ne8) -0.15/23 39s} 14. cxd5 {(cxd5) +0.30/29
+29s} exd5 {(exd5) -0.15/24 70s} 15. Rac1 {(Rac1) +0.20/31 75s} a6 {(a6)
+-0.08/24 115s} 16. Nc3 {(Nc3) +0.04/32 84s} Rac8 {(Rac8) -0.07/23 75s} 17. e3
+{(Qd2) +0.21/34 138s} Rfd8 {(Rfd8) -0.11/22 47s} 18. Qe2 {(Qe2) +0.22/32 45s}
+c4 {(a5) -0.10/21 103s} 19. b3 {(Rd2) +0.31/30 82s} h6 {(h6) -0.15/22 67s} 20.
+Nd4 {(Qb2) +0.21/31 70s} Ne5 {(Ne5) -0.08/22 110s} 21. Rb1 {(Rb1) +0.24/29 33s}
+Ba8 {(cxb3) -0.10/21 48s} 22. Na4 {(h3) +0.08/30 73s} Rb8 {(Rb8) +0.01/23 38s}
+23. Nb2 {(Qc2) +0.12/28 84s} Qa3 {(Qa3) -0.24/22 46s} 24. Rbc1 {(Rbc1) +0.00/32
+75s} Nfd7 {(a5) -0.10/22 56s} 25. f4 {(Qd2) +0.32/28 24s} Ng6 {(Nc6) -0.10/23
+72s} 26. Na4 {(Na4) +0.17/29 72s} Ne7 {(Nf6) -0.18/24 187s} 27. Rb1 {(Rc3)
++0.17/29 67s} Nf6 {(cxb3) +0.19/22 29s} 28. e4 {(Qb2) +0.07/28 20s} cxb3 {(Nc6)
++0.19/23 49s} 29. axb3 {(axb3) +0.00/32 31s} Nc6 {(Nc6) +0.01/25 31s} 30. Nc2
+{(Nc2) +0.00/36 48s} Qe7 {(Qe7) +0.01/26 35s} 31. e5 {(e5) +0.00/38 50s} d4
+{(Ne4) -0.11/25 42s} 32. Qxa6 {(Qxa6) +0.08/31 48s} Nd5 {(Nd5) +0.01/25 36s}
+33. Nxd4 {(Nxd4) +0.00/34 30s} Nxd4 {(Nxd4) +0.01/25 36s} 34. Rxd4 {(Rxd4)
++0.00/37 32s} Nb4 {(Nb4) +0.01/26 44s} 35. Rxd8+ {(Rxd8) +0.00/38 31s} Rxd8
+{(Rxd8) +0.01/1 0s} 36. Qe2 {(Qe2) +0.00/41 31s} Qa7+ {(Qa7) +0.01/25 66s} 37.
+Kf1 {(Kh1) +0.00/41 26s} Bb7 {(Rc8) +0.01/26 56s} 38. Bxb7 {(Bxb7) +0.08/36
+107s} Qxb7 {(Qxb7) +0.01/1 0s} 39. Qg2 {(Kg1) +0.08/41 86s} Qa6+ {(Qb5)
++0.01/28 135s} 40. Kg1 {(Qe2) +0.00/42 105s} Qd3 {(Qd3) +0.01/28 73s} 41. Rf1
+{(Qf1) +0.00/34 15s} Qe3+ {(Qe3) +0.01/27 43s} 42. Kh1 {(Kh1) +0.00/41 30s} Rd3
+{(Nd3) +0.01/28 42s} 43. Nb2 {(Qf2) +0.27/29 22s} Rxb3 {(Rxb3) +0.01/27 29s}
+44. Nd1 {(Nc4) +0.00/37 54s} Qd4 {(Qd4) +0.01/27 31s} 45. Nf2 {(Nf2) +0.00/39
+33s} Re3 {(Re3) +0.01/28 70s} 46. Qb7 {(Nd1) +0.00/38 29s} Qc4 {(Qc4) +0.01/26
+28s} 47. Ra1 {(Rd1) +0.00/38 42s} Kh7 {(Nd3) +0.01/26 55s} 48. Kg1 {(Rd1)
++0.00/40 28s} Nd3 {(Nd3) +0.01/26 34s} 49. Ng4 {(Ng4) +0.00/42 38s} Re2 {(Re2)
++0.01/27 38s} 50. Qd7 {(Qd7) +0.00/43 36s} Nc1 {(h5) +0.01/28 47s} 51. Nf6+
+{(Nf6) +0.00/43 45s} gxf6 {(gxf6) +0.01/1 0s} 52. Qf5+ {(Qf5) +0.00/46 86s} Kg7
+{(Kg7) +0.01/27 85s} 53. Qxf6+ {(Qxf6) +0.00/51 49s} Kh7 {(Kh7) +0.01/30 37s}
+54. Qf5+ {(Qf5) +0.00/54 35s} Kg7 {(Kg7) +0.01/32 31s} 55. Qg4+ {(Qf6) +0.00/55
+40s} Kh7 {(Kh7) +0.01/30 38s} 56. Qf5+ {(Qf5) +0.00/58 48s} Kg7 {(Kg7) +0.01/32
+93s} 57. Qf6+ {(Qg4) +0.00/59 30s} Kh7 {(Kh7) +0.01/32 40s} 58. Qf5+ {(Qf5)
++0.00/65 41s} 1/2-1/2

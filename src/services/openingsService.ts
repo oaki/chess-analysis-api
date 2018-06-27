@@ -2,7 +2,6 @@ import {Polyglot} from '../libs/polyglot';
 import * as fs from 'fs';
 
 const Chess = require('chess.js').Chess;
-console.log('chess', Chess);
 
 interface OpeningResponse {
     move: string;

@@ -17,7 +17,6 @@ export default function (userSocket, usersIo, workerIo) {
         //try to find in book
         const opening = await openingsService.find(position.fen);
         if (opening) {
-            console.log('is Opening', opening);
             userSocket.emit('openingMoves', {
                 fen: position.fen, data: opening
             });
@@ -30,8 +29,7 @@ export default function (userSocket, usersIo, workerIo) {
             }
 
             const evaluation = await positionService.findAllMoves(data.FEN);
-            console.log('evaluation', evaluation);
-            console.log('workerIo', workerIo);
+
             if (evaluation === null) {
                 console.log('Send the position to worker for evaluation.');
 

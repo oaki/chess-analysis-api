@@ -1,9 +1,9 @@
-import {ParsePgn} from "../models/ParsePgn";
-import {getBasePath} from "../config";
+import {ParsePgn} from "../../models/ParsePgn";
+import {getBasePath} from "../../config/index";
 
 const es = require('event-stream');
 import * as fs from 'fs';
-import {models} from "../models/database";
+import {models} from "../../models/database";
 
 
 export class ImportsController {
@@ -84,7 +84,7 @@ export class ImportsController {
             moves: JSON.stringify(parsedGame.moves)
         };
         console.log('toMySql', values);
-        // await models.ImportGame.create(values);
+        await models.ImportGame.create(values);
     }
 
     public async importToMysql2(game: string) {

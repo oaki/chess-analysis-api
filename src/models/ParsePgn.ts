@@ -144,28 +144,40 @@ export class ParsePgn {
         const lines = pgn.split('\n');
         console.log('lines', lines);
         let startParse = false;
-        const moves = [];
+        let moves = [];
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (startParse) {
-                console.log('line', line);
-                const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
-                // const moveMatch = line.match(/^([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
-                console.log('moveMatch', moveMatch);
+        // there is not json or addition data
+        if (lines.length === 1) {
+            const chess = new chessJs.Chess();
+            const isLoaded = chess.load_pgn(game);
 
-                if (moveMatch && moveMatch[2] && moveMatch[3]) {
-                    moves.push({
-                        move: moveMatch[2],
-                        meta: this.parseMeta(moveMatch[3])
-                    })
+            if(isLoaded){
+                moves = chess.history();
+            }
+
+        } else {
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (startParse) {
+                    console.log('line', line);
+                    const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
+                    // const moveMatch = line.match(/^([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
+                    console.log('moveMatch', moveMatch);
+
+                    if (moveMatch && moveMatch[2] && moveMatch[3]) {
+                        moves.push({
+                            move: moveMatch[2],
+                            meta: this.parseMeta(moveMatch[3])
+                        })
+                    }
+                }
+
+                if (line.indexOf(']') === -1) {
+                    startParse = true;
                 }
             }
-
-            if (line.indexOf(']') === -1) {
-                startParse = true;
-            }
         }
+
 
         console.log('meta', meta);
         return {moves, meta};

@@ -20,7 +20,6 @@ export class AuthController {
             });
             const payload = ticket.getPayload();
             const userid = payload.sub;
-            console.log('payload', payload);
 
             let userInstance = await models.User.findOne({
                 where: {
