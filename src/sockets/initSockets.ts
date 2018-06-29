@@ -44,8 +44,6 @@ class Sockets {
     connect(hapiServer) {
         //create socket.io connection
         const io = socketIo(hapiServer.listener);
-        console.log('hapiServer.listener', hapiServer.listener);
-        // const ioWorker = socketIo(hapiServer.listener);
 
         io.use(async (socket, next) => {
 

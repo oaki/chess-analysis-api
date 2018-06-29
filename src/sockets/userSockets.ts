@@ -1,5 +1,5 @@
 import openingsService from "../services/openingsService";
-import positionService from "../services/positionService";
+import positionService, {PositionService} from "../services/positionService";
 import {countPieces} from "../tools";
 
 export default function (userSocket, usersIo, workerIo) {
@@ -42,11 +42,12 @@ export default function (userSocket, usersIo, workerIo) {
                 if (w) {
                     console.log('setPositionToWorker', data);
                     w.emit('setPositionToWorker', data);
-                    w.on('workerEvaluation', (data)=>{
+                    w.on('workerEvaluation', (data) => {
+                        console.log('workerEvaluation', data);
                         userSocket.emit('workerEvaluation', data);
                     });
-                }else{
-                    console.error('No worker available',userSocket.handshake.user.user_id, workerIo);
+                } else {
+                    console.error('No worker available', userSocket.handshake.user.user_id, workerIo);
                 }
 
                 // userSocket.emit('evaluation', JSON.stringify(position));
@@ -54,10 +55,11 @@ export default function (userSocket, usersIo, workerIo) {
                 const bestVariant = positionService.getBestVariant(evaluation);
                 console.log('I have it!!!!', bestVariant);
 
-                userSocket.emit('on_result', {
-                    fen: data.FEN,
-                    data: JSON.parse(bestVariant)
-                });
+                const data = JSON.parse(bestVariant);
+
+                data.p = PositionService.normalizePv(data.p);
+                console.log('data after normalizePv', data, data.p);
+                userSocket.emit('workerEvaluation', JSON.stringify([data]));
             }
         }
     });

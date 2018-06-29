@@ -28,7 +28,7 @@ export function positionRoute() {
                     return 'Position is not in DB. ';
                 } else {
                     const bestVariant = positionService.getBestVariant(evaluation);
-                    console.log('I have it!!!!', bestVariant);
+                    console.log('position->I have it!!!!', bestVariant);
 
                     return JSON.parse(bestVariant);
                 }

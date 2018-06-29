@@ -10,7 +10,7 @@ export class PositionService {
     constructor() {
         this.saveCriterium = {
             depth: 28,
-            nodes: 30 * 1000000,
+            nodes: 70 * 1000000,
             maxScore: 4,
         };
 
@@ -58,13 +58,35 @@ export class PositionService {
         return `${firstPart} ${secondPart}`;
     }
 
+    static normalizePv(str:string){
+        return str.replace(/(.{4})/g, '$1 ').trim();
+    }
+
     checkEvaluation(evaluation: IEvaluation) {
-        if (Number(evaluation[LINE_MAP.depth]) > this.saveCriterium.depth &&
-            (Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes || evaluation[LINE_MAP.import]) &&
-            Math.abs(Number(evaluation[LINE_MAP.score])) < this.saveCriterium.maxScore &&
-            evaluation[LINE_MAP.pv]
+        const depth:number = Number(evaluation[LINE_MAP.depth]);
+
+        if (depth > this.saveCriterium.depth
+            && (
+                Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes
+                || evaluation[LINE_MAP.import]
+            )
+            && Math.abs(Number(evaluation[LINE_MAP.score])) < this.saveCriterium.maxScore
+            && evaluation[LINE_MAP.pv]
         ) {
-            console.log('Interesting evaluation: ', evaluation, Number(evaluation[LINE_MAP.depth]), Number(evaluation[LINE_MAP.nodes]));
+            console.log('Interesting evaluation: ', evaluation);
+
+            // console.log('depth',evaluation[LINE_MAP.depth], Number(evaluation[LINE_MAP.depth]) > this.saveCriterium.depth,
+            //     ' Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes\n' +
+            //     '                || evaluation[LINE_MAP.import]',
+            //     Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes
+            //     || evaluation[LINE_MAP.import],
+            //     'Math.abs(Number(evaluation[LINE_MAP.score])) < this.saveCriterium.maxScore',
+            //     Math.abs(Number(evaluation[LINE_MAP.score])) < this.saveCriterium.maxScore,
+            //     '&& evaluation[LINE_MAP.pv]', evaluation[LINE_MAP.pv],
+            //     'evaluation', evaluation,
+            //     Number(evaluation[LINE_MAP.depth]), Number(evaluation[LINE_MAP.nodes])
+            // );
+            //
             return true;
         }
         return false;
