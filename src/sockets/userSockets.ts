@@ -38,6 +38,7 @@ export default function (userSocket, usersIo, workerIo) {
                 const w = workerIo.find((socket) => {
                     return socket.worker.user_id === userSocket.handshake.user.user_id;
                 });
+
                 if (w) {
                     console.log('setPositionToWorker', data);
                     w.emit('setPositionToWorker', data);
