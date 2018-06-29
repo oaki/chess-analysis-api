@@ -12,7 +12,6 @@ module.exports = function WorkerModel(sequelize: Sequelize, dataTypes: DataTypes
         },
         uuid: {
             type: Sequelize.STRING,
-            unique: true
         },
         name: {
             type: Sequelize.STRING,

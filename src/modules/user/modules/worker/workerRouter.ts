@@ -40,7 +40,7 @@ export function workerRoute() {
                 auth: 'jwt',
                 validate: {
                     query: {
-                        uuids: Joi.array().items(Joi.string().uuid().required()),
+                        uuids: Joi.array().items(Joi.string().uuid().required()).single(),
                     }
                 }
             },
