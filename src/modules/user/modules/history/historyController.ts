@@ -9,7 +9,8 @@ export class HistoryController {
                 user_id: props.userId
             },
             limit: props.limit,
-            offset: props.offset
+            offset: props.offset,
+            order: [['updated_at', props.order]]
         });
 
         return games;
@@ -71,6 +72,7 @@ interface IGetProps {
     offset: number;
     limit: number;
     userId: number;
+    order: string;
 }
 
 interface IGetLastGameProps {

@@ -16,96 +16,94 @@ const JWT = require('jsonwebtoken');
  http://www.shredderchess.com/online/playshredder/fetch.php?obid=et30.889997529737792&reqid=req0.357818294665617&hook=null&action=egtb&fen=1r6/1B6/8/8/2K5/4k3/P7/8%20egtb&fen=1r6/1B6/8/8/2K5/4k3/P7/8%20w%20-%20-%200%201
 
  */
-export async function initSockets(hapiServer) {
-
-    const config = getConfig();
-
-    const workersIo = [];
-    const usersIo = {};
-
-    // const sender = zeromq.socket('push');
-    // sender.bindSync(`tcp://*:${config.worker.host1}`);
-    //
-    // const receiver = zeromq.socket('pull');
-    // receiver.bindSync(`tcp://*:${config.worker.host2}`);
-    //
-    // receiver.on('message', (data) => {
-    //     const json = JSON.parse(data.toString());
-    //
-    //     if (json && json[0]) {
-    //         const response: IWorkerResponse = json[0];
-    //
-    //         console.log('4. Server: message->', JSON.stringify(response));
-    //         if (sockets[response.userId]) {
-    //
-    //             const socket = sockets[response.userId];
-    //             positionService.add(response.fen, positionService.mapWorkerToEvaluation(response));
-    //
-    //             const workerResponse: IEvaluation = PositionService.beforeSaveEvaluation(response);
-    //             socket.emit('on_result', {
-    //                 fen: response.fen, data: workerResponse,
-    //             });
-    //         }
-    //     }
-    // });
 
 
-    //create socket.io connection
-    const io = socketIo(hapiServer.listener);
-    // const ioWorker = socketIo(hapiServer.listener);
+class Sockets {
+    private workersIo = [];
+    private usersIo = {};
+    private config;
 
-    io.use(async (socket, next) => {
+    constructor(config) {
+        this.config = config;
+    }
 
-        if (socket.handshake.query.type === USER) {
-            const jwtToken = socket.handshake.query.token;
-            socket.handshake.user = JWT.decode(jwtToken, config.jwt.key);
+    isWorkersOnline(uuids: string[]) {
 
-            next();
-        }
-
-        if (socket.handshake.query.type === WORKER) {
-            console.log('It is worker');
-            if (socket.handshake.query && socket.handshake.query.token) {
-                const worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
-
-                if (worker) {
-                    console.log('Add worker info to the socket', worker);
-                    socket.worker = worker;
-                    next();
-                } else {
-                    next(new Error('Worker is not registered in our database.'));
-                }
-
-            } else {
-                next(new Error('Authentication error'));
+        return uuids.map((uuid: string) => {
+            return {
+                uuid: uuid,
+                ready: this.isWorkerOnline(uuid)
             }
-        }
-        next(new Error('Authentication error'));
-    })
+        })
+    }
 
-    io.on('connection', (socket) => {
+    isWorkerOnline(uuid: string) {
+        return !!this.workersIo.find((socket) => socket.worker.uuid === uuid)
+    }
 
-        if (socket.handshake.query.type === USER) {
-            userSockets(socket, usersIo, workersIo);
-        }
+    connect(hapiServer) {
+        //create socket.io connection
+        const io = socketIo(hapiServer.listener);
+        console.log('hapiServer.listener', hapiServer.listener);
+        // const ioWorker = socketIo(hapiServer.listener);
 
-        if (socket.handshake.query.type === WORKER) {
-            workerSockets(socket, usersIo, workersIo);
-        }
+        io.use(async (socket, next) => {
 
-        socket.on('disconnect', () => {
-            console.log('Server: disconnected', socket.id);
-
+            console.log('io->use->start');
             if (socket.handshake.query.type === USER) {
-                delete usersIo[socket.id];
+                const jwtToken = socket.handshake.query.token;
+                socket.handshake.user = JWT.decode(jwtToken, this.config.jwt.key);
+
+                next();
             }
 
             if (socket.handshake.query.type === WORKER) {
-                // need to be tested
-                const index = workersIo.findIndex((workerSocket) => socket.id === workerSocket.id);
-                workersIo.splice(index, 1);
+                console.log('It is worker', socket.handshake.query && socket.handshake.query.token);
+                if (socket.handshake.query && socket.handshake.query.token) {
+                    const worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
+                    if (worker) {
+                        console.log('Add worker info to the socket', worker);
+                        socket.worker = worker;
+                        next();
+                    } else {
+                        console.error('Worker is not registered in our database.');
+                        next(new Error('Worker is not registered in our database.'));
+                    }
+
+                } else {
+                    next(new Error('Authentication error'));
+                }
+            }
+            next(new Error('Authentication error'));
+        })
+
+        io.on('connection', (socket) => {
+
+            if (socket.handshake.query.type === USER) {
+                userSockets(socket, this.usersIo, this.workersIo);
             }
 
-        });
-    })
+            if (socket.handshake.query.type === WORKER) {
+                workerSockets(socket, this.usersIo, this.workersIo);
+            }
+
+            socket.on('disconnect', () => {
+                console.log('Server: disconnected', socket.id);
+
+                if (socket.handshake.query.type === USER) {
+                    delete this.usersIo[socket.id];
+                }
+
+                if (socket.handshake.query.type === WORKER) {
+                    // need to be tested
+                    const index = this.workersIo.findIndex((workerSocket) => socket.id === workerSocket.id);
+                    this.workersIo.splice(index, 1);
+                }
+
+            });
+        })
+    }
 }
+
+export const SocketService = new Sockets(getConfig());
+

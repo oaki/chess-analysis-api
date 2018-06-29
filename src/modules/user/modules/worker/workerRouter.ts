@@ -32,6 +32,28 @@ export function workerRoute() {
         },
 
         {
+            method: 'GET',
+            path: '/user/workers/ready',
+            config: {
+
+                tags: ['api', 'user'], // section in documentation
+                auth: 'jwt',
+                validate: {
+                    query: {
+                        uuids: Joi.array().items(Joi.string().uuid().required()),
+                    }
+                }
+            },
+            handler: async (request: any) => {
+                const uuids:string[] = request.query.uuids;
+                return await workerController.checkStatus({
+                    userId: request.auth.credentials.user_id,
+                    uuids,
+                });
+            }
+        },
+
+        {
             method: 'POST',
             path: '/user/workers',
             config: {

@@ -41,7 +41,7 @@
     "mysql2": "^1.5.2",
     "pgn-parser": "0.0.9",
     "sequelize": "^4.37.1",
-    "socket.io": "^2.0.4",
+    "socket.io": "^2.1.0",
     "zeromq": "^4.6.0"
   },
   "devDependencies": {

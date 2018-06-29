@@ -30,17 +30,20 @@ export function historyRoute() {
                     query: {
                         offset: Joi.number().integer().required(),
                         limit: Joi.number().integer().max(100).required(),
+                        order: Joi.allow('ASC', 'DESC').required()
                     }
                 }
             },
             handler: async (request: any) => {
                 const offset: number = request.query.offset;
                 const limit: number = request.query.limit;
+                const order: string = request.query.order;
                 console.log('request.auth.credentials', request.auth.credentials);
                 return await historyController.get({
                     userId: request.auth.credentials.user_id,
                     offset,
-                    limit
+                    limit,
+                    order
                 });
             }
         },

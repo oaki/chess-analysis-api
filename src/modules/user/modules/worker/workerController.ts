@@ -1,6 +1,10 @@
 import {models} from "../../../../models/database";
 import * as Boom from "boom";
 import {BaseResponse} from "../../../../libs/baseResponse";
+import {SocketService} from "../../../../sockets/initSockets";
+
+import {WorkerAttributes} from "./models/workerModel";
+
 
 export class WorkerController {
 
@@ -10,11 +14,19 @@ export class WorkerController {
                 user_id: props.userId
             },
             limit: props.limit,
-            offset: props.offset
+            offset: props.offset,
+            raw: true
         });
 
-        return workerList;
+        return workerList.map((worker:WorkerAttributes)=>{
+            return {...worker, ready: SocketService.isWorkerOnline(worker.uuid)}
+        });
 
+    }
+
+    async checkStatus(props: ICheckStatusProps) {
+
+        return SocketService.isWorkersOnline(props.uuids);
     }
 
     async add(props: IAddProps) {
@@ -55,6 +67,11 @@ export class WorkerController {
 interface IGetProps {
     offset: number;
     limit: number;
+    userId: number;
+}
+
+interface ICheckStatusProps {
+    uuids: string[];
     userId: number;
 }
 
