@@ -1,5 +1,4 @@
 import {config, getConfig} from "../../config";
-import {BaseResponse} from "../../libs/baseResponse";
 import * as Boom from "boom";
 import {models} from "../../models/database";
 
@@ -38,13 +37,17 @@ export class AuthController {
                     given_name: payload.given_name,
                     family_name: payload.family_name,
                     locale: payload.locale,
-                    // refresh_token: props.refreshToken,
                 });
+            }
+
+            const tokenOptions = {
+                algorithm: 'HS256',
+                expiresIn: '30d',
             }
 
             const token = JWT.sign({
                 user_id: await userInstance.get('id')
-            }, config.jwt.key);
+            }, config.jwt.key, tokenOptions);
 
             console.log('token', token);
             return {
@@ -55,26 +58,6 @@ export class AuthController {
             console.log(e);
             throw Boom.forbidden('User is not valid')
         }
-
-
-        // These six fields are included in all Google ID Tokens.
-        // "iss": "https://accounts.google.com",
-        //     "sub": "110169484474386276334",
-        //     "azp": "1008719970978-hb24n2dstb40o45d4feuo2ukqmcc6381.apps.googleusercontent.com",
-        //     "aud": "1008719970978-hb24n2dstb40o45d4feuo2ukqmcc6381.apps.googleusercontent.com",
-        //     "iat": "1433978353",
-        //     "exp": "1433981953",
-        //
-        //     // These seven fields are only included when the user has granted the "profile" and
-        //     // "email" OAuth scopes to the application.
-        //     "email": "testuser@gmail.com",
-        //     "email_verified": "true",
-        //     "name" : "Test User",
-        //     "picture": "https://lh4.googleusercontent.com/-kYgzyAWpZzJ/ABCDEFGHI/AAAJKLMNOP/tIXL9Ir44LE/s99-c/photo.jpg",
-        //     "given_name": "Test",
-        //     "family_name": "User",
-        //     "locale": "en"
-
     }
 }
 

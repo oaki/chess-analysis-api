@@ -10,10 +10,14 @@ export class HistoryController {
             },
             limit: props.limit,
             offset: props.offset,
-            order: [['updated_at', props.order]]
+            order: [['updated_at', props.order]],
+            raw: true
         });
 
-        return games;
+        return games.map((game) => {
+            console.log('game', game);
+            return {...game, moves: JSON.parse(game.moves)}
+        });
 
     }
 
