@@ -2,6 +2,8 @@ import openingsService from "../services/openingsService";
 import positionService, {PositionService} from "../services/positionService";
 import {countPieces} from "../tools";
 
+const random = require('lodash/random');
+
 export default function (userSocket, usersIo, workerIo) {
     usersIo[userSocket.id] = userSocket;
     console.log('userSocket.id added to list', userSocket.id);
@@ -35,9 +37,20 @@ export default function (userSocket, usersIo, workerIo) {
 
 
                 // @todo find BEST worker from you
-                const w = workerIo.find((socket) => {
+                let w = workerIo.find((socket) => {
                     return socket.worker.user_id === userSocket.handshake.user.user_id;
                 });
+
+
+                // use temporary server worker
+                if (!w) {
+                    const listWorkers = workerIo.filter((socket) => {
+                        //@todo create list in DB for all available workers which can be used for free for everybody
+                        return socket.worker.uuid === 'ba5c07cd-361e-4b91-b70e-7e8cb251b523';
+                    });
+
+                    w = listWorkers[random(0, listWorkers.length)];
+                }
 
                 if (w) {
                     console.log('setPositionToWorker', data);
