@@ -14,6 +14,7 @@
     "git:update": "git pull"
   },
   "dependencies": {
+    "@types/node-fetch": "^2.1.1",
     "bell": "^9.3.0",
     "catbox": "^10.0.2",
     "catbox-redis": "^4.0.0",
@@ -39,6 +40,7 @@
     "jsonwebtoken": "^8.2.1",
     "lodash": "^4.17.4",
     "mysql2": "^1.5.2",
+    "node-fetch": "^2.1.2",
     "pgn-parser": "0.0.9",
     "sequelize": "^4.37.1",
     "socket.io": "^2.1.0",

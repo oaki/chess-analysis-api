@@ -4,6 +4,7 @@ import {models} from "../models/database";
 import userSockets from "./userSockets";
 import workerSockets from "./workerSockets";
 import {USER, WORKER} from "../const";
+import {workersForEverybody} from "../models/workerForEverybody";
 
 const JWT = require('jsonwebtoken');
 
@@ -58,7 +59,14 @@ class Sockets {
             if (socket.handshake.query.type === WORKER) {
                 console.log('It is worker', socket.handshake.query && socket.handshake.query.token);
                 if (socket.handshake.query && socket.handshake.query.token) {
-                    const worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
+                    let worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
+
+                    // if(!worker && workersForEverybody.indexOf(socket.handshake.query.token)!==-1){
+                    //
+                    // }
+
+
+
                     if (worker) {
                         console.log('Add worker info to the socket', worker);
                         socket.worker = worker;

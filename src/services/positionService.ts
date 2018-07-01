@@ -1,7 +1,7 @@
-import {exists, hgetall, hmset} from './redisConnectionService';
-import {getFirstMove} from "../tools";
 import {isDev} from "../config";
-import {IEvaluation, IWorkerResponse, LINE_MAP} from "../interfaces";
+import {IEvaluation, LINE_MAP} from "../interfaces";
+import {getFirstMove} from "../tools";
+import {exists, hgetall, hmset} from './redisConnectionService';
 
 export class PositionService {
 
@@ -58,12 +58,22 @@ export class PositionService {
         return `${firstPart} ${secondPart}`;
     }
 
-    static normalizePv(str:string){
+    static normalizePv(str: string) {
         return str.replace(/(.{4})/g, '$1 ').trim();
     }
 
+    public static beforeSaveEvaluation(evaluation: IEvaluation): IEvaluation {
+        const toSave: IEvaluation = {...evaluation};
+
+        toSave[LINE_MAP.nodes] = Math.round(toSave[LINE_MAP.nodes] / 1000);
+        // toSave[LINE_MAP.mate] = toSave[LINE_MAP.mate] ? 1 : 0;
+        toSave[LINE_MAP.pv] = toSave[LINE_MAP.pv].split(' ').join('');
+
+        return toSave;
+    }
+
     checkEvaluation(evaluation: IEvaluation) {
-        const depth:number = Number(evaluation[LINE_MAP.depth]);
+        const depth: number = Number(evaluation[LINE_MAP.depth]);
 
         if (depth > this.saveCriterium.depth
             && (
@@ -118,16 +128,6 @@ export class PositionService {
             [LINE_MAP.nps]: workerResponse[LINE_MAP.nps],
             [LINE_MAP.tbhits]: workerResponse[LINE_MAP.tbhits],
         }
-    }
-
-    public static beforeSaveEvaluation(evaluation: IEvaluation): IEvaluation {
-        const toSave: IEvaluation = {...evaluation};
-
-        toSave[LINE_MAP.nodes] = Math.round(toSave[LINE_MAP.nodes] / 1000);
-        // toSave[LINE_MAP.mate] = toSave[LINE_MAP.mate] ? 1 : 0;
-        toSave[LINE_MAP.pv] = toSave[LINE_MAP.pv].split(' ').join('');
-
-        return toSave;
     }
 
     async findAllMoves(fen) {
