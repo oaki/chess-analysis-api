@@ -28,3 +28,4 @@ export interface IEvaluation {
     [LINE_MAP.tbhits]?: string;
     [LINE_MAP.import]?: number;
 }
+

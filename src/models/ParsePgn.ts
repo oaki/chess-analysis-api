@@ -62,7 +62,8 @@ export class ParsePgn {
         const obj: any = {};
         vars.forEach((v) => {
             const h = v.split('=');
-            obj[h[0]] = h[1]
+            const key = h[0].trim();
+            obj[ key ] = h[1]
         });
 
         return obj;

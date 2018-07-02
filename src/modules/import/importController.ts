@@ -81,7 +81,8 @@ export class ImportsController {
             result: parsedGame.meta.result,
             black_elo: parsedGame.meta.blackElo,
             white_elo: parsedGame.meta.whiteElo,
-            moves: JSON.stringify(parsedGame.moves)
+            moves: JSON.stringify(parsedGame.moves),
+            isParsed: false
         };
         console.log('toMySql', values);
         await models.ImportGame.create(values);

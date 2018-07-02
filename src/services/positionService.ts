@@ -10,8 +10,8 @@ export class PositionService {
     constructor() {
         this.saveCriterium = {
             depth: 28,
-            nodes: 70 * 1000000,
-            maxScore: 4,
+            nodes: 70 * 1000000, //27 666 454 250 - 70 000 000 / 659 843 416
+            maxScore: 3.5,
         };
 
         console.log('isDev()', isDev());
@@ -20,7 +20,7 @@ export class PositionService {
             this.saveCriterium = {
                 depth: 10,
                 nodes: 10 * 100000,
-                maxScore: 4,
+                maxScore: 3.5,
             };
 
             console.log('saveCriterium', this.saveCriterium);
@@ -110,7 +110,7 @@ export class PositionService {
 
             hmset(PositionService.normalizeFen(fen), key, json);
 
-            console.log('added to DB', fen, json);
+            console.log('added to Redis', fen, json);
         } else {
 
             console.log('No reason to save this low analyse', evaluation);
