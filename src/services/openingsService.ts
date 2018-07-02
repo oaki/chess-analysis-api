@@ -42,7 +42,7 @@ class OpeningService {
     async find(fen: string): Promise<OpeningResponse[]> {
 
         if (!this.isLoaded) {
-            await this.init();
+            return [];
         }
 
 
