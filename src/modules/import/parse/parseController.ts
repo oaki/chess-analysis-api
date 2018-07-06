@@ -4,35 +4,66 @@ import {IEvaluation, LINE_MAP} from "../../../interfaces";
 import positionService from "../../../services/positionService";
 
 const Chess = require("chess.js").Chess;
+const MIN_ELO: number = 3300;
 
 export class ParseController {
     async do(props: IDoProps) {
         const list = await models.ImportGame.findAll({
             where: {
-                isParsed: false
+                isParsed: false,
             },
             offset: props.offset,
             limit: props.limit,
-            raw: true
         });
 
 
-        list.forEach((item) => {
-            const chess = new Chess();
+        list.forEach(async (gameInstance) => {
 
-            const moves = JSON.parse(item.moves);
-            moves.forEach((moveObj) => {
-                chess.move(moveObj.move);
+            const values = gameInstance.dataValues;
+            console.log("Parse game ID", values.id, gameInstance.dataValues);
+            const saveWhite = values.white_elo > MIN_ELO || (values.black_elo > MIN_ELO && (values.result === "1/2-1/2" || values.result === "1-0"));
+            const saveBlack = values.black_elo > MIN_ELO || (values.white_elo > MIN_ELO && (values.result === "1/2-1/2" || values.result === "0-1"));
+            if ((saveWhite || saveBlack) && gameInstance.dataValues.moves) {
 
-                if (moveObj.meta && moveObj.meta.d) {
-                    const fen = chess.fen();
-                    const evaluation = this.map(moveObj.meta);
-                    console.log("positionService.add->fen|evaluation", fen, evaluation);
-                    positionService.add(fen, evaluation);
+
+                const chess = new Chess();
+
+                let moves = [];
+                try {
+                    moves = JSON.parse(gameInstance.dataValues.moves);
+                } catch (e) {
+                    console.log("Error parse moves", gameInstance.dataValues.moves, e);
+                    let moves = [];
                 }
 
-            });
-            console.log("item", moves);
+                moves.forEach(async (moveObj) => {
+
+
+                    if (moveObj.meta && moveObj.meta.d) {
+                        if ((chess.turn() === "w" && saveWhite)
+                            || (chess.turn() === "b" && saveBlack)) {
+                            const fen = chess.fen();
+                            const evaluation = this.map(moveObj.meta);
+                            console.log("positionService.add->fen|evaluation", fen, evaluation);
+                            positionService.add(fen, evaluation);
+                        } else {
+                            console.log("Player doesnt have ELO", {
+                                turn: chess.turn(),
+                                saveWhite,
+                                saveBlack,
+                                white_elo: values.white_elo, black_elo: values.black_elo
+                            });
+                        }
+                    }
+                    chess.move(moveObj.move);
+                });
+            }
+
+            //
+            // await gameInstance.update({
+            //     isParsed: true,
+            // })
+
         });
 
         return BaseResponse.getSuccess();

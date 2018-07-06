@@ -12,16 +12,17 @@ export default function (userSocket, usersIo, workerIo) {
 
     userSocket.on('setNewPosition', async (data) => {
         console.log('2. server->socket: setNewPosition', data);
+        const fen:string = data.FEN;
         const position = {
             action: 'findBestMove',
             userId: userSocket.id,
-            fen: data.FEN,
+            fen,
         };
 
         //try to find in book
         const opening = await openingsService.find(position.fen);
 
-        console.log('afterOpening', countPieces(data.FEN));
+        console.log('afterOpening', countPieces(fen));
 
         if (opening) {
             userSocket.emit('openingMoves', {
@@ -35,14 +36,14 @@ export default function (userSocket, usersIo, workerIo) {
                 //https://tablebase.lichess.ovh/standard/mainline?fen=4k3/6KP/8/8/8/8/7p/8_w_-_-_0_1
 
                 try {
-                    const syzygyData = await SyzygyService.find(data.FEN);
+                    const syzygyData = await SyzygyService.find(fen);
                     console.log('emit->syzygyEvaluation', syzygyData);
                     userSocket.emit('syzygyEvaluation', syzygyData);
                 } catch (e) {
 
                 }
             } else {
-                const evaluation = await positionService.findAllMoves(data.FEN);
+                const evaluation = await positionService.findAllMoves(fen);
 
                 if (evaluation === null) {
                     console.log('Send the position to worker for evaluation.');
@@ -84,7 +85,10 @@ export default function (userSocket, usersIo, workerIo) {
 
                     const data = JSON.parse(bestVariant);
 
+
                     data.p = PositionService.normalizePv(data.p);
+                    data.fen = fen; //add fen
+
                     console.log('data after normalizePv', data, data.p);
                     userSocket.emit('workerEvaluation', JSON.stringify([data]));
                 }

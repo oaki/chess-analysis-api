@@ -59,7 +59,7 @@ export class PositionService {
     }
 
     static normalizePv(str: string) {
-        return str.replace(/(.{4})/g, '$1 ').trim();
+        return str;
     }
 
     public static beforeSaveEvaluation(evaluation: IEvaluation): IEvaluation {
@@ -67,7 +67,7 @@ export class PositionService {
 
         toSave[LINE_MAP.nodes] = Math.round(toSave[LINE_MAP.nodes] / 1000);
         // toSave[LINE_MAP.mate] = toSave[LINE_MAP.mate] ? 1 : 0;
-        toSave[LINE_MAP.pv] = toSave[LINE_MAP.pv].split(' ').join('');
+        // toSave[LINE_MAP.pv] = toSave[LINE_MAP.pv].split(' ').join('');
 
         return toSave;
     }

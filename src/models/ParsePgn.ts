@@ -1,10 +1,10 @@
 import positionService, {PositionService} from "../services/positionService";
-import {IEvaluation, IWorkerResponse, LINE_MAP} from "../interfaces";
-import {number} from "joi";
-import {exists, hgetall, hmset} from "../services/redisConnectionService";
+import {IEvaluation, LINE_MAP} from "../interfaces";
+import {hgetall} from "../services/redisConnectionService";
+import {prepareMoves} from "../libs/utils";
 
-const chessJs = require('chess.js');
-const pgnParser = require('pgn-parser');
+const chessJs = require("chess.js");
+const pgnParser = require("pgn-parser");
 
 export interface IPosition {
     pv: string;
@@ -30,9 +30,9 @@ interface IGameResult {
 }
 
 export class ParsePgn {
-    private gamesSeparator = '[Event ';
+    private gamesSeparator = "[Event ";
 
-    constructor(gamesSeparator: string = '[Event') {
+    constructor(gamesSeparator: string = "[Event") {
         this.gamesSeparator = gamesSeparator;
     }
 
@@ -42,7 +42,7 @@ export class ParsePgn {
 
         games.forEach(async (game, i) => {
             if (game.length > 0) {
-                const pgn = `${this.gamesSeparator}${game}`.split(/[\n\r\r\t]+/g).join(' ');
+                const pgn = `${this.gamesSeparator}${game}`.split(/[\n\r\r\t]+/g).join(" ");
                 const parsedGame = await this.parse(pgn);
                 this.saveGame(parsedGame);
             }
@@ -53,17 +53,18 @@ export class ParsePgn {
 
     parseMeta(str: string) {
 
-        let newStr = ParsePgn.replaceAll(str, '{', '');
-        newStr = ParsePgn.replaceAll(newStr, '}', '');
+        let newStr = ParsePgn.replaceAll(str, "{", "");
+        newStr = ParsePgn.replaceAll(newStr, "}", "");
 
-        const vars = newStr.split(', ');
+        const vars = newStr.split(",");
 
 
         const obj: any = {};
-        vars.forEach((v) => {
-            const h = v.split('=');
+        vars.forEach((v: string) => {
+            // at first add placeholder cos I want do replace only first occurrence
+            const h = v.replace("=", "__=__").split("__=__");
             const key = h[0].trim();
-            obj[ key ] = h[1]
+            obj[key] = h[1];
         });
 
         return obj;
@@ -88,14 +89,14 @@ export class ParsePgn {
         const eloBlackMatch = header.match(/\[BlackElo \"([0-9].*)\"/);
         const resultMatch = header.match(/\[Result \"([0-9/-].*)\"/);
         const meta = {
-            whiteElo: '',
-            blackElo: '',
-            result: '',
-            event: '',
-            eventDate: '',
-            whiteName: '',
-            blackName: '',
-            opening: '',
+            whiteElo: "",
+            blackElo: "",
+            result: "",
+            event: "",
+            eventDate: "",
+            whiteName: "",
+            blackName: "",
+            opening: "",
         };
 
         if (eventMatch) {
@@ -135,15 +136,15 @@ export class ParsePgn {
     parsePgnWithJson(game: string) {
         const obj = this.splitHeaderAndContent(game);
         // console.log('tmp', obj);
-        let pgn = obj.content.split(/[\n\r\r\t]+/g).join(' ');
+        let pgn = obj.content.split(/[\n\r\r\t]+/g).join(" ");
         // console.log('pgn', pgn);
         // pgn = ParsePgn.replaceAll(pgn, '\n',
 
-        pgn = ParsePgn.replaceAll(pgn, '}', '}\n');
+        pgn = ParsePgn.replaceAll(pgn, "}", "}\n");
         const meta = this.parseHeader(obj.header);
 
-        const lines = pgn.split('\n');
-        console.log('lines', lines);
+        const lines = pgn.split("\n");
+
         let startParse = false;
         let moves = [];
 
@@ -152,18 +153,20 @@ export class ParsePgn {
             const chess = new chessJs.Chess();
             const isLoaded = chess.load_pgn(game);
 
-            if(isLoaded){
+            if (isLoaded) {
                 moves = chess.history();
             }
 
         } else {
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
+                if (!startParse && line.indexOf("]") === -1) {
+                    startParse = true;
+                }
                 if (startParse) {
-                    console.log('line', line);
-                    const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
+                    const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+\= ]{2,5}) (\{[^\{\}].+\})?/);
                     // const moveMatch = line.match(/^([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
-                    console.log('moveMatch', moveMatch);
+                    console.log("moveMatch", moveMatch, line);
 
                     if (moveMatch && moveMatch[2] && moveMatch[3]) {
                         moves.push({
@@ -172,15 +175,15 @@ export class ParsePgn {
                         })
                     }
                 }
-
-                if (line.indexOf(']') === -1) {
-                    startParse = true;
-                }
             }
+
+            moves = prepareMoves(moves);
         }
 
 
-        console.log('meta', meta);
+        console.log("parsePgnWithJson:", {meta, moves});
+        // convert to default move annotation e2e4 e7e5 ... h7h8d
+
         return {moves, meta};
     }
 
@@ -203,7 +206,7 @@ export class ParsePgn {
         return {
             [LINE_MAP.score]: position.score,
             [LINE_MAP.depth]: position.depth,
-            [LINE_MAP.nodes]: 1000000000,
+            [LINE_MAP.nodes]: position.nodes,
             [LINE_MAP.pv]: position.pv,
             [LINE_MAP.import]: 1,
         }
@@ -216,7 +219,7 @@ export class ParsePgn {
             // const key = PositionService.getKey(evaluation);
 
             hgetall(PositionService.normalizeFen(position.previousFen)).then((res) => {
-                console.log('beforeSave->isExist', res);
+                console.log("beforeSave->isExist", res);
                 if (res === null) {
                     positionService.add(position.previousFen, evaluation);
                 }
@@ -232,17 +235,17 @@ export class ParsePgn {
         // console.log('Parser: -> game ->', game);
         const gameResult: IGameResult = game.result;
         const moves = this.getMoves(game.moves);
-        const eloWhite = game.headers['WhiteElo'];
-        const eloBlack = game.headers['BlackElo'];
+        const eloWhite = game.headers["WhiteElo"];
+        const eloBlack = game.headers["BlackElo"];
 
         if (Number(eloWhite) < 3000 && Number(eloBlack) < 3000) {
-            console.log('Elo is less than 3000');
+            console.log("Elo is less than 3000");
             return [];
         }
 
-        console.log('ELO', eloWhite, eloBlack);
+        console.log("ELO", eloWhite, eloBlack);
         moves.forEach((move, index) => {
-            const isWhite = move.lastMove.color === 'w' ? 1 : 0;
+            const isWhite = move.lastMove.color === "w" ? 1 : 0;
 
             const info = {
                 onMove: move.lastMove.color,
@@ -250,7 +253,7 @@ export class ParsePgn {
                 eloBlack
             };
 
-            console.log('info', info);
+            console.log("info", info);
 
             const pv = this.getPv(moves, index, move.depth);
             parsedGame.push({...move, pv, import: 1});
@@ -285,8 +288,8 @@ export class ParsePgn {
 
             if (obj.comment) {
                 const info: IInfo = this.getInfo(obj.comment);
-                part['depth'] = info.depth;
-                part['score'] = info.score;
+                part["depth"] = info.depth;
+                part["score"] = info.score;
             }
             allMoves.push(
                 part
@@ -318,7 +321,7 @@ export class ParsePgn {
 
     private getPv(moves: any[], startIndex: number, depth: number) {
 
-        let str = '';
+        let str = "";
         // startIndex + 1 - because we dont want to have a actual move but next one
         for (let i = startIndex; i < moves.length && i <= startIndex + depth; i++) {
             const lastMove = moves[i].lastMove;
@@ -330,8 +333,8 @@ export class ParsePgn {
 
     getInfo(comment: string): IInfo {
 
-        const part1: string[] = comment.split(' '); // (Ra3) +0.28/22 119s || +0.30/22 56s
-        const scoreDepth = part1[0][0] === '(' ? part1[1].split('/') : part1[0].split('/');
+        const part1: string[] = comment.split(" "); // (Ra3) +0.28/22 119s || +0.30/22 56s
+        const scoreDepth = part1[0][0] === "(" ? part1[1].split("/") : part1[0].split("/");
 
         return {
             score: scoreDepth[0],
@@ -340,7 +343,7 @@ export class ParsePgn {
     }
 
     public static replaceAll(str, searchValue, replaceValue) {
-        return str.replace(new RegExp(searchValue.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'g'), replaceValue);
+        return str.replace(new RegExp(searchValue.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"), "g"), replaceValue);
     }
 
 }
