@@ -1,7 +1,7 @@
 import positionService, {PositionService} from "../services/positionService";
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import {hgetall} from "../services/redisConnectionService";
-import {prepareMoves} from "../libs/utils";
+import {getAllMatches, prepareMoves} from "../libs/utils";
 
 const chessJs = require("chess.js");
 const pgnParser = require("pgn-parser");
@@ -53,10 +53,14 @@ export class ParsePgn {
 
     parseMeta(str: string) {
 
-        let newStr = ParsePgn.replaceAll(str, "{", "");
-        newStr = ParsePgn.replaceAll(newStr, "}", "");
+        // let newStr = ParsePgn.replaceAll(str, "{", "");
+        // newStr = ParsePgn.replaceAll(newStr, "}", "");
 
-        const vars = newStr.split(",");
+        if (!str) {
+            return {}
+        }
+
+        const vars = str.split(",");
 
 
         const obj: any = {};
@@ -136,50 +140,65 @@ export class ParsePgn {
     parsePgnWithJson(game: string) {
         const obj = this.splitHeaderAndContent(game);
         // console.log('tmp', obj);
-        let pgn = obj.content.split(/[\n\r\r\t]+/g).join(" ");
+        let pgn = obj.content.split(/[\n\r\r\t]+/g).join(" "); // only one line
         // console.log('pgn', pgn);
         // pgn = ParsePgn.replaceAll(pgn, '\n',
 
-        pgn = ParsePgn.replaceAll(pgn, "}", "}\n");
+        // pgn = ParsePgn.replaceAll(pgn, "}", "}\n");
+
+        // const reg = new RegExp('([0-9\\. ]{2,5})?([a-zA-Z\\-0-8\\+\\=]{2,7}) (\\{[^\\{\\}].+\\})?');
+        const matches = getAllMatches(pgn, /(([0-9]{1,3})(\. ))([a-zA-Z\-0-8\+\=]{2,7})( )?(\{([^}]+)\})?( )?([a-zA-Z\-0-8\+\=]{2,7})?( )?(\{([^}]+)\})?/gm);
+        /*match: '12. Re1 {d=33, sd=33, mt=39183, tl=1027012, s=37581506, n=1472556152, pv=Re1 Re8 Bf4 Ke7 a4 a5 Be5 Rd8 h3, pvl=f1e1 h8e8 c1f4 d8e7 a2a4 a7a5 f4e5 e8d8 h2h3, tb=0, h=22.7, ph=0.0, wv=0.25, R50=48, Rd=-11, Rr=-5, mb=-1-1+1+0+0, fen=r1bk3r/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 b - - 3 12,} Re8 {d=33, sd=43, pd=Re1, mt=34832, tl=1371693, s=35941280, n=1251906666, pv=Re8 Bf4 Nd5 Rad1 Bd7 Bd6 Nxc3 Rd3 Na4 Red1 Nb2 Bc7+ Kxc7 Rxd7+ Kc8 R1d4 e5 R4d6 Nc4 Rd1 Nb2 Bg4 Nxd1 Re7+ Kd8 Rd7+ Kc8 Re7+ Kd8 Rd7+ Kc8, pvl=h8e8 c1f4 f6d5 a1d1 c8d7 f4d6 d5c3 d1d3 c3a4 e1d1 a4b2 d6c7 d8c7 d3d7 c7c8 d1d4 e6e5 d4d6 b2c4 d6d1 c4b2 f3g4 b2d1 d7e7 c8d8 e7d7 d8c8 d7e7 c8d8 e7d7 d8c8, tb=0, h=54.2, ph=88.8, wv=0.00, R50=48, Rd=-10, Rr=-5, mb=-1-1+1+0+0, fen=r1bkr3/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 w - - 4 13,}',
+    offset: 8782,
+    groups:
+     [ '12. ',
+       '12',
+       '. ',
+       'Re1',
+       ' ',
+       '{d=33, sd=33, mt=39183, tl=1027012, s=37581506, n=1472556152, pv=Re1 Re8 Bf4 Ke7 a4 a5 Be5 Rd8 h3, pvl=f1e1 h8e8 c1f4 d8e7 a2a4 a7a5 f4e5 e8d8 h2h3, tb=0, h=22.7, ph=0.0, wv=0.25, R50=48, Rd=-11, Rr=-5, mb=-1-1+1+0+0, fen=r1bk3r/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 b - - 3 12,}',
+       'd=33, sd=33, mt=39183, tl=1027012, s=37581506, n=1472556152, pv=Re1 Re8 Bf4 Ke7 a4 a5 Be5 Rd8 h3, pvl=f1e1 h8e8 c1f4 d8e7 a2a4 a7a5 f4e5 e8d8 h2h3, tb=0, h=22.7, ph=0.0, wv=0.25, R50=48, Rd=-11, Rr=-5, mb=-1-1+1+0+0, fen=r1bk3r/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 b - - 3 12,',
+       ' ',
+       'Re8',
+       ' ',
+       '{d=33, sd=43, pd=Re1, mt=34832, tl=1371693, s=35941280, n=1251906666, pv=Re8 Bf4 Nd5 Rad1 Bd7 Bd6 Nxc3 Rd3 Na4 Red1 Nb2 Bc7+ Kxc7 Rxd7+ Kc8 R1d4 e5 R4d6 Nc4 Rd1 Nb2 Bg4 Nxd1 Re7+ Kd8 Rd7+ Kc8 Re7+ Kd8 Rd7+ Kc8, pvl=h8e8 c1f4 f6d5 a1d1 c8d7 f4d6 d5c3 d1d3 c3a4 e1d1 a4b2 d6c7 d8c7 d3d7 c7c8 d1d4 e6e5 d4d6 b2c4 d6d1 c4b2 f3g4 b2d1 d7e7 c8d8 e7d7 d8c8 d7e7 c8d8 e7d7 d8c8, tb=0, h=54.2, ph=88.8, wv=0.00, R50=48, Rd=-10, Rr=-5, mb=-1-1+1+0+0, fen=r1bkr3/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 w - - 4 13,}',
+       'd=33, sd=43, pd=Re1, mt=34832, tl=1371693, s=35941280, n=1251906666, pv=Re8 Bf4 Nd5 Rad1 Bd7 Bd6 Nxc3 Rd3 Na4 Red1 Nb2 Bc7+ Kxc7 Rxd7+ Kc8 R1d4 e5 R4d6 Nc4 Rd1 Nb2 Bg4 Nxd1 Re7+ Kd8 Rd7+ Kc8 Re7+ Kd8 Rd7+ Kc8, pvl=h8e8 c1f4 f6d5 a1d1 c8d7 f4d6 d5c3 d1d3 c3a4 e1d1 a4b2 d6c7 d8c7 d3d7 c7c8 d1d4 e6e5 d4d6 b2c4 d6d1 c4b2 f3g4 b2d1 d7e7 c8d8 e7d7 d8c8 d7e7 c8d8 e7d7 d8c8, tb=0, h=54.2, ph=88.8, wv=0.00, R50=48, Rd=-10, Rr=-5, mb=-1-1+1+0+0, fen=r1bkr3/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 w - - 4 13,' ] },
+ */
+        // console.log('lines',lines);
+
         const meta = this.parseHeader(obj.header);
 
-        const lines = pgn.split("\n");
-
-        let startParse = false;
         let moves = [];
 
-        // there is not json or addition data
-        if (lines.length === 1) {
-            const chess = new chessJs.Chess();
-            const isLoaded = chess.load_pgn(game);
+        for (let i = 0; i < matches.length; i++) {
 
-            if (isLoaded) {
-                moves = chess.history();
+
+            const match = matches[i]["groups"];
+            console.log("match", match);
+            const whiteMove = match[3];
+            const whiteMeta = match[6];
+            const blackMove = match[8];
+            const blackMeta = match[11];
+
+            if (whiteMove) {
+                moves.push({
+                    move: whiteMove,
+                    meta: this.parseMeta(whiteMeta)
+                });
             }
 
-        } else {
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                if (!startParse && line.indexOf("]") === -1) {
-                    startParse = true;
-                }
-                if (startParse) {
-                    // e.g. fxe8=Q+
-                    const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+\=]{2,7}) (\{[^\{\}].+\})?/);
-                    // const moveMatch = line.match(/^([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
-                    console.log("moveMatch", moveMatch, line);
-
-                    if (moveMatch && moveMatch[2] && moveMatch[3]) {
-                        moves.push({
-                            move: moveMatch[2],
-                            meta: this.parseMeta(moveMatch[3])
-                        })
-                    }
-                }
+            if (whiteMove && blackMove) {
+                moves.push({
+                    move: blackMove,
+                    meta: this.parseMeta(blackMeta)
+                });
+            } else {
+                break;
             }
 
-            moves = prepareMoves(moves);
         }
+
+        moves = prepareMoves(moves);
 
 
         console.log("parsePgnWithJson:", {meta, moves});

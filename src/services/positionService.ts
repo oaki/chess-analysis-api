@@ -11,7 +11,7 @@ export class PositionService {
         this.saveCriterium = {
             depth: 28,
             nodes: 70 * 1000000, //27 666 454 250 e.g. 1 629 921 584
-            maxScore: 3.5,
+            maxScore: 2.5,
         };
 
         console.log("isDev()", isDev());
