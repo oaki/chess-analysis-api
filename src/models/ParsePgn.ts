@@ -147,7 +147,7 @@ export class ParsePgn {
         // pgn = ParsePgn.replaceAll(pgn, "}", "}\n");
 
         // const reg = new RegExp('([0-9\\. ]{2,5})?([a-zA-Z\\-0-8\\+\\=]{2,7}) (\\{[^\\{\\}].+\\})?');
-        const matches = getAllMatches(pgn, /(([0-9]{1,3})(\. ))([a-zA-Z\-0-8\+\=]{2,7})( )?(\{([^}]+)\})?( )?([a-zA-Z\-0-8\+\=]{2,7})?( )?(\{([^}]+)\})?/gm);
+        const matches = getAllMatches(pgn, /(([0-9]{1,3})(\. ))(([a-zA-Z]{1})([a-zA-Z\-0-8\+\=]{1,6}))( )?(\{([^}]+)\})?( )?(([a-zA-Z]{1})([a-zA-Z\-0-8\+\=]{1,6}))?( )?(\{([^}]+)\})?/gm);
         /*match: '12. Re1 {d=33, sd=33, mt=39183, tl=1027012, s=37581506, n=1472556152, pv=Re1 Re8 Bf4 Ke7 a4 a5 Be5 Rd8 h3, pvl=f1e1 h8e8 c1f4 d8e7 a2a4 a7a5 f4e5 e8d8 h2h3, tb=0, h=22.7, ph=0.0, wv=0.25, R50=48, Rd=-11, Rr=-5, mb=-1-1+1+0+0, fen=r1bk3r/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 b - - 3 12,} Re8 {d=33, sd=43, pd=Re1, mt=34832, tl=1371693, s=35941280, n=1251906666, pv=Re8 Bf4 Nd5 Rad1 Bd7 Bd6 Nxc3 Rd3 Na4 Red1 Nb2 Bc7+ Kxc7 Rxd7+ Kc8 R1d4 e5 R4d6 Nc4 Rd1 Nb2 Bg4 Nxd1 Re7+ Kd8 Rd7+ Kc8 Re7+ Kd8 Rd7+ Kc8, pvl=h8e8 c1f4 f6d5 a1d1 c8d7 f4d6 d5c3 d1d3 c3a4 e1d1 a4b2 d6c7 d8c7 d3d7 c7c8 d1d4 e6e5 d4d6 b2c4 d6d1 c4b2 f3g4 b2d1 d7e7 c8d8 e7d7 d8c8 d7e7 c8d8 e7d7 d8c8, tb=0, h=54.2, ph=88.8, wv=0.00, R50=48, Rd=-10, Rr=-5, mb=-1-1+1+0+0, fen=r1bkr3/pp3ppp/2p1pn2/8/8/2P2B2/P1P2PPP/R1B1R1K1 w - - 4 13,}',
     offset: 8782,
     groups:
@@ -176,9 +176,9 @@ export class ParsePgn {
             const match = matches[i]["groups"];
             console.log("match", match);
             const whiteMove = match[3];
-            const whiteMeta = match[6];
-            const blackMove = match[8];
-            const blackMeta = match[11];
+            const whiteMeta = match[8];
+            const blackMove = match[10];
+            const blackMeta = match[15];
 
             if (whiteMove) {
                 moves.push({
