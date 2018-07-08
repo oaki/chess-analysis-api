@@ -4,7 +4,7 @@ import {IEvaluation, LINE_MAP} from "../../../interfaces";
 import positionService from "../../../services/positionService";
 
 const Chess = require("chess.js").Chess;
-const MIN_ELO: number = 3300;
+const MIN_ELO: number = 3200;
 
 export class ParseController {
     async do(props: IDoProps) {
@@ -59,10 +59,10 @@ export class ParseController {
                 });
             }
 
-            //
-            // await gameInstance.update({
-            //     isParsed: true,
-            // })
+
+            await gameInstance.update({
+                isParsed: true,
+            })
 
         });
 

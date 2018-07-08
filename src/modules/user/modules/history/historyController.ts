@@ -3,21 +3,35 @@ import * as Boom from "boom";
 
 export class HistoryController {
 
-    async get(props: IGetProps) {
+    async getAll(props: IGetAllProps) {
         const games = await models.Game.findAll({
             where: {
                 user_id: props.userId
             },
             limit: props.limit,
             offset: props.offset,
-            order: [['updated_at', props.order]],
+            order: [["updated_at", props.order]],
             raw: true
         });
 
         return games.map((game) => {
-            console.log('game', game);
+            console.log("game", game);
             return {...game, moves: JSON.parse(game.moves)}
         });
+
+    }
+
+    async get(props: IGetProps) {
+        const game = await models.Game.find({
+            where: {
+                user_id: props.userId,
+                id: props.id
+            },
+            raw: true
+        });
+
+        game.moves = JSON.parse(game.moves);
+        return game;
 
     }
 
@@ -26,14 +40,16 @@ export class HistoryController {
             where: {
                 user_id: props.userId
             },
-            order: [['updated_at', 'DESC']]
+            order: [["updated_at", "DESC"]]
         });
 
         if (!game) {
             game = await models.Game.create({
                 user_id: props.userId,
-                moves: JSON.stringify([])
+                moves: []
             });
+        }else{
+            game.moves = JSON.parse(game.moves);
         }
 
         return game;
@@ -73,6 +89,11 @@ export class HistoryController {
 }
 
 interface IGetProps {
+    userId: number;
+    id: number;
+}
+
+interface IGetAllProps {
     offset: number;
     limit: number;
     userId: number;

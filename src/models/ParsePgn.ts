@@ -164,7 +164,8 @@ export class ParsePgn {
                     startParse = true;
                 }
                 if (startParse) {
-                    const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+\= ]{2,5}) (\{[^\{\}].+\})?/);
+                    // e.g. fxe8=Q+
+                    const moveMatch = line.match(/([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+\=]{2,7}) (\{[^\{\}].+\})?/);
                     // const moveMatch = line.match(/^([0-9\.]{1,3})? ?([a-zA-Z\-0-8\+ ]{2,4}) (\{[^\{\}].+\})?/);
                     console.log("moveMatch", moveMatch, line);
 

@@ -1,7 +1,7 @@
 import {isDev} from "../config";
 import {IEvaluation, LINE_MAP} from "../interfaces";
-import {getFirstMove} from "../tools";
-import {exists, hgetall, hmset} from './redisConnectionService';
+import {countPieces, getFirstMove} from "../tools";
+import {exists, hgetall, hmset} from "./redisConnectionService";
 
 export class PositionService {
 
@@ -10,11 +10,11 @@ export class PositionService {
     constructor() {
         this.saveCriterium = {
             depth: 28,
-            nodes: 70 * 1000000, //27 666 454 250 - 70 000 000 / 659 843 416
+            nodes: 70 * 1000000, //27 666 454 250 e.g. 1 629 921 584
             maxScore: 3.5,
         };
 
-        console.log('isDev()', isDev());
+        console.log("isDev()", isDev());
         if (isDev()) {
 
             this.saveCriterium = {
@@ -23,7 +23,7 @@ export class PositionService {
                 maxScore: 3.5,
             };
 
-            console.log('saveCriterium', this.saveCriterium);
+            console.log("saveCriterium", this.saveCriterium);
         }
     }
 
@@ -48,12 +48,12 @@ export class PositionService {
      */
 
     static normalizeFen(fen: string) {
-        return fen.split(' ').splice(0, 4).join(':').split('/').join(':');
+        return fen.split(" ").splice(0, 4).join(":").split("/").join(":");
     }
 
     static denormalizeFen(normalizedFen) {
-        const firstPart = normalizedFen.split(':').splice(0, 8).join('/');
-        const secondPart = normalizedFen.split(':').splice(8).join(' ');
+        const firstPart = normalizedFen.split(":").splice(0, 8).join("/");
+        const secondPart = normalizedFen.split(":").splice(8).join(" ");
 
         return `${firstPart} ${secondPart}`;
     }
@@ -72,18 +72,27 @@ export class PositionService {
         return toSave;
     }
 
-    checkEvaluation(evaluation: IEvaluation) {
+    checkEvaluation(fen, evaluation: IEvaluation) {
         const depth: number = Number(evaluation[LINE_MAP.depth]);
-
-        if (depth > this.saveCriterium.depth
+        const nodes = Number(evaluation[LINE_MAP.nodes]);
+        const score = Math.abs(Number(evaluation[LINE_MAP.score]));
+        const piecesCount = countPieces(fen);
+        console.log("TEST:", {
+            depth,
+            nodes,
+            score
+        });
+        if (
+            piecesCount > 6
+            && depth > this.saveCriterium.depth
             && (
-                Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes
+                nodes >= this.saveCriterium.nodes
                 || evaluation[LINE_MAP.import]
             )
-            && Math.abs(Number(evaluation[LINE_MAP.score])) < this.saveCriterium.maxScore
-            && evaluation[LINE_MAP.pv]
+            && score < this.saveCriterium.maxScore
+            && !!evaluation[LINE_MAP.pv]
         ) {
-            console.log('Interesting evaluation: ', evaluation);
+            console.log("Interesting evaluation: ", evaluation);
 
             // console.log('depth',evaluation[LINE_MAP.depth], Number(evaluation[LINE_MAP.depth]) > this.saveCriterium.depth,
             //     ' Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes\n' +
@@ -104,16 +113,16 @@ export class PositionService {
 
     add(fen, evaluation: IEvaluation) {
 
-        if (this.checkEvaluation(evaluation)) {
+        if (this.checkEvaluation(fen, evaluation)) {
             const key = PositionService.getKey(evaluation);
             const json = JSON.stringify(PositionService.beforeSaveEvaluation(evaluation));
 
             hmset(PositionService.normalizeFen(fen), key, json);
 
-            console.log('added to Redis', fen, json);
+            console.log("added to Redis", fen, json);
         } else {
 
-            console.log('No reason to save this low analyse', evaluation);
+            console.log("No reason to save this low analyse or there are less figures than 7", evaluation, "count:", countPieces(fen));
         }
     }
 
@@ -133,7 +142,7 @@ export class PositionService {
     async findAllMoves(fen) {
         const normalizedFen = PositionService.normalizeFen(fen);
         const isExist = await exists(normalizedFen);
-        console.log('findAllMoves->isExist', isExist);
+        console.log("findAllMoves->isExist", isExist);
         if (isExist !== null) {
             return await hgetall(normalizedFen);
         }

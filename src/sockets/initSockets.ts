@@ -62,7 +62,7 @@ class Sockets {
                     let worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
 
                     // if(!worker && workersForEverybody.indexOf(socket.handshake.query.token)!==-1){
-                    //
+                    //     socket.worker = worker;
                     // }
 
 

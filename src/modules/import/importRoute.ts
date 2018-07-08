@@ -52,7 +52,7 @@ export function importsRoute() {
 
                 return await parseController.do({
                     offset: 0,
-                    limit: 10
+                    limit: 100
                 })
             }
         },

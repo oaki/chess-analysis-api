@@ -6,7 +6,7 @@ export class OpeningBookController {
     async get(props: GetProps) {
 
         const result = await openingsService.find(props.fen);
-        console.log('result',result);
+        console.log('openingsService->result',result);
         if (!result) {
             throw Boom.notFound('Fen in not found.');
         }
