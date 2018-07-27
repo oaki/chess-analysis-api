@@ -46,7 +46,7 @@ export class HistoryController {
         if (!game) {
             game = await models.Game.create({
                 user_id: props.userId,
-                moves: []
+                moves: '[]'
             });
         }else{
             game.moves = JSON.parse(game.moves);

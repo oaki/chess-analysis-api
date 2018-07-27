@@ -14,6 +14,7 @@ export function historyRoute() {
                 auth: "jwt",
             },
             handler: async (request: any) => {
+                console.log("historyRoute->POST->", request.auth.credentials);
                 return await historyController.addNewGame({
                     userId: request.auth.credentials.user_id,
                 });
@@ -97,7 +98,7 @@ export function historyRoute() {
 
                 validate: {
                     payload: {
-                        moves: Joi.object().required().description("Moves"),
+                        moves: Joi.array().required().description("Moves"),
                     },
                     params: {
                         id: Joi.number().integer().required().description("Game id")
