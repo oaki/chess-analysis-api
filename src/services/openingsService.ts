@@ -1,13 +1,14 @@
-import {Polyglot} from '../libs/polyglot';
-import * as fs from 'fs';
+import {Polyglot} from "../libs/polyglot";
+import * as fs from "fs";
 import {Environment, getConfig} from "../config";
 
-const Chess = require('chess.js').Chess;
+const Chess = require("chess.js").Chess;
 
 interface OpeningResponse {
     move: string;
     weight: string;
     fen: string;
+    san: string;
 }
 
 class OpeningService {
@@ -18,7 +19,7 @@ class OpeningService {
     constructor(path = null) {
 
         if (!path) {
-            this.path = getConfig().environment === Environment.DEVELOPMENT ? '../books/gm2001.bin' : '../books/book.bin'
+            this.path = getConfig().environment === Environment.DEVELOPMENT ? "../books/gm2001.bin" : "../books/book.bin"
         } else {
             this.path = path;
         }
@@ -30,7 +31,7 @@ class OpeningService {
     async init() {
         return new Promise((resolve) => {
             this.book.load_book(fs.createReadStream(`${__dirname}/${this.path}`));
-            this.book.on('loaded', () => {
+            this.book.on("loaded", () => {
                 console.log(`book->loaded: ${this.path}`);
                 // let entries = book.find('rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1');
                 this.isLoaded = true;
@@ -60,12 +61,13 @@ class OpeningService {
 
             const chessInstance = new Chess(fen);
 
-            chessInstance.move({from, to});
+            const move = chessInstance.move({from, to});
 
             return {
                 fen: chessInstance.fen(),
                 move: polyglotEntry.algebraic_move,
                 weight: polyglotEntry.weight,
+                san: move.san
             }
         });
     }
