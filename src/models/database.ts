@@ -4,12 +4,14 @@ import {getConfig} from "../config";
 import {UserAttributes, UserInstance} from "../modules/user/userModel";
 import {GameAttributes, GameInstance} from "../modules/user/modules/history/models/gameModel";
 import {WorkerAttributes, WorkerInstance} from "../modules/user/modules/worker/models/workerModel";
+import {LogAttributes, LogInstance} from "../modules/log/logModel";
 
 export interface SequelizeModels {
     ImportGame: SequelizeStatic.Model<ImportGameInstance, ImportGameAttributes>,
     User: SequelizeStatic.Model<UserInstance, UserAttributes>,
     Game: SequelizeStatic.Model<GameInstance, GameAttributes>,
     Worker: SequelizeStatic.Model<WorkerInstance, WorkerAttributes>,
+    Log: SequelizeStatic.Model<LogInstance, LogAttributes>,
 }
 
 const config = getConfig();
@@ -43,6 +45,7 @@ class Database {
             User: this._sequelize.import<UserInstance, UserAttributes>('./../modules/user/userModel'),
             Game: this._sequelize.import<GameInstance, GameAttributes>('./../modules/user/modules/history/models/gameModel'),
             Worker: this._sequelize.import<WorkerInstance, WorkerAttributes>('./../modules/user/modules/worker/models/workerModel'),
+            Log: this._sequelize.import<LogInstance, LogAttributes>('./../modules/log/logModel'),
         };
 
         this._models.User.hasMany(this._models.Game);

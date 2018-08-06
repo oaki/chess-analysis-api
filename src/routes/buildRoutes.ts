@@ -9,6 +9,7 @@ import {userRoute} from "../modules/user/userRouter";
 import {syncRoute} from "../modules/sync/syncRouter";
 import {config, Environment} from "../config";
 import {workerRoute} from "../modules/user/modules/worker/workerRouter";
+import {logRoute} from "../modules/log/logRoutes";
 
 export default function routes(server) {
     server.route(authRoute());
@@ -21,6 +22,7 @@ export default function routes(server) {
     server.route(importsRoute());
     server.route(historyRoute());
     server.route(workerRoute());
+    server.route(logRoute());
 
     console.log('config.environment', config.environment);
     if (config.environment === Environment.DEVELOPMENT) {
