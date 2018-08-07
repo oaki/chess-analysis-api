@@ -7,7 +7,7 @@ module.exports = function LogModel(sequelize: Sequelize, dataTypes: DataTypes) {
             primaryKey: true,
             autoIncrement: true,
         },
-        data: {type: Sequelize.STRING},
+        data: {type: Sequelize.TEXT},
         uuid: {type: Sequelize.STRING},
     });
 };
