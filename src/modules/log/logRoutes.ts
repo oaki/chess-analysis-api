@@ -10,8 +10,11 @@ export function logRoute() {
             },
             handler: (request) => {
                 console.log({payload: request.payload});
+
                 const payload: string = request.payload;
-                return LogController.save({payload});
+                return LogController.save({
+                    payload
+                });
             }
 
         }

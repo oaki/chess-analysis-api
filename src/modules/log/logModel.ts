@@ -1,19 +1,21 @@
 import {DataTypes, Instance, Sequelize} from "sequelize";
 
 module.exports = function LogModel(sequelize: Sequelize, dataTypes: DataTypes) {
-    return sequelize.define("import_games", {
+    return sequelize.define("logs", {
         id: {
             type: Sequelize.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
-        log: {type: Sequelize.STRING},
+        data: {type: Sequelize.STRING},
+        uuid: {type: Sequelize.STRING},
     });
 };
 
 export interface LogAttributes {
     id?: number;
-    log: string;
+    data: string;
+    uuid: string;
 }
 
 export interface LogInstance extends Instance<LogAttributes> {
