@@ -8,8 +8,8 @@ export default function (workerSocket, usersIo, workerIo) {
     console.log('workerSocket.id added to list', workerSocket.id);
 
     workerSocket.on('workerEvaluation', (jsonString: string) => {
-        console.log('workerEvaluation', jsonString);
         const data = JSON.parse(jsonString);
+        console.log('workerEvaluation', data);
         forEach(data, (workerResponse: IWorkerResponse) => {
             const fen = workerResponse.fen;
             const evaluation: IEvaluation = workerResponse;

@@ -3,6 +3,7 @@ import openingsService from "../services/openingsService";
 import positionService, {PositionService} from "../services/positionService";
 import SyzygyService from "../services/syzygyService";
 import {countPieces} from "../tools";
+import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
 
 const random = require("lodash/random");
 
@@ -21,8 +22,6 @@ export default function (userSocket, usersIo, workersIo) {
 
         //try to find in book
         const opening = await openingsService.find(position.fen);
-
-        console.log("afterOpening", countPieces(fen));
 
         if (opening) {
             userSocket.emit("openingMoves", {
@@ -44,43 +43,36 @@ export default function (userSocket, usersIo, workersIo) {
                 }
             } else {
                 const evaluation = await positionService.findAllMoves(fen);
-                console.log("positionService->evaluation", evaluation);
 
                 if (evaluation === null) {
                     console.log("Send the position to worker for evaluation.");
 
-
                     // @todo find BEST worker from you
-                    let workerIo = workersIo.find((socket) => {
-                        return socket.worker.user_id === userSocket.handshake.user.user_id;
-                    });
-
+                    let workerIo = findMyWorkerInSocketList(workersIo, userSocket.handshake.user.user_id);
 
                     // use temporary server worker
                     if (!workerIo) {
-                        const listWorkers = workersIo.filter((socket) => {
-                            //@todo creat
-                            // e list in DB for all available workers which can be used for free for everybody
-                            return workersForEverybody.indexOf(socket.worker.uuid) !== -1;
-                        });
-
-                        workerIo = listWorkers[random(0, listWorkers.length)];
+                        workerIo = findAvailableWorkerInSocketList(workerIo);
                     }
 
                     if (workerIo) {
+                        console.log("Your worker", workerIo.worker.lastUsed, userSocket.handshake.user, workersIo.map(socket => socket.worker.user_id));
+
+                        workerIo.worker.lastUsed = Date.now();
                         console.log("choose worker with uuid", workerIo.worker.uuid);
                         console.log("setPositionToWorker", data);
                         workerIo.emit("setPositionToWorker", data);
 
-                        console.log("wwwwwww", workerIo);
+
                         // if (!w._events || !w._events.workerEvaluation) {
-                            workerIo.on("workerEvaluation", (data) => {
-                                console.log("workerEvaluation", data);
-                                userSocket.emit("workerEvaluation", data);
-                            });
+                        workerIo.on("workerEvaluation", (data) => {
+                            console.log("workerEvaluation", data);
+                            userSocket.emit("workerEvaluation", data);
+                        });
                         // }
 
                     } else {
+                        userSocket.emit("noWorkerAvailable", fen);
                         console.error("No worker available", userSocket.handshake.user.user_id, workersIo);
                     }
 
