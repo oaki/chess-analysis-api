@@ -1,7 +1,12 @@
+import {models} from "../../models/database";
 
 export class UserController {
-    getProfile(props:any){
-
+    async getProfile(props: { userId: number }) {
+        return await models.User.find({
+            where: {
+                id: props.userId
+            },
+            raw: true
+        });
     }
-
 }

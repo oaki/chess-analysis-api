@@ -12,13 +12,10 @@ export function userRoute() {
                 tags: ['api'], // section in documentation
             },
             handler: (request) => {
-                console.log('request', request.auth.credentials);
                 return userController.getProfile({
-                    user_id: request.auth.credentials.user_id,
+                    userId: request.auth.credentials.user_id,
                 })
             }
-
-
         }
 
     ];

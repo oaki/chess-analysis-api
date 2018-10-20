@@ -44,9 +44,9 @@
     "node-fetch": "^2.1.2",
     "pgn-parser": "0.0.9",
     "sequelize": "^4.37.1",
-
     "sequelize-cli-typescript": "^3.2.0-c",
     "socket.io": "^2.1.0",
+    "uuid": "^3.3.2",
     "zeromq": "^4.6.0"
   },
   "devDependencies": {
