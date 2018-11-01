@@ -1,12 +1,11 @@
-import * as socketIo from 'socket.io';
-import {getConfig} from '../config/index';
+import * as socketIo from "socket.io";
+import {getConfig} from "../config/index";
 import {models} from "../models/database";
 import userSockets from "./userSockets";
 import workerSockets from "./workerSockets";
 import {USER, WORKER} from "../const";
-import {workersForEverybody} from "../models/workerForEverybody";
 
-const JWT = require('jsonwebtoken');
+const JWT = require("jsonwebtoken");
 
 /**
  * END GAME API syzygy
@@ -48,7 +47,7 @@ class Sockets {
 
         io.use(async (socket, next) => {
 
-            console.log('io->use->start');
+            console.log("io->use->start");
             if (socket.handshake.query.type === USER) {
                 const jwtToken = socket.handshake.query.token;
                 socket.handshake.user = JWT.decode(jwtToken, this.config.jwt.key);
@@ -57,33 +56,34 @@ class Sockets {
             }
 
             if (socket.handshake.query.type === WORKER) {
-                console.log('It is worker', socket.handshake.query && socket.handshake.query.token);
+                console.log("It is worker", socket.handshake.query && socket.handshake.query.token);
                 if (socket.handshake.query && socket.handshake.query.token) {
                     let worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
 
-                    // if(!worker && workersForEverybody.indexOf(socket.handshake.query.token)!==-1){
-                    //     socket.worker = worker;
-                    // }
-
-
-
                     if (worker) {
-                        console.log('Add worker info to the socket', worker);
+                        console.log("Add worker info to the socket", worker);
+                        worker.lastUsed = Date.now();
                         socket.worker = worker;
                         next();
                     } else {
-                        console.error('Worker is not registered in our database.');
-                        next(new Error('Worker is not registered in our database.'));
+
+                        socket.worker = {
+                            lastUsed: Date.now(),
+                            isUnknown: true
+                        }
+
+                        console.warn("Worker is not registered in our database.");
+                        next();
                     }
 
                 } else {
-                    next(new Error('Authentication error'));
+                    next(new Error("Authentication error"));
                 }
             }
-            next(new Error('Authentication error'));
+            next(new Error("Authentication error"));
         })
 
-        io.on('connection', (socket) => {
+        io.on("connection", (socket) => {
 
             if (socket.handshake.query.type === USER) {
                 userSockets(socket, this.usersIo, this.workersIo);
@@ -93,8 +93,8 @@ class Sockets {
                 workerSockets(socket, this.usersIo, this.workersIo);
             }
 
-            socket.on('disconnect', () => {
-                console.log('Server: disconnected', socket.id);
+            socket.on("disconnect", () => {
+                console.log("Server: disconnected", socket.id);
 
                 if (socket.handshake.query.type === USER) {
                     delete this.usersIo[socket.id];

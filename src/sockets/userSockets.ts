@@ -1,9 +1,9 @@
-import {workersForEverybody} from "../models/workerForEverybody";
 import openingsService from "../services/openingsService";
 import positionService, {PositionService} from "../services/positionService";
 import SyzygyService from "../services/syzygyService";
 import {countPieces} from "../tools";
 import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
+import {LINE_MAP} from "../interfaces";
 
 const random = require("lodash/random");
 
@@ -47,15 +47,18 @@ export default function (userSocket, usersIo, workersIo) {
                 if (evaluation === null) {
                     console.log("Send the position to worker for evaluation.");
 
+                    console.log({workersIo});
                     // @todo find BEST worker from you
                     let workerIo = findMyWorkerInSocketList(workersIo, userSocket.handshake.user.user_id);
 
                     // use temporary server worker
                     if (!workerIo) {
-                        workerIo = findAvailableWorkerInSocketList(workerIo);
+                        workerIo = findAvailableWorkerInSocketList(workersIo);
+                        console.log("findAvailableWorkerInSocketList", {workerIo});
                     }
 
                     if (workerIo) {
+                        console.log({worker: workerIo.worker, workerIo});
                         console.log("Your worker", workerIo.worker.lastUsed, userSocket.handshake.user, workersIo.map(socket => socket.worker.user_id));
 
                         workerIo.worker.lastUsed = Date.now();
@@ -73,7 +76,6 @@ export default function (userSocket, usersIo, workersIo) {
 
                     } else {
                         userSocket.emit("noWorkerAvailable", fen);
-                        console.error("No worker available", userSocket.handshake.user.user_id, workersIo);
                     }
 
                     // userSocket.emit('evaluation', JSON.stringify(position));
@@ -85,6 +87,7 @@ export default function (userSocket, usersIo, workersIo) {
 
 
                     data.p = PositionService.normalizePv(data.p);
+                    data[LINE_MAP.nodes] = Number(data[LINE_MAP.nodes]) * 1000;
                     data.fen = fen; //add fen
 
                     console.log("data after normalizePv", data, data.p);

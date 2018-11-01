@@ -5,7 +5,7 @@ export function findMyWorkerInSocketList(list: any[], userId) {
 
 export function findAvailableWorkerInSocketList(list: any[]) {
 
-    return list.filter((socket) => {
-        return !socket.worker.lastUsed || socket.worker.lastUsed < Date.now() - 60 * 1000
+    return list.find((socket) => {
+        return !socket.worker.lastUsed || socket.worker.lastUsed < (Date.now() - 5 * 1000)
     });
 }
