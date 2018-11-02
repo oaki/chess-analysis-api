@@ -71,14 +71,25 @@ export class ParseController {
 
 
     private map(meta: IMeta): IEvaluation {
+        const pv = meta.pv.split(" ").slice(0, 20).join(" ").trim();
         return {
             [LINE_MAP.depth]: Number(meta.d),
             [LINE_MAP.nodes]: meta.n,
-            [LINE_MAP.pv]: meta.pv,
+            [LINE_MAP.time]: this.convertHHmmssToSecond(meta.tl),
+            [LINE_MAP.pv]: pv,
             [LINE_MAP.score]: meta.wv,
             [LINE_MAP.nps]: meta.s,
             [LINE_MAP.import]: 1,
         }
+    }
+
+    private convertHHmmssToSecond(time: string): string {
+        if (!time || time.indexOf(":") === -1) {
+            return String(0);
+        }
+        const second = time.split(":").reverse().reduce((prev: number, curr, i) => prev + Number(curr) * Math.pow(60, i), 0);
+
+        return String(second);
     }
 }
 
@@ -88,7 +99,7 @@ interface IMeta {
     n: number;
     pv: string;
     wv: string;
-
+    tl: string;
 }
 
 interface IDoProps {
