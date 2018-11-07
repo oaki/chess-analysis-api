@@ -1,5 +1,8 @@
 import {models} from "../../../../models/database";
 import * as Boom from "boom";
+import {initPgnParser} from "../../../../models/ParsePgn";
+
+const Chess = require("chess.js").Chess;
 
 export class HistoryController {
 
@@ -46,9 +49,9 @@ export class HistoryController {
         if (!game) {
             game = await models.Game.create({
                 user_id: props.userId,
-                moves: '[]'
+                moves: "[]"
             });
-        }else{
+        } else {
             game.moves = JSON.parse(game.moves);
         }
 
@@ -63,6 +66,52 @@ export class HistoryController {
         });
 
         return game;
+
+    }
+
+    async importNewGameFromPgn(props: IImportNewGameFromPgnProps) {
+        //parse pgn
+
+        const pgnParser: any = await initPgnParser();
+
+        const pgn = props.pgn.split(/[\n\r\r\t]+/g).join(" ").trim();
+
+
+        const game = pgnParser.parse(pgn);
+
+        if (game.length > 0) {
+            const headers = game[0].headers;
+            const moves = game[0].moves;
+            console.log({headers, moves});
+
+
+            const chess = new Chess();
+            const newMoves = moves.map((moveObj: any, index: number) => {
+
+
+                const isAdded = chess.move(moveObj.move, {sloppy: true});
+                console.log("isAdded", isAdded);
+                if (!isAdded) {
+                    throw new Error(`Move is not valid: ${moveObj.move}`);
+                }
+                return {
+                    id: index + 1,
+                    f: chess.fen(),
+                    m: moveObj.move,
+                    s: isAdded.san,
+                    vs: []
+                };
+            });
+
+            return await models.Game.create({
+                user_id: props.userId,
+                moves: JSON.stringify(newMoves)
+            });
+        }
+
+        throw Boom.badRequest("Fen is not valid");
+
+        // return game;
 
     }
 
@@ -106,6 +155,11 @@ interface IGetLastGameProps {
 
 interface IAddNewGameProps {
     userId: number;
+}
+
+interface IImportNewGameFromPgnProps {
+    userId: number;
+    pgn: string;
 }
 
 interface IUpdateGameProps {

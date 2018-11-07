@@ -24,7 +24,7 @@
 3. Nc3 {book, mb=+0+0+0+0+0,} Bg7 {book, mb=+0+0+0+0+0,}
 4. e4 {book, mb=+0+0+0+0+0,} d6 {book, mb=+0+0+0+0+0,}
 5. f3 {book, mb=+0+0+0+0+0,} O-O {book, mb=+0+0+0+0+0,}
-6. Be3 {book, mb=+0+0+0+0+0,} Nbd7 {book, mb=+0+0+0+0+0,}
+6. Be3 {book, mb=+0+0+0+0+0,} Nbd7 {book, mb=+0+0+0+0+0,}w
 7. Qd2 {book, mb=+0+0+0+0+0,}
 c5 {d=35, sd=35, mt=552425, tl=6662575, s=46259796, n=25554755402, pv=c5 dxc5 Nxc5, tb=102, h=100.0, ph=0.0, wv=0.47, R50=50, Rd=-11, Rr=-9, mb=+0+0+0+0+0,}
 8. Nge2 {d=38, sd=53, mt=421483, tl=6793517, s=51588115, n=21743513883, pv=Nge2 Qa5 Rd1 Re8 b3 a6 dxc5 Nxc5 Nd4 Ne6 Be2 Bd7 Nc2 Ng4 Nd5 Qxd2+ Bxd2 Nf6 Nb6 Rab8 Be3 Bc6 Nb4 a5 N4d5 Nd7 Nxd7 Bxd7 h4 h5 Bb6 Ra8 Kf2 Bc6 Be3 Rab8 Rhg1 Kf8 g4 hxg4 fxg4 Nc5 Bf3 e6 Nb6, tb=41, h=99.9, ph=0.0, wv=0.89, R50=49, Rd=-11, Rr=-9, mb=+0+0+0+0+0,}

@@ -14,12 +14,29 @@ export function historyRoute() {
                 auth: "jwt",
             },
             handler: async (request: any) => {
-                console.log("historyRoute->POST->", request.auth.credentials);
                 return await historyController.addNewGame({
                     userId: request.auth.credentials.user_id,
                 });
             }
         },
+        {
+            method: "POST",
+            path: "/user/history/import-pgn",
+            config: {
+                description: "Import new game from PGN format",
+                tags: ["api", "history"], // section in documentation
+                auth: "jwt",
+            },
+            handler: async (request: any) => {
+                const payload = JSON.parse(request.payload);
+
+                return await historyController.importNewGameFromPgn({
+                    userId: request.auth.credentials.user_id,
+                    pgn: payload.pgn
+                });
+            }
+        },
+
         {
             method: "GET",
             path: "/user/history",

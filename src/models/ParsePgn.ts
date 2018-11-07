@@ -6,6 +6,15 @@ import {getAllMatches, prepareMoves} from "../libs/utils";
 const chessJs = require("chess.js");
 const pgnParser = require("pgn-parser");
 
+export async function initPgnParser() {
+    return await
+        new Promise((resolve, err) => {
+            pgnParser((err, parser) => {
+                resolve(parser);
+            });
+        });
+}
+
 export interface IPosition {
     pv: string;
     fen: string;
@@ -248,7 +257,7 @@ export class ParsePgn {
     }
 
     private async parse(pgn: string) {
-        const pgnParser: any = await this.initPgnParser(pgn);
+        const pgnParser: any = await initPgnParser();
         const parsedGame: IPosition[] = [];
         const [game] = pgnParser.parse(pgn);
 
@@ -281,15 +290,6 @@ export class ParsePgn {
         });
 
         return parsedGame;
-    }
-
-    private async initPgnParser(pgn: string) {
-        return await
-            new Promise((resolve, err) => {
-                pgnParser((err, parser) => {
-                    resolve(parser);
-                });
-            });
     }
 
 
