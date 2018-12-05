@@ -15,6 +15,8 @@ export class GameDatabaseController {
         //create connection to postgre
         connectGameDatabase().then((connection) => {
             this.db = connection;
+        }).catch((e) => {
+            console.log("eeeeee", e);
         });
     }
 
@@ -35,7 +37,7 @@ export class GameDatabaseController {
             .getRepository(Move)
             .createQueryBuilder("move")
             .innerJoinAndSelect("move.games", "game")
-            .where("move.fen = :fen",{fen: normalizedFen})
+            .where("move.fen = :fen", {fen: normalizedFen})
 
             .addOrderBy(orderElo, "DESC")
             .limit(2)
