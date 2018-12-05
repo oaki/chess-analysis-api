@@ -13,8 +13,8 @@ export async function connectGameDatabase() {
         password: config.gameDatabase.password,
         database: config.gameDatabase.database,
 
-        synchronize: true,
-        logging: true,
+        synchronize: false,
+        logging: false,
 
         "entities": [
             "dist/**/entity/**/*.js"
