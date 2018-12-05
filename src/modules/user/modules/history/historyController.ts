@@ -76,40 +76,43 @@ export class HistoryController {
 
         const pgn = props.pgn.split(/[\n\r\r\t]+/g).join(" ").trim();
 
+        try {
+            const game = pgnParser.parse(pgn);
 
-        const game = pgnParser.parse(pgn);
-
-        if (game.length > 0) {
-            const headers = game[0].headers;
-            const moves = game[0].moves;
-            console.log({headers, moves});
-
-
-            const chess = new Chess();
-            const newMoves = moves.map((moveObj: any, index: number) => {
+            if (game.length > 0) {
+                const headers = game[0].headers;
+                const moves = game[0].moves;
+                console.log({headers, moves});
 
 
-                const isAdded = chess.move(moveObj.move, {sloppy: true});
-                console.log("isAdded", isAdded);
-                if (!isAdded) {
-                    throw new Error(`Move is not valid: ${moveObj.move}`);
-                }
-                return {
-                    id: index + 1,
-                    f: chess.fen(),
-                    m: moveObj.move,
-                    s: isAdded.san,
-                    vs: []
-                };
-            });
+                const chess = new Chess();
+                const newMoves = moves.map((moveObj: any, index: number) => {
 
-            return await models.Game.create({
-                user_id: props.userId,
-                moves: JSON.stringify(newMoves)
-            });
+
+                    const isAdded = chess.move(moveObj.move, {sloppy: true});
+                    console.log("isAdded", isAdded);
+                    if (!isAdded) {
+                        throw new Error(`Move is not valid: ${moveObj.move}`);
+                    }
+                    return {
+                        id: index + 1,
+                        f: chess.fen(),
+                        m: moveObj.move,
+                        s: isAdded.san,
+                        vs: []
+                    };
+                });
+
+                return await models.Game.create({
+                    user_id: props.userId,
+                    moves: JSON.stringify(newMoves)
+                });
+            }
+        } catch (e) {
+            console.error(e);
+            throw Boom.badRequest("Fen is not valid");
         }
 
-        throw Boom.badRequest("Fen is not valid");
 
         // return game;
 

@@ -1,7 +1,7 @@
 import {isDev} from "../config";
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import {countPieces, getFirstMove} from "../tools";
-import {exists, hgetall, hmset} from "./redisConnectionService";
+import {models} from "../models/database";
 
 export class PositionService {
 
@@ -10,7 +10,7 @@ export class PositionService {
     constructor() {
         this.saveCriterium = {
             depth: 28,
-            nodes: 70 * 1000000, //27 666 454 250 e.g. 1 629 921 584
+            nodes: 70 * 1000 * 1000, //27 666 454 250 e.g. 1 629 921 584
             maxScore: 2.5,
         };
 
@@ -117,7 +117,9 @@ export class PositionService {
             const key = PositionService.getKey(evaluation);
             const json = JSON.stringify(PositionService.beforeSaveEvaluation(evaluation));
 
-            hmset(PositionService.normalizeFen(fen), key, json);
+            const normalizedFen = PositionService.normalizeFen(fen);
+            models.EvaluatedPosition.insertOrUpdate({fen:normalizedFen, data:json});
+            // hmset(PositionService.normalizeFen(fen), key, json);
 
             console.log("added to Redis", fen, json);
         } else {
@@ -141,10 +143,11 @@ export class PositionService {
 
     async findAllMoves(fen) {
         const normalizedFen = PositionService.normalizeFen(fen);
-        const isExist = await exists(normalizedFen);
-        console.log("findAllMoves->isExist", isExist);
-        if (isExist !== null) {
-            return await hgetall(normalizedFen);
+
+        const position = await models.EvaluatedPosition.find({where: {fen:normalizedFen}});
+        console.log("findAllMoves->isExist", position);
+        if (position) {
+            return await position;
         }
 
         return null;

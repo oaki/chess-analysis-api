@@ -80,10 +80,10 @@ export default function (userSocket, usersIo, workersIo) {
 
                     // userSocket.emit('evaluation', JSON.stringify(position));
                 } else {
-                    const bestVariant = positionService.getBestVariant(evaluation);
-                    console.log("I have it!!!!", bestVariant);
 
-                    const data = JSON.parse(bestVariant);
+                    console.log("I have it!!!!", evaluation);
+
+                    const data = JSON.parse(evaluation.data);
 
 
                     data.p = PositionService.normalizePv(data.p);

@@ -6,6 +6,10 @@ import {GameAttributes, GameInstance} from "../modules/user/modules/history/mode
 import {WorkerAttributes, WorkerInstance} from "../modules/user/modules/worker/models/workerModel";
 import {LogAttributes, LogInstance} from "../modules/log/logModel";
 import {VerifyHashAttributes, VerifyHashInstance} from "../modules/auth/verifyHashModel";
+import {
+    EvaluatedPositionAttributes,
+    EvaluatedPositionInstance
+} from "../modules/evaluatedPosition/evaluatedPositionModel";
 
 export interface SequelizeModels {
     ImportGame: SequelizeStatic.Model<ImportGameInstance, ImportGameAttributes>,
@@ -14,6 +18,7 @@ export interface SequelizeModels {
     Worker: SequelizeStatic.Model<WorkerInstance, WorkerAttributes>,
     Log: SequelizeStatic.Model<LogInstance, LogAttributes>,
     VerifyHash: SequelizeStatic.Model<VerifyHashInstance, VerifyHashAttributes>,
+    EvaluatedPosition: SequelizeStatic.Model<EvaluatedPositionInstance, EvaluatedPositionAttributes>,
 }
 
 const config = getConfig();
@@ -49,6 +54,7 @@ class Database {
             Worker: this._sequelize.import<WorkerInstance, WorkerAttributes>("./../modules/user/modules/worker/models/workerModel"),
             Log: this._sequelize.import<LogInstance, LogAttributes>("./../modules/log/logModel"),
             VerifyHash: this._sequelize.import<VerifyHashInstance, VerifyHashAttributes>("./../modules/auth/verifyHashModel"),
+            EvaluatedPosition: this._sequelize.import<EvaluatedPositionInstance, EvaluatedPositionAttributes>("./../modules/evaluatedPosition/evaluatedPositionModel"),
         };
 
         this._models.User.hasMany(this._models.Game);

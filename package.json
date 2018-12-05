@@ -42,10 +42,13 @@
     "lodash": "^4.17.10",
     "mysql2": "^1.5.2",
     "node-fetch": "^2.1.2",
+    "pg": "^7.7.1",
     "pgn-parser": "0.0.9",
+    "reflect-metadata": "^0.1.12",
     "sequelize": "^4.37.1",
     "sequelize-cli-typescript": "^3.2.0-c",
     "socket.io": "^2.1.0",
+    "typeorm": "^0.2.9",
     "uuid": "^3.3.2",
     "zeromq": "^4.6.0"
   },

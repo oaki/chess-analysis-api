@@ -1,0 +1,60 @@
+import * as Joi from "joi";
+import {GameDatabaseController} from "./gameDatabaseController";
+
+const gameDatabaseController = new GameDatabaseController();
+
+export function gameDatabaseRouter() {
+    return [
+        {
+            method: "GET",
+            path: "/game-database",
+            config: {
+                description: "Get games from game database",
+                tags: ["api"], // section in documentation
+                validate: {
+                    query: {
+                        fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. "),
+                        side: Joi.string().allow(["b", "w"]).required()
+
+                    },
+
+                }
+            },
+            handler: async (request: any) => {
+                const fen: string = request.query["fen"];
+                const side: "b" | "w" = request.query["side"];
+                return await gameDatabaseController.get({fen, side});
+            }
+        },
+        {
+            method: "POST",
+            path: "/game-database",
+            config: {
+                description: "Add new  game to game database",
+                tags: ["api"], // section in documentation
+            },
+            handler: async (request: any) => {
+
+                return await gameDatabaseController.add({
+                    pgn: request.payload.pgn
+                });
+            }
+        },
+
+        {
+            method: "POST",
+            path: "/game-database/import",
+            config: {
+                description: "Add new  game to game database",
+                tags: ["api"], // section in documentation
+            },
+            handler: async (request: any) => {
+
+                return await gameDatabaseController.runImport({
+                    filename: request.payload.filename
+                });
+            }
+        }
+
+    ];
+}

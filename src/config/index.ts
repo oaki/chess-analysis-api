@@ -1,11 +1,13 @@
-require('dotenv').config();
-import {database} from './mysql';
+import {gameDatabase} from "./gameDatabase";
+
+require("dotenv").config();
+import {database} from "./mysql";
 import {IConfig} from "./index";
 import {googleAuth} from "./googleAuth";
 
 export enum Environment {
-    'PRODUCTION' = 'production',
-    'DEVELOPMENT' = 'development',
+    "PRODUCTION" = "production",
+    "DEVELOPMENT" = "development",
 }
 
 export const config: IConfig = {
@@ -27,6 +29,7 @@ export const config: IConfig = {
         key: process.env.JWT_KEY
     },
     database,
+    gameDatabase,
 
     googleAuth
 }
@@ -43,6 +46,14 @@ export interface IConfig {
         dialect: string,
         host: string,
         port: string
+    },
+    gameDatabase: {
+        type: string,
+        host: string,
+        database: string,
+        user: string,
+        password: string,
+        port: number
     },
     googleAuth: {
         baseUrl: string;
