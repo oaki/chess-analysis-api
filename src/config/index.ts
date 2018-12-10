@@ -1,9 +1,10 @@
 import {gameDatabase} from "./gameDatabase";
-
-require("dotenv").config();
 import {database} from "./mysql";
 import {IConfig} from "./index";
 import {googleAuth} from "./googleAuth";
+import {evaluationDatabase} from "./evaluationDatabase";
+
+require("dotenv").config();
 
 export enum Environment {
     "PRODUCTION" = "production",
@@ -30,6 +31,7 @@ export const config: IConfig = {
     },
     database,
     gameDatabase,
+    evaluationDatabase,
 
     googleAuth
 }
@@ -40,6 +42,14 @@ export interface IConfig {
     io: { port: number },
     worker: { host1: number, host2: number },
     database: {
+        database: string,
+        user: string,
+        password: string,
+        dialect: string,
+        host: string,
+        port: string
+    },
+    evaluationDatabase: {
         database: string,
         user: string,
         password: string,

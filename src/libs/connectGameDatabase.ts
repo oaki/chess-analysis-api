@@ -18,17 +18,17 @@ export async function connectGameDatabase() {
             logging: true,
 
             "entities": [
-                "dist/**/entity/**/*.js"
+                "dist/modules/gameDatabase/entity/**/*.js"
             ],
             "migrations": [
-                "dist/migration/**/*.js"
+                "dist/modules/gameDatabase/migration/**/*.js"
             ],
             "subscribers": [
-                "dist/subscriber/**/*.js"
+                "dist/modules/gameDatabase/subscriber/**/*.js"
             ],
 
             "cli": {
-                "migrationsDir": "dist/models/migrations"
+                "migrationsDir": "dist/modules/gameDatabase/models/migrations"
             }
         };
 

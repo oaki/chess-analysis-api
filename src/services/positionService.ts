@@ -1,11 +1,14 @@
 import {isDev} from "../config";
 import {IEvaluation, LINE_MAP} from "../interfaces";
-import {countPieces, getFirstMove} from "../tools";
-import {models} from "../models/database";
+import {countPieces} from "../tools";
+import {Connection} from "typeorm";
+import {connectEvaluationDatabase} from "../libs/connectEvaluationDatabase";
+import {EvaluatedPosition} from "../modules/evaluatedDatabase/entity/evaluatedPosition";
 
 export class PositionService {
 
-    private saveCriterium;
+    readonly saveCriterium;
+    private db: Connection;
 
     constructor() {
         this.saveCriterium = {
@@ -25,12 +28,12 @@ export class PositionService {
 
             console.log("saveCriterium", this.saveCriterium);
         }
-    }
 
-
-    static getKey(evaluation: IEvaluation) {
-        const nodes = Math.round(evaluation[LINE_MAP.nodes] / 1000);
-        return `${evaluation[LINE_MAP.depth]}:${nodes}:${getFirstMove(evaluation[LINE_MAP.pv])}`;
+        connectEvaluationDatabase().then((connection) => {
+            this.db = connection;
+        }).catch((e) => {
+            console.log("Problem with connectEvaluationDatabase", e);
+        });
     }
 
     /** https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
@@ -60,16 +63,6 @@ export class PositionService {
 
     static normalizePv(str: string) {
         return str;
-    }
-
-    public static beforeSaveEvaluation(evaluation: IEvaluation): IEvaluation {
-        const toSave: IEvaluation = {...evaluation};
-
-        toSave[LINE_MAP.nodes] = Math.round(toSave[LINE_MAP.nodes] / 1000);
-        // toSave[LINE_MAP.mate] = toSave[LINE_MAP.mate] ? 1 : 0;
-        // toSave[LINE_MAP.pv] = toSave[LINE_MAP.pv].split(' ').join('');
-
-        return toSave;
     }
 
     checkEvaluation(fen, evaluation: IEvaluation) {
@@ -114,16 +107,26 @@ export class PositionService {
     add(fen, evaluation: IEvaluation) {
 
         if (this.checkEvaluation(fen, evaluation)) {
-            const key = PositionService.getKey(evaluation);
-            const json = JSON.stringify(PositionService.beforeSaveEvaluation(evaluation));
-
             const normalizedFen = PositionService.normalizeFen(fen);
-            models.EvaluatedPosition.insertOrUpdate({fen:normalizedFen, data:json});
-            // hmset(PositionService.normalizeFen(fen), key, json);
 
-            console.log("added to Redis", fen, json);
+            const values = {
+                fen: normalizedFen,
+                depth: Number(evaluation[LINE_MAP.depth]),
+                score: Number(evaluation[LINE_MAP.score]),
+                nodes: Math.round(evaluation[LINE_MAP.nodes] / 1000000),
+                time: Number(evaluation[LINE_MAP.time]),
+                import: !!evaluation[LINE_MAP.import] ? 1 : 0,
+                tbhits: Number(evaluation[LINE_MAP.tbhits]),
+                pv: evaluation[LINE_MAP.pv]
+            };
+
+            this.db.createQueryBuilder()
+                .insert()
+                .into(EvaluatedPosition)
+                .values(values)
+                .onConflict(`("fen") DO NOTHING`)
+                .execute();
         } else {
-
             console.log("No reason to save this low analyse or there are less figures than 7", evaluation, "count:", countPieces(fen));
         }
     }
@@ -135,7 +138,7 @@ export class PositionService {
             [LINE_MAP.pv]: workerResponse[LINE_MAP.pv],
             [LINE_MAP.nodes]: workerResponse[LINE_MAP.nodes],
             [LINE_MAP.multipv]: workerResponse[LINE_MAP.multipv],
-            [LINE_MAP.time]: workerResponse[LINE_MAP.time],
+            [LINE_MAP.time]: workerResponse[LINE_MAP.time   ],
             [LINE_MAP.nps]: workerResponse[LINE_MAP.nps],
             [LINE_MAP.tbhits]: workerResponse[LINE_MAP.tbhits],
         }
@@ -144,8 +147,12 @@ export class PositionService {
     async findAllMoves(fen) {
         const normalizedFen = PositionService.normalizeFen(fen);
 
-        const position = await models.EvaluatedPosition.find({where: {fen:normalizedFen}});
-        console.log("findAllMoves->isExist", position);
+        const position = await this.db.getRepository(EvaluatedPosition)
+            .createQueryBuilder("p")
+            .where("p.fen = :fen", {fen: normalizedFen})
+            .orderBy("p.nodes", "DESC")
+            .getOne();
+
         if (position) {
             return await position;
         }
@@ -153,19 +160,6 @@ export class PositionService {
         return null;
     }
 
-    getBestVariant(variants) {
-
-        // ordering by depth and nodes, best first
-        const keys = Object.keys(variants);
-        keys.sort((key1, key2) => {
-            if (key1 < key2) return 1;
-            if (key1 > key2) return -1;
-
-            return 0;
-        });
-
-        return variants[keys[0]];
-    }
 }
 
 export default new PositionService();

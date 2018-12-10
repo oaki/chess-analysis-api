@@ -1,5 +1,5 @@
 import openingsService from "../services/openingsService";
-import positionService, {PositionService} from "../services/positionService";
+import positionService from "../services/positionService";
 import SyzygyService from "../services/syzygyService";
 import {countPieces} from "../tools";
 import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
@@ -47,14 +47,13 @@ export default function (userSocket, usersIo, workersIo) {
                 if (evaluation === null) {
                     console.log("Send the position to worker for evaluation.");
 
-                    console.log({workersIo});
                     // @todo find BEST worker from you
                     let workerIo = findMyWorkerInSocketList(workersIo, userSocket.handshake.user.user_id);
 
                     // use temporary server worker
                     if (!workerIo) {
                         workerIo = findAvailableWorkerInSocketList(workersIo);
-                        console.log("findAvailableWorkerInSocketList", {workerIo});
+                        console.log("findAvailableWorkerInSocketList");
                     }
 
                     if (workerIo) {
@@ -83,12 +82,16 @@ export default function (userSocket, usersIo, workersIo) {
 
                     console.log("I have it!!!!", evaluation);
 
-                    const data = JSON.parse(evaluation.data);
+                    const data = {
+                        [LINE_MAP.score]: evaluation.score,
+                        [LINE_MAP.depth]: evaluation.depth,
+                        [LINE_MAP.pv]: evaluation.pv,
+                        [LINE_MAP.nodes]: evaluation.nodes,
+                        [LINE_MAP.time]: evaluation.time,
+                        [LINE_MAP.tbhits]: evaluation.tbhits,
+                        fen: fen,
 
-
-                    data.p = PositionService.normalizePv(data.p);
-                    data[LINE_MAP.nodes] = Number(data[LINE_MAP.nodes]) * 1000;
-                    data.fen = fen; //add fen
+                    };
 
                     console.log("data after normalizePv", data, data.p);
                     userSocket.emit("workerEvaluation", JSON.stringify([data]));

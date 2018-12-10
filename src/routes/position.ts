@@ -27,10 +27,10 @@ export function positionRoute() {
                     // sender.send(JSON.stringify(position));
                     return 'Position is not in DB. ';
                 } else {
-                    const bestVariant = positionService.getBestVariant(evaluation);
-                    console.log('position->I have it!!!!', bestVariant);
+                    // const bestVariant = positionService.getBestVariant(evaluation);
+                    console.log('position->I have it!!!!', evaluation);
 
-                    return JSON.parse(bestVariant);
+                    return evaluation;
                 }
 
                 // return positionService.findAllMoves(request.params['fen'])
