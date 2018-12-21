@@ -57,7 +57,7 @@ export default function (userSocket, usersIo, workersIo) {
                     }
 
                     if (workerIo) {
-                        console.log({worker: workerIo.worker, workerIo});
+
                         console.log("Your worker", workerIo.worker.lastUsed, userSocket.handshake.user, workersIo.map(socket => socket.worker.user_id));
 
                         workerIo.worker.lastUsed = Date.now();
