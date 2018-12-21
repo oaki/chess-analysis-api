@@ -72,7 +72,7 @@ class Sockets {
                             isUnknown: true
                         }
 
-                        console.warn("Worker is not registered in our database.", socket.worker.uuid);
+                        console.warn("Worker is not registered in our database.", socket.handshake.query.token);
                         next();
                     }
 
