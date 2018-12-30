@@ -1,5 +1,6 @@
 import * as Joi from "joi";
 import {GameDatabaseController} from "./gameDatabaseController";
+import {getBasePath} from "../../config";
 
 const gameDatabaseController = new GameDatabaseController();
 
@@ -50,6 +51,20 @@ export function gameDatabaseRouter() {
 
                 return await gameDatabaseController.runImport({
                     filename: request.payload.filename
+                });
+            }
+        },
+        {
+            method: "POST",
+            path: "/games-database/import/dir",
+            config: {
+                description: "Add new game to game database",
+                tags: ["api"], // section in documentation
+            },
+            handler: async (request: any) => {
+
+                return await gameDatabaseController.runDirImport({
+                    dirName: `${getBasePath()}/src/games/parse/`
                 });
             }
         }

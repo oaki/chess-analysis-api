@@ -8,6 +8,8 @@ import {PositionService} from "../../services/positionService";
 import {connectGameDatabase} from "../../libs/connectGameDatabase";
 import {pgnFileReader} from "../../libs/pgnFileReader";
 
+const fs = require("fs");
+
 export class GameDatabaseController {
     private db: Connection;
 
@@ -65,33 +67,47 @@ export class GameDatabaseController {
             gameEntity.pgn = game.pgn;
             gameEntity.moves = [];
 
-            // const moveRepository = this.db.getRepository(Move);
-            for (let i = 0; i < game.positions.length; i++) {
+            // check duplicity for pgn, if pgn is already exist
+            const isExist = await this.db.getRepository(Game).findOne({
+                where: {
+                    pgn: game.pgn
+                }
+            });
 
-                let fen = game.positions[i].fen;
-                const moveData = {
-                    fen: fen,
-                    data: null
-                };
+            if (!isExist) {
 
-                await this.db.createQueryBuilder()
-                    .insert()
-                    .into(Move)
-                    .values(moveData)
-                    .onConflict(`("fen") DO NOTHING`)
-                    .execute();
+                // const moveRepository = this.db.getRepository(Move);
+                for (let i = 0; i < game.positions.length; i++) {
 
-                const moveEntity = await this.db.getRepository(Move)
-                    .createQueryBuilder("move")
-                    .where("(move.fen = :fen)")
-                    .setParameters({fen: fen})
-                    .getOne();
+                    let fen = game.positions[i].fen;
+                    const moveData = {
+                        fen: fen,
+                        data: null
+                    };
 
-                gameEntity.moves.push(moveEntity);
+                    await this.db.createQueryBuilder()
+                        .insert()
+                        .into(Move)
+                        .values(moveData)
+                        .onConflict(`("fen") DO NOTHING`)
+                        .execute();
 
+                    const moveEntity = await this.db.getRepository(Move)
+                        .createQueryBuilder("move")
+                        .where("(move.fen = :fen)")
+                        .setParameters({fen: fen})
+                        .getOne();
+
+                    gameEntity.moves.push(moveEntity);
+
+                }
+
+                await this.db.manager.save(gameEntity);
+                console.log("Game was add.");
+            } else {
+                console.log(isExist);
+                console.log("Game is already exist.");
             }
-
-            await this.db.manager.save(gameEntity);
 
         } catch (e) {
             console.error(e);
@@ -104,12 +120,32 @@ export class GameDatabaseController {
 
     async runImport(props: runImportProps) {
 
+        console.log("File ", props.filename);
         pgnFileReader(props.filename, async (pgn) => {
 
             await this.add({
                 pgn
             })
         })
+
+        return BaseResponse.getSuccess();
+
+    }
+
+    async runDirImport(props: runDirImportProps) {
+
+        console.log("Start import from dir");
+        fs.readdir(props.dirName, async (err, items) => {
+
+            for (const item of items) {
+                await this.runImport({
+                    filename: `${props.dirName}${item}`
+                });
+            }
+
+            console.log("End import from dir");
+        });
+
 
         return BaseResponse.getSuccess();
 
@@ -127,4 +163,8 @@ interface addProps {
 
 interface runImportProps {
     filename: string;
+}
+
+interface runDirImportProps {
+    dirName: string;
 }

@@ -1,20 +1,11 @@
 import * as fs from "fs";
-import {getBasePath} from "../config";
 
 const es = require("event-stream");
 
-export function getFileName(name: string) {
-    const filename = name;//.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
-    return `${getBasePath()}/src/games/${filename}.pgn`;
-}
-
-export function pgnFileReader(name: string, cb) {
+export function pgnFileReader(filename: string, cb) {
     let game: string = "";
     let count = 0;
-    const file = this.getFileName(name);
 
-    console.log("start stream");
-    console.log("File name", file);
 
     const parseContent = es.mapSync(function (line) {
         // pause the readstream
@@ -42,7 +33,7 @@ export function pgnFileReader(name: string, cb) {
             console.log("Read entire file.")
         });
 
-    const stream = fs.createReadStream(file)
+    const stream = fs.createReadStream(filename)
         .pipe(es.split())
         .pipe(parseContent);
 }
