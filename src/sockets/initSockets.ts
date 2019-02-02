@@ -58,7 +58,7 @@ class Sockets {
             if (socket.handshake.query.type === WORKER) {
                 console.log("It is worker", socket.handshake.query && socket.handshake.query.token);
                 if (socket.handshake.query && socket.handshake.query.token) {
-                    let worker = await models.Worker.find({raw: true, where: {uuid: socket.handshake.query.token}});
+                    let worker = await models.Worker.findOne({raw: true, where: {uuid: socket.handshake.query.token}});
 
                     if (worker) {
                         console.log("Add worker info to the socket", worker);

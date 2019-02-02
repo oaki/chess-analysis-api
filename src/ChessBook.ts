@@ -74,6 +74,6 @@ class ChessBook {
     }
 }
 
-new ChessBook();
+// new ChessBook();
 
 module.exports = ChessBook;

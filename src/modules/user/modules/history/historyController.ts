@@ -25,7 +25,7 @@ export class HistoryController {
     }
 
     async get(props: IGetProps) {
-        const game = await models.Game.find({
+        const game = await models.Game.findOne({
             where: {
                 user_id: props.userId,
                 id: props.id

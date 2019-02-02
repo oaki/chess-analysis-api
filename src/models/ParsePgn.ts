@@ -1,6 +1,5 @@
-import positionService, {PositionService} from "../services/positionService";
 import {IEvaluation, LINE_MAP} from "../interfaces";
-import {hgetall} from "../services/redisConnectionService";
+
 import {getAllMatches, prepareMoves} from "../libs/utils";
 
 const chessJs = require("chess.js");
@@ -247,12 +246,12 @@ export class ParsePgn {
 
             // const key = PositionService.getKey(evaluation);
 
-            hgetall(PositionService.normalizeFen(position.previousFen)).then((res) => {
-                console.log("beforeSave->isExist", res);
-                if (res === null) {
-                    positionService.add(position.previousFen, evaluation);
-                }
-            });
+            // hgetall(PositionService.normalizeFen(position.previousFen)).then((res) => {
+            //     console.log("beforeSave->isExist", res);
+            //     if (res === null) {
+            //         positionService.add(position.previousFen, evaluation);
+            //     }
+            // });
         })
     }
 

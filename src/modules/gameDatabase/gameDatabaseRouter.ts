@@ -19,10 +19,12 @@ export function gameDatabaseRouter() {
 
                 }
             },
-            handler: async (request: any) => {
+            handler: async (request: any, h: any) => {
                 const fen: string = request.query["fen"];
                 const side = fen.split(":").splice(8, 1).join(" ");
-                return await gameDatabaseController.get({fen, side: side === "w" ? "w" : "b"});
+                const results = await gameDatabaseController.get({fen, side: side === "w" ? "w" : "b"});
+
+                return h.response(results).ttl(60 * 1000 * 60 * 24);
             }
         },
         {

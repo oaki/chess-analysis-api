@@ -44,7 +44,7 @@ export class WorkerController {
     }
 
     async delete(props: IDeleteProps) {
-        const worker = await models.Worker.find({
+        const worker = await models.Worker.findOne({
             where: {
                 id: props.id,
                 user_id: props.userId

@@ -10,16 +10,13 @@
     "server:start:dev": "nodemon dist/index.js env=dev",
     "server:start:dev:debug": "node --inspect dist/index.js env=dev",
     "build": "npm run clear && tsc && cp -rf ./src/books/ ./dist/books/ && cp -rf ./src/games/ ./dist/games/",
-    "build2": "npm run clear && tsc && cp -rf ./src/books/ ./dist/books/ && cp -rf ./src/games/ ./dist/games/",
     "clear": "del-cli ./dist/*",
-    "redis-commander:start": "redis-commander",
     "git:update": "git pull"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.1",
     "bell": "^9.3.0",
     "catbox": "^10.0.2",
-    "catbox-redis": "^4.0.0",
     "chess-tools": "^0.3.0",
     "chesslib": "^0.9.10",
     "compression": "^1.7.1",
@@ -48,7 +45,7 @@
     "reflect-metadata": "^0.1.12",
     "sequelize": "^4.37.1",
     "sequelize-cli-typescript": "^3.2.0-c",
-    "socket.io": "2.2.0",
+    "socket.io": "2.1.1",
     "typeorm": "^0.2.9",
     "uuid": "^3.3.2"
   },
@@ -62,8 +59,6 @@
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jsx-a11y": "^6.0.3",
     "eslint-plugin-react": "^7.6.1",
-    "redis": "^2.8.0",
-    "redis-connection": "^5.4.0",
     "typescript": "^3.2.2",
     "vision": "^5.3.1"
   }

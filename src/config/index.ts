@@ -21,11 +21,6 @@ export const config: IConfig = {
         port: Number(process.env.IO_PORT),
     },
 
-    worker: {
-        host1: Number(process.env.WORKER_HOST1),
-        host2: Number(process.env.WORKER_HOST2),
-    },
-
     jwt: {
         key: process.env.JWT_KEY
     },
@@ -40,7 +35,6 @@ export const config: IConfig = {
 export interface IConfig {
     server: { port: number },
     io: { port: number },
-    worker: { host1: number, host2: number },
     database: {
         database: string,
         user: string,

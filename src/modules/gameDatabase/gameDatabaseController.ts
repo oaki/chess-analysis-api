@@ -8,7 +8,26 @@ import {PositionService} from "../../services/positionService";
 import {connectGameDatabase} from "../../libs/connectGameDatabase";
 import {pgnFileReader} from "../../libs/pgnFileReader";
 
+const Chess = require("chess.js").Chess;
+
 const fs = require("fs");
+
+export interface IGames {
+    id: string;
+    white: string;
+    black: string;
+    whiteElo: number;
+    blackElo: number;
+    pgn: string;
+    result: string;
+}
+
+export interface IGameDatabase {
+    id: number;
+    fen: string;
+    data: any;
+    games: IGames[];
+}
 
 export class GameDatabaseController {
     private db: Connection;
@@ -20,6 +39,37 @@ export class GameDatabaseController {
         }).catch((e) => {
             console.log("eeeeee", e);
         });
+    }
+
+    private findFenInPgn(pgn, fen) {
+        const chess = new Chess();
+        const chess2 = new Chess();
+        chess.load_pgn(pgn);
+        const moves = chess.history();
+        const nextFewMoves = [];
+        let counter = 0;
+        let isFound = false;
+        for (let i = 0; i < moves.length; i++) {
+            const move2 = chess2.move(moves[i]);
+            if (move2) {
+                if (!isFound) {
+                    const newFen = PositionService.normalizeFen(chess2.fen());
+
+                    if (newFen === fen) {
+                        isFound = true;
+                    }
+                } else if (counter < 10) {
+                    nextFewMoves.push(move2);
+                    counter++;
+                }
+
+                if (counter > 10) {
+                    break;
+                }
+            }
+        }
+
+        return nextFewMoves.map(move => move.san);
     }
 
     async get(props: GetProps) {
@@ -35,15 +85,28 @@ export class GameDatabaseController {
         //     .getMany();
 
         const orderElo = props.side === "w" ? "game.whiteElo" : "game.blackElo";
-        const result = await this.db
+        const moves: Move[] = await this.db
             .getRepository(Move)
             .createQueryBuilder("move")
             .innerJoinAndSelect("move.games", "game")
             .where("move.fen = :fen", {fen: normalizedFen})
 
             .addOrderBy(orderElo, "DESC")
-            .limit(2)
+            .limit(5)
             .getMany();
+
+        if (moves.length === 0) {
+            throw Boom.notFound();
+        }
+
+        const result: any = moves[0];
+        result.games = result.games.map((game) => {
+            const fen = result.fen;
+            const pgn = game.pgn;
+
+            return {...game, fewNextMove: this.findFenInPgn(pgn, fen)}
+        })
+
         console.log("Result: ", result);
 
         return result;
@@ -123,9 +186,14 @@ export class GameDatabaseController {
         console.log("File ", props.filename);
         pgnFileReader(props.filename, async (pgn) => {
 
-            await this.add({
-                pgn
-            })
+            try {
+                await this.add({
+                    pgn
+                })
+            } catch (e) {
+                console.log("PGN is not valid", e);
+            }
+
         })
 
         return BaseResponse.getSuccess();

@@ -1,5 +1,5 @@
 require('dotenv').config();
-import {getConfig} from './config/';
+import {getConfig} from "./config/";
 import {initServer} from "./bootstrap";
 
 process.on('unhandledRejection', function (err) {
@@ -14,6 +14,8 @@ process.on('uncaughtException', function (err) {
 
 const config = getConfig();
 
+const t = require("./chessBook");
+console.log(t);
 initServer().then((server) => {
     console.info(`Server running at: ${config.server.port}`);
 })
