@@ -1,20 +1,22 @@
 export const hapiServerOptions = {
     debug: {
-        request: '*',
-        log: '*',
+        request: "*",
+        log: "*",
     },
     router: {
         stripTrailingSlash: true,
     },
     routes: {
-        cors: true,
+        cors: {
+            origin: ["https://*.chess-analysis.com"]
+        },
         validate: {
             failAction: async (request, h, err) => {
                 throw err;
             },
         },
         files: {
-            relativeTo: __dirname + '/public'
+            relativeTo: __dirname + "/public"
         }
     },
     port: process.env.SERVER_PORT,
