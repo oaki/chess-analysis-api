@@ -14,8 +14,6 @@ process.on('uncaughtException', function (err) {
 
 const config = getConfig();
 
-const t = require("./chessBook");
-console.log(t);
 initServer().then((server) => {
     console.info(`Server running at: ${config.server.port}`);
 })
