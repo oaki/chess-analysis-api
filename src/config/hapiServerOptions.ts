@@ -7,9 +7,7 @@ export const hapiServerOptions = {
         stripTrailingSlash: true,
     },
     routes: {
-        cors: {
-            origin: ["https://*.chess-analysis.com"]
-        },
+        cors: true,
         validate: {
             failAction: async (request, h, err) => {
                 throw err;
