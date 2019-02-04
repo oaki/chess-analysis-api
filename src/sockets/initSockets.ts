@@ -53,9 +53,7 @@ class Sockets {
                 socket.handshake.user = JWT.decode(jwtToken, this.config.jwt.key);
 
                 next();
-            }
-
-            if (socket.handshake.query.type === WORKER) {
+            } else if (socket.handshake.query.type === WORKER) {
                 console.log("It is worker", socket.handshake.query && socket.handshake.query.token);
                 if (socket.handshake.query && socket.handshake.query.token) {
                     let worker = await models.Worker.findOne({raw: true, where: {uuid: socket.handshake.query.token}});
@@ -77,10 +75,17 @@ class Sockets {
                     }
 
                 } else {
+
+                    console.error("Worker - Authentication error");
                     next(new Error("Authentication error"));
                 }
+            } else {
+                console.error("socket.handshake - Authentication error", socket.handshake);
+
+                next(new Error("Authentication error"));
             }
-            next(new Error("Authentication error"));
+
+
         })
 
         io.on("connection", (socket) => {
