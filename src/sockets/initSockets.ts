@@ -96,6 +96,14 @@ class Sockets {
 
             if (socket.handshake.query.type === WORKER) {
                 workerSockets(socket, this.usersIo, this.workersIo);
+
+                socket.on("workerIsReady", (response) => {
+                    console.log("workerIsReady response: ", response);
+                });
+
+                console.log("Send to worker: isReady");
+                socket.emit("isReady", "Is worker ready");
+
             }
 
             socket.on("disconnect", () => {
