@@ -9,7 +9,7 @@ const random = require("lodash/random");
 
 export default function (userSocket, usersIo, workersIo) {
     usersIo[userSocket.id] = userSocket;
-    console.log("userSocket.id added to list", userSocket.id);
+    console.log("userSocket.id added to list", userSocket.id, Object.keys(usersIo));
 
     userSocket.on("setNewPosition", async (data) => {
         console.log("2. server->socket: setNewPosition", data);
