@@ -19,7 +19,6 @@ export async function connectEvaluationDatabase(): Promise<Connection> {
 
             "entities": [
                 "dist/modules/evaluatedDatabase/entity/**/*.js",
-                "dist/modules/gameDatabase/entity/**/*.js",
             ],
         };
 

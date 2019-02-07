@@ -6,7 +6,7 @@ import {GameDatabaseModel} from "./gameDatabaseModel";
 import {Move} from "./entity/move";
 import {pgnFileReader} from "../../libs/pgnFileReader";
 import {decodeFenHash} from "../../libs/fenHash";
-import {evaluationConnection} from "../../libs/connectEvaluationDatabase";
+import {gameDbConnection} from "../../libs/connectGameDatabase";
 
 const jsMd5 = require("js-md5");
 
@@ -39,7 +39,7 @@ export class GameDatabaseController {
     }
 
     async initConnection() {
-        this.db = await evaluationConnection;
+        this.db = await gameDbConnection;
     }
 
     private findFenInPgn(pgn, fenHash) {

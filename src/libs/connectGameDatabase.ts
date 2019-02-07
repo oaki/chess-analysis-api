@@ -1,7 +1,7 @@
-import {ConnectionOptions, getConnectionManager} from "typeorm";
+import {Connection, ConnectionOptions, getConnectionManager} from "typeorm";
 import {getConfig} from "../config";
 
-export async function connectGameDatabase() {
+export async function connectGameDatabase(): Promise<Connection> {
     const config = getConfig();
 
     try {
@@ -26,10 +26,6 @@ export async function connectGameDatabase() {
             "subscribers": [
                 "dist/modules/gameDatabase/subscriber/**/*.js"
             ],
-
-            "cli": {
-                "migrationsDir": "dist/modules/gameDatabase/models/migrations"
-            }
         };
 
         const connection = connectionManager.create(options);
@@ -41,6 +37,7 @@ export async function connectGameDatabase() {
 
 }
 
+export const gameDbConnection = connectGameDatabase();
 
 // host: config.gameDatabase.host,
 //     port: config.gameDatabase.port,
