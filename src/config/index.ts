@@ -47,7 +47,7 @@ export interface IConfig {
         database: string,
         user: string,
         password: string,
-        dialect: string,
+        type: string,
         host: string,
         port: string
     },
