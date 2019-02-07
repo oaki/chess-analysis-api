@@ -14,7 +14,7 @@ export async function connectGameDatabase() {
             password: config.gameDatabase.password,
             database: config.gameDatabase.database,
 
-            synchronize: false,
+            synchronize: true,
             logging: true,
 
             "entities": [

@@ -7,9 +7,14 @@ export class EvaluatedPosition {
     id: number;
 
     @Column({
-        length: 74
+        length: 90
     })
     fen: string;
+
+    @Column({
+        length: 74
+    })
+    fenHash: string;
 
     @Column({
         type: "smallint"
@@ -38,7 +43,7 @@ export class EvaluatedPosition {
     tbhits: number;
 
     @Column({
-        type: "tinyint"
+        type: "boolean"
     })
-    import: number;
+    import: boolean;
 }

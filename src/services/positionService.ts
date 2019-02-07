@@ -1,9 +1,10 @@
 import {isDev} from "../config";
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import {countPieces} from "../tools";
-import {Connection} from "typeorm";
-import {connectEvaluationDatabase} from "../libs/connectEvaluationDatabase";
+import {evaluationConnection} from "../libs/connectEvaluationDatabase";
 import {EvaluatedPosition} from "../modules/evaluatedDatabase/entity/evaluatedPosition";
+import {decodeFenHash} from "../libs/fenHash";
+import {Connection} from "typeorm";
 
 export class PositionService {
 
@@ -29,43 +30,14 @@ export class PositionService {
             console.log("saveCriterium", this.saveCriterium);
         }
 
-        connectEvaluationDatabase().then((connection) => {
-            this.db = connection;
-        }).catch((e) => {
-            console.log("Problem with connectEvaluationDatabase", e);
-        });
+        this.initConnection();
     }
 
-    /** https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
-     5. remove Halfmove clock: This is the number of halfmoves since the last capture or pawn advance.
-     This is used to determine if a draw can be claimed under the fifty-move rule.
-     6. Fullmove number: The number of the full move. It starts at 1, and is incremented after Black's move.
-     e.g.
-     'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'.split(' ').splice(0, 4).join(':').split('/').join(':');
-     "rnbqkbnr:pppppppp:8:8:8:8:PPPPPPPP:RNBQKBNR:w:KQkq:-"
-
-     '8/3k4/8/8/6P1/2K5/8/8 w KQkq -'.split(' ').splice(0, 4).join(':').split('/').join(':');
-     "8:3k4:8:8:6P1:2K5:8:8:w:KQkq:-"
-
-     "8:3k4:8:8:6P1:2K5:8:8:w:KQkq:-".split(':').splice(0, 8).join('/').split(':').join(' ');
-     */
-
-    static normalizeFen(fen: string) {
-        return fen.split(" ").splice(0, 4).join(":").split("/").join(":");
+    async initConnection() {
+        this.db = await evaluationConnection;
     }
 
-    static denormalizeFen(normalizedFen) {
-        const firstPart = normalizedFen.split(":").splice(0, 8).join("/");
-        const secondPart = normalizedFen.split(":").splice(8).join(" ");
-
-        return `${firstPart} ${secondPart}`;
-    }
-
-    static normalizePv(str: string) {
-        return str;
-    }
-
-    checkEvaluation(fen, evaluation: IEvaluation) {
+    checkEvaluation(fen: string, evaluation: IEvaluation) {
         const depth: number = Number(evaluation[LINE_MAP.depth]);
         const nodes = Number(evaluation[LINE_MAP.nodes]);
         const score = Math.abs(Number(evaluation[LINE_MAP.score]));
@@ -104,28 +76,41 @@ export class PositionService {
         return false;
     }
 
-    add(fen, evaluation: IEvaluation) {
+    async add(fen, evaluation: IEvaluation) {
 
         if (this.checkEvaluation(fen, evaluation)) {
-            const normalizedFen = PositionService.normalizeFen(fen);
+            const fenHash = decodeFenHash(fen);
+
+            const position = await this.db.getRepository(EvaluatedPosition)
+                .createQueryBuilder("p")
+                .where({fenHash})
+                .orderBy("p.nodes", "DESC")
+                .getOne();
+
+
+            console.log("add", {evaluation});
 
             const values = {
-                fen: normalizedFen,
+                fen: fen,
+                fenHash: fenHash,
                 depth: Number(evaluation[LINE_MAP.depth]),
                 score: Number(evaluation[LINE_MAP.score]),
                 nodes: Math.round(evaluation[LINE_MAP.nodes] / 1000000),
                 time: Number(evaluation[LINE_MAP.time]),
-                import: !!evaluation[LINE_MAP.import] ? 1 : 0,
-                tbhits: Number(evaluation[LINE_MAP.tbhits]),
+                import: !!evaluation[LINE_MAP.import],
+                tbhits: evaluation[LINE_MAP.tbhits] ? Number(evaluation[LINE_MAP.tbhits]) : 0,
                 pv: evaluation[LINE_MAP.pv]
             };
 
-            this.db.createQueryBuilder()
-                .insert()
-                .into(EvaluatedPosition)
-                .values(values)
-                .onConflict(`("fen") DO NOTHING`)
-                .execute();
+
+            if (!position || position.nodes < values.nodes) {
+                this.db.createQueryBuilder()
+                    .insert()
+                    .into(EvaluatedPosition)
+                    .values(values)
+                    .execute();
+            }
+
         } else {
             console.log("No reason to save this low analyse or there are less figures than 7", evaluation, "count:", countPieces(fen));
         }
@@ -138,18 +123,18 @@ export class PositionService {
             [LINE_MAP.pv]: workerResponse[LINE_MAP.pv],
             [LINE_MAP.nodes]: workerResponse[LINE_MAP.nodes],
             [LINE_MAP.multipv]: workerResponse[LINE_MAP.multipv],
-            [LINE_MAP.time]: workerResponse[LINE_MAP.time   ],
+            [LINE_MAP.time]: workerResponse[LINE_MAP.time],
             [LINE_MAP.nps]: workerResponse[LINE_MAP.nps],
             [LINE_MAP.tbhits]: workerResponse[LINE_MAP.tbhits],
         }
     }
 
     async findAllMoves(fen) {
-        const normalizedFen = PositionService.normalizeFen(fen);
+        const fenHash = decodeFenHash(fen);
 
         const position = await this.db.getRepository(EvaluatedPosition)
             .createQueryBuilder("p")
-            .where("p.fen = :fen", {fen: normalizedFen})
+            .where({fenHash})
             .orderBy("p.nodes", "DESC")
             .getOne();
 

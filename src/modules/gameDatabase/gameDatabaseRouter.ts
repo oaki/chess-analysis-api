@@ -22,6 +22,7 @@ export function gameDatabaseRouter() {
             handler: async (request: any, h: any) => {
                 const fen: string = request.query["fen"];
                 const side = fen.split(":").splice(8, 1).join(" ");
+
                 const results = await gameDatabaseController.get({fen, side: side === "w" ? "w" : "b"});
 
                 return h.response(results).ttl(60 * 1000 * 60 * 24);
@@ -56,6 +57,7 @@ export function gameDatabaseRouter() {
                 });
             }
         },
+
         {
             method: "POST",
             path: "/games-database/import/dir",
@@ -63,7 +65,7 @@ export function gameDatabaseRouter() {
                 description: "Add new game to game database",
                 tags: ["api"], // section in documentation
             },
-            handler: async (request: any) => {
+            handler: async () => {
 
                 return await gameDatabaseController.runDirImport({
                     dirName: `${getBasePath()}/src/games/parse/`

@@ -1,38 +1,54 @@
-import {models} from "../../../models/database";
 import {BaseResponse} from "../../../libs/baseResponse";
 import {IEvaluation, LINE_MAP} from "../../../interfaces";
 import positionService from "../../../services/positionService";
+import {evaluationConnection} from "../../../libs/connectEvaluationDatabase";
+import {ImportedGames} from "../../evaluatedDatabase/entity/importedGames";
+import {Connection} from "typeorm";
 
 const Chess = require("chess.js").Chess;
 const MIN_ELO: number = 3200;
 
 export class ParseController {
+
+    private db: Connection;
+
+    constructor() {
+        this.initConnection();
+    }
+
+    async initConnection() {
+        this.db = await evaluationConnection;
+    }
+
     async do(props: IDoProps) {
-        const list = await models.ImportGame.findAll({
-            where: {
-                isParsed: false,
-            },
-            offset: props.offset,
-            limit: props.limit,
-        });
+
+        const list = await this.db
+            .getRepository(ImportedGames)
+            .createQueryBuilder("ig")
+            .where({isParsed: false})
+            .limit(props.limit)
+            .skip(props.offset)
+            .getMany();
+
+        console.log({list});
+
+        const repository = await this.db.getRepository(ImportedGames);
+
+        list.forEach(async (values) => {
 
 
-        list.forEach(async (gameInstance) => {
-
-            const values = gameInstance.dataValues;
-            console.log("Parse game ID", values.id, gameInstance.dataValues);
             const saveWhite = values.white_elo > MIN_ELO || (values.black_elo > MIN_ELO && (values.result === "1/2-1/2" || values.result === "1-0"));
             const saveBlack = values.black_elo > MIN_ELO || (values.white_elo > MIN_ELO && (values.result === "1/2-1/2" || values.result === "0-1"));
-            if ((saveWhite || saveBlack) && gameInstance.dataValues.moves) {
+            if ((saveWhite || saveBlack) && values.moves) {
 
 
                 const chess = new Chess();
 
                 let moves = [];
                 try {
-                    moves = JSON.parse(gameInstance.dataValues.moves);
+                    moves = JSON.parse(values.moves);
                 } catch (e) {
-                    console.log("Error parse moves", gameInstance.dataValues.moves, e);
+                    console.log("Error parse moves", values.moves, e);
                     let moves = [];
                 }
 
@@ -59,12 +75,11 @@ export class ParseController {
                 });
             }
 
-
-            await gameInstance.update({
-                isParsed: true,
-            })
+            values.isParsed = true;
+            await repository.save(values);
 
         });
+
 
         return BaseResponse.getSuccess();
     }

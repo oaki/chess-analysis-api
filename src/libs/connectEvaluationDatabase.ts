@@ -1,13 +1,13 @@
-import {ConnectionOptions, getConnectionManager} from "typeorm";
+import {Connection, ConnectionOptions, getConnectionManager} from "typeorm";
 import {getConfig} from "../config";
 
-export async function connectEvaluationDatabase() {
+export async function connectEvaluationDatabase(): Promise<Connection> {
     const config = getConfig();
 
     try {
         const connectionManager = getConnectionManager();
         const options: ConnectionOptions = {
-            type: "mysql",
+            type: "postgres",
             host: config.evaluationDatabase.host,
             port: Number(config.evaluationDatabase.port),
             username: config.evaluationDatabase.user,
@@ -30,3 +30,5 @@ export async function connectEvaluationDatabase() {
     }
 
 }
+
+export const evaluationConnection = connectEvaluationDatabase();

@@ -1,12 +1,14 @@
-import {Connection} from "typeorm";
+import {Connection, In} from "typeorm";
 import {BaseResponse} from "../../libs/baseResponse";
 import {Game} from "./entity/game";
 import * as Boom from "boom";
 import {GameDatabaseModel} from "./gameDatabaseModel";
 import {Move} from "./entity/move";
-import {PositionService} from "../../services/positionService";
-import {connectGameDatabase} from "../../libs/connectGameDatabase";
 import {pgnFileReader} from "../../libs/pgnFileReader";
+import {decodeFenHash} from "../../libs/fenHash";
+import {evaluationConnection} from "../../libs/connectEvaluationDatabase";
+
+const jsMd5 = require("js-md5");
 
 const Chess = require("chess.js").Chess;
 
@@ -33,15 +35,14 @@ export class GameDatabaseController {
     private db: Connection;
 
     constructor() {
-        //create connection to postgre
-        connectGameDatabase().then((connection) => {
-            this.db = connection;
-        }).catch((e) => {
-            console.log("eeeeee", e);
-        });
+        this.initConnection();
     }
 
-    private findFenInPgn(pgn, fen) {
+    async initConnection() {
+        this.db = await evaluationConnection;
+    }
+
+    private findFenInPgn(pgn, fenHash) {
         const chess = new Chess();
         const chess2 = new Chess();
         chess.load_pgn(pgn);
@@ -53,9 +54,7 @@ export class GameDatabaseController {
             const move2 = chess2.move(moves[i]);
             if (move2) {
                 if (!isFound) {
-                    const newFen = PositionService.normalizeFen(chess2.fen());
-
-                    if (newFen === fen) {
+                    if (decodeFenHash(chess2.fen()) === fenHash) {
                         isFound = true;
                     }
                 } else if (counter < 10) {
@@ -75,7 +74,7 @@ export class GameDatabaseController {
     async get(props: GetProps) {
 
         console.log(props);
-        const normalizedFen = PositionService.normalizeFen(props.fen);
+        // const normalizedFen = PositionService.normalizeFen(props.fen);
         // const moveEntity = await this.db.getRepository(Game)
         //     .createQueryBuilder("game")
         //     .innerJoin("move")
@@ -84,12 +83,14 @@ export class GameDatabaseController {
         //     .orderBy("game.whiteElo", "DESC")
         //     .getMany();
 
+        const fenHash = decodeFenHash(props.fen);
+
         const orderElo = props.side === "w" ? "game.whiteElo" : "game.blackElo";
         const moves: Move[] = await this.db
             .getRepository(Move)
             .createQueryBuilder("move")
             .innerJoinAndSelect("move.games", "game")
-            .where("move.fen = :fen", {fen: normalizedFen})
+            .where({fenHash: fenHash})
 
             .addOrderBy(orderElo, "DESC")
             .limit(5)
@@ -101,10 +102,10 @@ export class GameDatabaseController {
 
         const result: any = moves[0];
         result.games = result.games.map((game) => {
-            const fen = result.fen;
+            const fenHash = result.fenHash;
             const pgn = game.pgn;
 
-            return {...game, fewNextMove: this.findFenInPgn(pgn, fen)}
+            return {...game, fewNextMove: this.findFenInPgn(pgn, fenHash)}
         })
 
         console.log("Result: ", result);
@@ -121,49 +122,53 @@ export class GameDatabaseController {
 
             const game = await model.parsePgn(props.pgn);
             const gameEntity = new Game();
-
+            console.log(jsMd5);
             gameEntity.white = game.headers.white;
             gameEntity.black = game.headers.black;
             gameEntity.whiteElo = game.headers.whiteElo;
             gameEntity.blackElo = game.headers.blackElo;
             gameEntity.result = game.headers.result;
             gameEntity.pgn = game.pgn;
+            gameEntity.pgnHash = jsMd5(game.pgn);
             gameEntity.moves = [];
 
             // check duplicity for pgn, if pgn is already exist
             const isExist = await this.db.getRepository(Game).findOne({
                 where: {
-                    pgn: game.pgn
+                    pgnHash: jsMd5(game.pgn)
                 }
             });
 
             if (!isExist) {
 
-                // const moveRepository = this.db.getRepository(Move);
-                for (let i = 0; i < game.positions.length; i++) {
+                const fenHashBulk = game.positions.map((position) => {
+                    return {
+                        fenHash: position.fenHash
+                    }
+                });
 
-                    let fen = game.positions[i].fen;
-                    const moveData = {
-                        fen: fen,
-                        data: null
-                    };
+                const fenHashBulkFind = game.positions.map((position) => {
+                    return position.fenHash
+                });
+                await this.db.createQueryBuilder()
+                    .insert()
+                    .into(Move)
+                    .values(fenHashBulk)
+                    .onConflict(`("fenHash") DO NOTHING`)
+                    .execute();
 
-                    await this.db.createQueryBuilder()
-                        .insert()
-                        .into(Move)
-                        .values(moveData)
-                        .onConflict(`("fen") DO NOTHING`)
-                        .execute();
+                const moveEntities = await this.db.getRepository(Move)
+                    .createQueryBuilder("move")
+                    .where({
 
-                    const moveEntity = await this.db.getRepository(Move)
-                        .createQueryBuilder("move")
-                        .where("(move.fen = :fen)")
-                        .setParameters({fen: fen})
-                        .getOne();
+                        fenHash: In(fenHashBulkFind)
 
-                    gameEntity.moves.push(moveEntity);
+                    })
+                    .getMany();
 
-                }
+
+                gameEntity.moves = (moveEntities);
+
 
                 await this.db.manager.save(gameEntity);
                 console.log("Game was add.");
@@ -183,7 +188,6 @@ export class GameDatabaseController {
 
     async runImport(props: runImportProps) {
 
-        console.log("File ", props.filename);
         pgnFileReader(props.filename, async (pgn) => {
 
             try {
@@ -205,9 +209,11 @@ export class GameDatabaseController {
         console.log("Start import from dir");
         fs.readdir(props.dirName, async (err, items) => {
 
-            for (const item of items) {
+            for (let i = 0; i < items.length; i++) {
+                const filename = `${props.dirName}${items[i]}`;
+                console.log({filename});
                 await this.runImport({
-                    filename: `${props.dirName}${item}`
+                    filename
                 });
             }
 

@@ -1,6 +1,6 @@
 import {initPgnParser} from "../../models/ParsePgn";
-import {PositionService} from "../../services/positionService";
 import {countPieces} from "../../tools";
+import {decodeFenHash} from "../../libs/fenHash";
 
 const Chess = require("chess.js").Chess;
 const uniqBy = require("lodash/uniqBy");
@@ -24,11 +24,7 @@ export class GameDatabaseModel {
         }
     }
 
-    private removeMoveNumberFromFen(fen: string): string {
-        return PositionService.normalizeFen(fen);
-    }
-
-    async parsePgn(pgnGame: string, uniqPositions: boolean = true, excludeEndGameNumberOfPecies: number = 7) {
+    async parsePgn(pgnGame: string, uniqPositions: boolean = true, excludeEndGameNumberOfPieces: number = 7) {
         const pgnParser: any = await initPgnParser();
         const pgn = pgnGame.split(/[\n\r\r\t]+/g).join(" ").trim();
 
@@ -47,7 +43,7 @@ export class GameDatabaseModel {
                 }
 
                 return {
-                    fen: this.removeMoveNumberFromFen(chess.fen()),
+                    fenHash: decodeFenHash(chess.fen()),
                     originalFen: chess.fen(),
                     move: moveObj.move,
                     san: isAdded.san,
@@ -57,13 +53,13 @@ export class GameDatabaseModel {
 
             if (uniqPositions) {
                 positions = uniqBy(positions, (item) => {
-                    return item.fen;
+                    return item.fenHash;
                 });
             }
 
-            if (excludeEndGameNumberOfPecies > 2) {
+            if (excludeEndGameNumberOfPieces > 2) {
                 positions = positions.filter((position) => {
-                    return countPieces(position.originalFen) > excludeEndGameNumberOfPecies;
+                    return countPieces(position.originalFen) > excludeEndGameNumberOfPieces;
                 });
             }
 

@@ -35,6 +35,11 @@ export class Game {
     pgn: string;
 
     @Column({
+        length: 50
+    })
+    pgnHash: string;
+
+    @Column({
         type: "enum",
         enum: [
             "1-0",

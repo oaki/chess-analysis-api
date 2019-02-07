@@ -12,12 +12,7 @@ export class Move {
         unique: true,
         length: 74
     })
-    fen: string;
-
-    @Column({
-        nullable: true
-    })
-    data: string | null;
+    fenHash: string;
 
     @ManyToMany(type => Game, game => game.moves)
     games: Game[];
