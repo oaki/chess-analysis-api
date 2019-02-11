@@ -1,4 +1,4 @@
-import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, Index, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity()
 export class EvaluatedPosition {
@@ -11,6 +11,7 @@ export class EvaluatedPosition {
     })
     fen: string;
 
+    @Index()
     @Column({
         length: 74
     })
@@ -21,9 +22,11 @@ export class EvaluatedPosition {
     })
     depth: number;
 
+    @Index()
     @Column("decimal", { precision: 4, scale: 2 })
     score: number;
 
+    @Index()
     @Column({
         type: "integer"
     })

@@ -1,4 +1,4 @@
-import {Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, Index, JoinTable, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Move} from "./move";
 
 @Entity()
@@ -17,12 +17,14 @@ export class Game {
     })
     black: string;
 
+    @Index()
     @Column({
         type: "smallint",
         unsigned: true,
     })
     whiteElo: number;
 
+    @Index()
     @Column({
         type: "smallint",
         unsigned: true,
@@ -34,6 +36,7 @@ export class Game {
     })
     pgn: string;
 
+    @Index()
     @Column({
         length: 50
     })
