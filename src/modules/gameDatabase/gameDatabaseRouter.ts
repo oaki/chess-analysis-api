@@ -68,7 +68,7 @@ export function gameDatabaseRouter() {
             handler: async () => {
 
                 return await gameDatabaseController.runDirImport({
-                    dirName: `${getBasePath()}/src/games/parse/`
+                    dirName: `${getBasePath()}/../games/game_database/`
                 });
             }
         }

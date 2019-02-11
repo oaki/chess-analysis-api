@@ -9,7 +9,7 @@
     "server:start": "npm run build && node dist/index.js",
     "server:start:dev": "nodemon dist/index.js env=dev",
     "server:start:dev:debug": "node --inspect dist/index.js env=dev",
-    "build": "npm run clear && tsc && cp -rf ./src/books/ ./dist/books/ && cp -rf ./src/games/ ./dist/games/",
+    "build": "npm run clear && tsc && cp -rf ./src/books/ ./dist/books/",
     "clear": "del-cli ./dist/*",
     "git:update": "git pull"
   },

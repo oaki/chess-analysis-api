@@ -72,7 +72,7 @@ export class ImportsController {
 
     private getFileName(name: string) {
         const filename = name;//.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
-        return `${getBasePath()}/src/games/${filename}.pgn`;
+        return `${getBasePath()}/../games/${filename}.pgn`;
     }
 
     public async importToMysql(game: string) {
