@@ -114,7 +114,17 @@ export class GameDatabaseController {
 
     }
 
-    async add(props: addProps) {
+    async checkFen(props: CheckFenProps) {
+        try {
+            return decodeFenHash(props.fen);
+        } catch (e) {
+            console.log(e);
+            throw Boom.badData();
+        }
+
+    }
+
+    async add(props: AddProps) {
 
         const model = new GameDatabaseModel();
 
@@ -186,7 +196,7 @@ export class GameDatabaseController {
 
     }
 
-    async runImport(props: runImportProps) {
+    async runImport(props: RunImportProps) {
 
         pgnFileReader(props.filename, async (pgn) => {
 
@@ -204,9 +214,9 @@ export class GameDatabaseController {
 
     }
 
-    async runDirImport(props: runDirImportProps) {
+    async runDirImport(props: RunDirImportProps) {
 
-        console.log("Start import from dir");
+        console.log("Start import from dir", props.dirName);
         fs.readdir(props.dirName, async (err, items) => {
 
             for (let i = 0; i < items.length; i++) {
@@ -231,14 +241,18 @@ interface GetProps {
     side: "b" | "w";
 }
 
-interface addProps {
+interface CheckFenProps {
+    fen: string;
+}
+
+interface AddProps {
     pgn: string;
 }
 
-interface runImportProps {
+interface RunImportProps {
     filename: string;
 }
 
-interface runDirImportProps {
+interface RunDirImportProps {
     dirName: string;
 }

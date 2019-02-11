@@ -68,7 +68,22 @@ export function gameDatabaseRouter() {
             handler: async () => {
 
                 return await gameDatabaseController.runDirImport({
-                    dirName: `${getBasePath()}/../games/game_database/`
+                    dirName: `${getBasePath()}/games/game_database/`
+                });
+            }
+        },
+
+        {
+            method: "POST",
+            path: "/games-database/check-fen",
+            config: {
+                description: "Check if FEN is correct.",
+                tags: ["api"], // section in documentation
+            },
+            handler: async (request: any) => {
+
+                return await gameDatabaseController.checkFen({
+                    fen: request.payload.fen
                 });
             }
         }

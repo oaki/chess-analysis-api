@@ -1,4 +1,5 @@
-import * as utils from './utils';
+import * as utils from "./utils";
+
 const Uint64BE = require("int64-buffer").Uint64BE;
 const PromoPieces = " nbrq".split("");
 const files = utils.board.FILES;
@@ -204,7 +205,7 @@ export const Random64 = [
 
 export const RandomPiece = Random64.slice(0, 768);
 export const RandomCastle = Random64.slice(768, 768 + 4);
-export const RandomEnPassant = Random64.slice(764, 764 + 4);
+export const RandomEnPassant = Random64.slice(764, 764 + 8);
 export const RandomTurn = Random64.slice(780, 780 + 1);
 export const PromotionPieces = PromoPieces;
 

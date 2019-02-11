@@ -1,4 +1,4 @@
-import {pieceTypes} from './encoding';
+import {pieceTypes} from "./encoding";
 
 const Uint64BE = require("int64-buffer").Uint64BE;
 const EventEmitter = require('events');
@@ -92,7 +92,6 @@ export class Polyglot extends EventEmitter {
 }
 
 function xor_64uint(a, b) {
-    let output;
     let a_view = new DataView(a.toArrayBuffer());
     let b_view = new DataView(b.toArrayBuffer());
     let a_32_hi = a_view.getUint32(0, false);
