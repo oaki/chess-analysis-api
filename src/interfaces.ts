@@ -18,6 +18,7 @@ export interface IWorkerResponse extends IEvaluation {
 }
 
 export interface IEvaluation {
+    [LINE_MAP.mate]: string | boolean;
     [LINE_MAP.score]: string;
     [LINE_MAP.depth]: number;
     [LINE_MAP.pv]: string;

@@ -14,7 +14,7 @@ export async function connectGameDatabase(): Promise<Connection> {
             password: config.gameDatabase.password,
             database: config.gameDatabase.database,
 
-            synchronize: true,
+            synchronize: false,
             logging: true,
 
             "entities": [

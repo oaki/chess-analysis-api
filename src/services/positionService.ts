@@ -42,6 +42,7 @@ export class PositionService {
         const nodes = Number(evaluation[LINE_MAP.nodes]);
         const score = Math.abs(Number(evaluation[LINE_MAP.score]));
         const piecesCount = countPieces(fen);
+        const isMate = !!evaluation[LINE_MAP.mate];
         console.log("TEST:", {
             depth,
             nodes,
@@ -50,6 +51,7 @@ export class PositionService {
         if (
             piecesCount > 6
             && depth > this.saveCriterium.depth
+            && !isMate
             && (
                 nodes >= this.saveCriterium.nodes
                 || evaluation[LINE_MAP.import]
@@ -116,18 +118,18 @@ export class PositionService {
         }
     }
 
-    public mapWorkerToEvaluation(workerResponse: IEvaluation): IEvaluation {
-        return {
-            [LINE_MAP.score]: workerResponse[LINE_MAP.score],
-            [LINE_MAP.depth]: workerResponse[LINE_MAP.depth],
-            [LINE_MAP.pv]: workerResponse[LINE_MAP.pv],
-            [LINE_MAP.nodes]: workerResponse[LINE_MAP.nodes],
-            [LINE_MAP.multipv]: workerResponse[LINE_MAP.multipv],
-            [LINE_MAP.time]: workerResponse[LINE_MAP.time],
-            [LINE_MAP.nps]: workerResponse[LINE_MAP.nps],
-            [LINE_MAP.tbhits]: workerResponse[LINE_MAP.tbhits],
-        }
-    }
+    // public mapWorkerToEvaluation(workerResponse: IEvaluation): IEvaluation {
+    //     return {
+    //         [LINE_MAP.score]: workerResponse[LINE_MAP.score],
+    //         [LINE_MAP.depth]: workerResponse[LINE_MAP.depth],
+    //         [LINE_MAP.pv]: workerResponse[LINE_MAP.pv],
+    //         [LINE_MAP.nodes]: workerResponse[LINE_MAP.nodes],
+    //         [LINE_MAP.multipv]: workerResponse[LINE_MAP.multipv],
+    //         [LINE_MAP.time]: workerResponse[LINE_MAP.time],
+    //         [LINE_MAP.nps]: workerResponse[LINE_MAP.nps],
+    //         [LINE_MAP.tbhits]: workerResponse[LINE_MAP.tbhits],
+    //     }
+    // }
 
     async findAllMoves(fen) {
         const fenHash = decodeFenHash(fen);

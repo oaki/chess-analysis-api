@@ -21,8 +21,9 @@ export function gameDatabaseRouter() {
             },
             handler: async (request: any, h: any) => {
                 const fen: string = request.query["fen"];
-                const side = fen.split(":").splice(8, 1).join(" ");
-
+                console.log(fen.split(" "));
+                const side = fen.split(" ").splice(1, 1).join("");
+                console.log({side, fen});
                 const results = await gameDatabaseController.get({fen, side: side === "w" ? "w" : "b"});
 
                 return h.response(results).ttl(60 * 1000 * 60 * 24);

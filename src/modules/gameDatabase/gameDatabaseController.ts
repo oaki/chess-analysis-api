@@ -85,14 +85,24 @@ export class GameDatabaseController {
 
         const fenHash = decodeFenHash(props.fen);
 
-        const orderElo = props.side === "w" ? "game.whiteElo" : "game.blackElo";
-        const moves: Move[] = await this.db
+        const query = this.db
             .getRepository(Move)
             .createQueryBuilder("move")
             .innerJoinAndSelect("move.games", "game")
-            .where({fenHash: fenHash})
+            .where({fenHash: fenHash});
+        // ORDER BY "game"."result"='1-0' DESC,"game"."result"='1/2-1/2' DESC LIMIT 50
 
-            .addOrderBy(orderElo, "DESC")
+        if (props.side === "w") {
+            query.addOrderBy(`game.result ='1-0'`, "DESC")
+                .addOrderBy(`game.result ='1/2-1/2'`, "DESC")
+                .addOrderBy(`game.whiteElo`, "DESC")
+        } else {
+            query.addOrderBy(`game.result ='0-1'`, "DESC")
+                .addOrderBy(`game.result ='1/2-1/2'`, "DESC")
+                .addOrderBy(`game.blackElo`, "DESC")
+        }
+
+        const moves: Move[] = await query
             .limit(5)
             .getMany();
 
