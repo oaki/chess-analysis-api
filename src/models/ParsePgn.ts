@@ -237,6 +237,7 @@ export class ParsePgn {
             [LINE_MAP.nodes]: position.nodes,
             [LINE_MAP.pv]: position.pv,
             [LINE_MAP.import]: 1,
+            [LINE_MAP.mate]: false,
         }
     }
 
