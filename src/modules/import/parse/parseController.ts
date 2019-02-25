@@ -95,6 +95,8 @@ export class ParseController {
             [LINE_MAP.score]: meta.wv,
             [LINE_MAP.nps]: meta.s,
             [LINE_MAP.import]: 1,
+            [LINE_MAP.mate]: false
+
         }
     }
 
