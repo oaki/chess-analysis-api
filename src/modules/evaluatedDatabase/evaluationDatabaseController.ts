@@ -71,7 +71,7 @@ export class EvaluationDatabaseController {
     }
 
     private getFileName(name: string) {
-        return `${getBasePath()}/games/evaluation/${name}.pgn`;
+        return `${getBasePath()}/games/evaluation/${name}`;
     }
 
     public async importToMysql(game: string) {
