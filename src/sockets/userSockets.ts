@@ -4,6 +4,8 @@ import SyzygyService from "../services/syzygyService";
 import {countPieces} from "../tools";
 import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
 import {LINE_MAP} from "../interfaces";
+import chessgamesComService from "../services/chessgamesComService";
+import nextchessmoveComService from "../services/nextchessmoveComService";
 
 const random = require("lodash/random");
 
@@ -20,15 +22,16 @@ export default function (userSocket, usersIo, workersIo) {
             fen,
         };
 
+
         //try to find in book
         const opening = await openingsService.find(position.fen);
 
         if (opening) {
+            console.log("Find in opening");
             userSocket.emit("openingMoves", {
                 fen: position.fen, data: opening
             });
         } else {
-            // @todo check how many pieces
             // if there is only 7 and less then try to load from end-game database
 
             if (countPieces(data.FEN) <= 7) {
@@ -42,7 +45,40 @@ export default function (userSocket, usersIo, workersIo) {
 
                 }
             } else {
-                const evaluation = await positionService.findAllMoves(fen);
+                let evaluation = await positionService.findAllMoves(fen);
+
+                if (evaluation === null) {
+
+                    console.log("try nextchessmoveComService");
+                    const result = await nextchessmoveComService.getResult(fen);
+
+                    if (result && result.length > 0) {
+                        console.log("I found it!!!!", result);
+
+                        positionService.add(fen, result[0]);
+                        userSocket.emit("workerEvaluation", JSON.stringify(result));
+
+                        return;
+
+                    }
+                }
+
+                //try to check portals with evaluations
+                if (evaluation === null) {
+
+                    const result = await chessgamesComService.getResult(fen);
+
+                    if (result && result.length > 0) {
+                        console.log("I found it!!!!", result);
+
+                        positionService.add(fen, result[0]);
+
+                        userSocket.emit("workerEvaluation", JSON.stringify(result));
+
+                        return;
+
+                    }
+                }
 
                 if (evaluation === null) {
                     console.log("Send the position to worker for evaluation.");
@@ -90,7 +126,6 @@ export default function (userSocket, usersIo, workersIo) {
                         [LINE_MAP.time]: evaluation.time,
                         [LINE_MAP.tbhits]: evaluation.tbhits,
                         fen: fen,
-
                     };
 
                     console.log("data after normalizePv", data, data.p);

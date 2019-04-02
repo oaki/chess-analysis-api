@@ -1,16 +1,16 @@
 import * as Joi from "joi";
-import {ImportsController} from "./importController";
+import {EvaluationDatabaseController} from "./evaluationDatabaseController";
 import * as Boom from "boom";
 import {ParseController} from "./parse/parseController";
 
-const importController = new ImportsController();
+const evaluationDatabaseController = new EvaluationDatabaseController();
 const parseController = new ParseController();
 
-export function importsRoute() {
+export function evaluationDatabaseRoute() {
     return [
         {
             method: "GET",
-            path: "/imports/{name}",
+            path: "/evaluation-database/{name}",
             config: {
                 description: "Filename",
                 tags: ["api"], // section in documentation,
@@ -22,8 +22,8 @@ export function importsRoute() {
             },
 
             handler: async (request: any) => {
-                importController.loadFile(request.params["name"], async (game) => {
-                    await importController.importToMysql(game);
+                evaluationDatabaseController.loadFile(request.params["name"], async (game) => {
+                    await evaluationDatabaseController.importToMysql(game);
                 });
                 try {
 
@@ -41,14 +41,14 @@ export function importsRoute() {
 
         {
             method: "GET",
-            path: "/imports/parse",
+            path: "/evaluation-database/parse-db",
             config: {
                 description: "Parse",
                 tags: ["api"], // section in documentation,
                 validate: {},
             },
 
-            handler: async (request: any) => {
+            handler: async () => {
 
                 return await parseController.do({
                     offset: 0,

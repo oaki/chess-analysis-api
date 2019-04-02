@@ -16,6 +16,7 @@
   "dependencies": {
     "bell": "^9.4.0",
     "catbox": "^10.0.6",
+    "cheerio": "^1.0.0-rc.2",
     "chess-tools": "^0.3.0",
     "chesslib": "^0.9.10",
     "compression": "^1.7.3",
@@ -23,6 +24,7 @@
     "del-cli": "^1.1.0",
     "dotenv": "^6.2.0",
     "event-stream": "^4.0.1",
+    "fetch-timeout": "0.0.2",
     "good": "^8.1.2",
     "good-file": "^6.0.1",
     "good-squeeze": "^5.1.0",

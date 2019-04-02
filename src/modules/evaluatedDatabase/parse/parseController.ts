@@ -2,7 +2,7 @@ import {BaseResponse} from "../../../libs/baseResponse";
 import {IEvaluation, LINE_MAP} from "../../../interfaces";
 import positionService from "../../../services/positionService";
 import {evaluationConnection} from "../../../libs/connectEvaluationDatabase";
-import {ImportedGames} from "../../evaluatedDatabase/entity/importedGames";
+import {ImportedGames} from "../entity/importedGames";
 import {Connection} from "typeorm";
 
 const Chess = require("chess.js").Chess;
@@ -94,6 +94,7 @@ export class ParseController {
             [LINE_MAP.pv]: pv,
             [LINE_MAP.score]: meta.wv,
             [LINE_MAP.nps]: meta.s,
+            [LINE_MAP.tbhits]: meta.tb,
             [LINE_MAP.import]: 1,
             [LINE_MAP.mate]: false
 
@@ -102,7 +103,10 @@ export class ParseController {
 
     private convertHHmmssToSecond(time: string): string {
         if (!time || time.indexOf(":") === -1) {
-            return String(0);
+            if (!time) {
+                return String(0);
+            }
+            return time;
         }
         const second = time.split(":").reverse().reduce((prev: number, curr, i) => prev + Number(curr) * Math.pow(60, i), 0);
 
@@ -117,6 +121,7 @@ interface IMeta {
     pv: string;
     wv: string;
     tl: string;
+    tb: string;
 }
 
 interface IDoProps {

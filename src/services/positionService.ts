@@ -13,8 +13,8 @@ export class PositionService {
 
     constructor() {
         this.saveCriterium = {
-            depth: 28,
-            nodes: 70 * 1000 * 1000, //27 666 454 250 e.g. 1 629 921 584
+            // depth: 28,
+            nodes: 80 * 1000 * 1000, //27 666 454 250 e.g. 1 629 921 584
             maxScore: 2.5,
         };
 
@@ -49,8 +49,8 @@ export class PositionService {
             score
         });
         if (
-            piecesCount > 6
-            && depth > this.saveCriterium.depth
+            piecesCount > 7
+            // && depth > this.saveCriterium.depth
             && !isMate
             && (
                 nodes >= this.saveCriterium.nodes
@@ -61,18 +61,6 @@ export class PositionService {
         ) {
             console.log("Interesting evaluation: ", evaluation);
 
-            // console.log('depth',evaluation[LINE_MAP.depth], Number(evaluation[LINE_MAP.depth]) > this.saveCriterium.depth,
-            //     ' Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes\n' +
-            //     '                || evaluation[LINE_MAP.import]',
-            //     Number(evaluation[LINE_MAP.nodes]) >= this.saveCriterium.nodes
-            //     || evaluation[LINE_MAP.import],
-            //     'Math.abs(Number(evaluation[LINE_MAP.score])) < this.saveCriterium.maxScore',
-            //     Math.abs(Number(evaluation[LINE_MAP.score])) < this.saveCriterium.maxScore,
-            //     '&& evaluation[LINE_MAP.pv]', evaluation[LINE_MAP.pv],
-            //     'evaluation', evaluation,
-            //     Number(evaluation[LINE_MAP.depth]), Number(evaluation[LINE_MAP.nodes])
-            // );
-            //
             return true;
         }
         return false;
@@ -133,7 +121,6 @@ export class PositionService {
 
     async findAllMoves(fen) {
         const fenHash = decodeFenHash(fen);
-
         const position = await this.db.getRepository(EvaluatedPosition)
             .createQueryBuilder("p")
             .where({fenHash})
@@ -141,7 +128,8 @@ export class PositionService {
             .getOne();
 
         if (position) {
-            return await position;
+            position.nodes = position.nodes * 1000000;
+            return position;
         }
 
         return null;

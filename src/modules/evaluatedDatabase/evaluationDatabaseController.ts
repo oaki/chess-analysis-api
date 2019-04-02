@@ -1,13 +1,13 @@
 import {ParsePgn} from "../../models/ParsePgn";
-import {getBasePath} from "../../config/index";
+import {getBasePath} from "../../config";
 import * as fs from "fs";
 import {evaluationConnection} from "../../libs/connectEvaluationDatabase";
-import {ImportedGames} from "../evaluatedDatabase/entity/importedGames";
+import {ImportedGames} from "./entity/importedGames";
 
 const es = require("event-stream");
 
 
-export class ImportsController {
+export class EvaluationDatabaseController {
     private parser;
     private db;
 
@@ -71,8 +71,7 @@ export class ImportsController {
     }
 
     private getFileName(name: string) {
-        const filename = name;//.replace(/[^a-z0-9_-]/gi, '_').toLowerCase();
-        return `${getBasePath()}/../games/${filename}.pgn`;
+        return `${getBasePath()}/games/evaluation/${name}.pgn`;
     }
 
     public async importToMysql(game: string) {

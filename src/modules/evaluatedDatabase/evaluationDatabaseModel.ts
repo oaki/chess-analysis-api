@@ -1,4 +1,4 @@
-import {Sequelize, DataTypes, Instance} from "sequelize";
+import {DataTypes, Instance, Sequelize} from "sequelize";
 
 module.exports = function ImportGameModel(sequelize: Sequelize, dataTypes: DataTypes) {
     return sequelize.define('import_games', {

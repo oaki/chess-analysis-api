@@ -1,7 +1,7 @@
 import {filesRoute} from "./files";
 import {positionRoute} from "./position";
 import {openingBookRoute} from "../modules/openingBook/openingBookRoute";
-import {importsRoute} from "../modules/import/importRoute";
+import {evaluationDatabaseRoute} from "../modules/evaluatedDatabase/evaluationDatabaseRoute";
 import {defaultRoute} from "./default";
 import {historyRoute} from "../modules/user/modules/history/historyRouter";
 import {authRoute} from "../modules/auth/authRoutes";
@@ -20,7 +20,7 @@ export default function routes(server) {
     server.route(filesRoute(server));
     server.route(positionRoute());
     server.route(openingBookRoute());
-    server.route(importsRoute());
+    server.route(evaluationDatabaseRoute());
     server.route(historyRoute());
     server.route(workerRoute());
     server.route(logRoute());

@@ -28,7 +28,9 @@ export const config: IConfig = {
     gameDatabase,
     evaluationDatabase,
 
-    googleAuth
+    googleAuth,
+
+    nextChessMoveToken: process.env.NEXT_CHESS_MOVE_TOKEN
 }
 
 
@@ -49,7 +51,8 @@ export interface IConfig {
         password: string,
         type: string,
         host: string,
-        port: string
+        port: string,
+        synchronize: boolean;
     },
     gameDatabase: {
         type: string,
@@ -57,7 +60,8 @@ export interface IConfig {
         database: string,
         user: string,
         password: string,
-        port: number
+        port: number,
+        synchronize: boolean
     },
     googleAuth: {
         baseUrl: string;
@@ -74,6 +78,8 @@ export interface IConfig {
     swagger: {
         host: string;
     },
+
+    nextChessMoveToken: string;
 }
 
 

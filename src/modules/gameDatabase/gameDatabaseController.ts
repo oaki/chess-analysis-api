@@ -142,7 +142,7 @@ export class GameDatabaseController {
 
             const game = await model.parsePgn(props.pgn);
             const gameEntity = new Game();
-            console.log(jsMd5);
+
             gameEntity.white = game.headers.white;
             gameEntity.black = game.headers.black;
             gameEntity.whiteElo = game.headers.whiteElo;
