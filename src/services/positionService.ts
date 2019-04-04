@@ -88,7 +88,7 @@ export class PositionService {
                 nodes: Math.round(evaluation[LINE_MAP.nodes] / 1000000),
                 time: Number(evaluation[LINE_MAP.time]),
                 import: !!evaluation[LINE_MAP.import],
-                tbhits: evaluation[LINE_MAP.tbhits] ? Number(evaluation[LINE_MAP.tbhits]) : 0,
+                tbhits: isNaN(Number(evaluation[LINE_MAP.tbhits])) ? 0 : Number(evaluation[LINE_MAP.tbhits]),
                 pv: evaluation[LINE_MAP.pv]
             };
 
