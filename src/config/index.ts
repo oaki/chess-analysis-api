@@ -30,7 +30,7 @@ export const config: IConfig = {
 
     googleAuth,
 
-    nextChessMoveToken: process.env.NEXT_CHESS_MOVE_TOKEN
+    nextChessMoveCookie: process.env.NEXT_CHESS_MOVE_COOKIE
 }
 
 
@@ -79,7 +79,7 @@ export interface IConfig {
         host: string;
     },
 
-    nextChessMoveToken: string;
+    nextChessMoveCookie: string;
 }
 
 

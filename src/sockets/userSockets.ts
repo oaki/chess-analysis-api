@@ -3,7 +3,7 @@ import positionService from "../services/positionService";
 import SyzygyService from "../services/syzygyService";
 import {countPieces} from "../tools";
 import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
-import {LINE_MAP} from "../interfaces";
+import {IEvaluation, LINE_MAP} from "../interfaces";
 import chessgamesComService from "../services/chessgamesComService";
 import nextchessmoveComService from "../services/nextchessmoveComService";
 
@@ -16,6 +16,8 @@ export default function (userSocket, usersIo, workersIo) {
     userSocket.on("setNewPosition", async (data) => {
         console.log("2. server->socket: setNewPosition", data);
         const fen: string = data.FEN;
+        const previousEvaluation: IEvaluation = data.previousEvaluation;
+
         const position = {
             action: "findBestMove",
             userId: userSocket.id,

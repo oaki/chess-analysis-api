@@ -93,13 +93,24 @@ export class GameDatabaseController {
         // ORDER BY "game"."result"='1-0' DESC,"game"."result"='1/2-1/2' DESC LIMIT 50
 
         if (props.side === "w") {
-            query.addOrderBy(`game.result ='1-0'`, "DESC")
-                .addOrderBy(`game.result ='1/2-1/2'`, "DESC")
-                .addOrderBy(`game.whiteElo`, "DESC")
+            query.addOrderBy(`CASE 
+WHEN "game"."result" ='1-0' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
+ELSE
+  CASE 
+  WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
+  ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
+END
+END`, "ASC");
+
         } else {
-            query.addOrderBy(`game.result ='0-1'`, "DESC")
-                .addOrderBy(`game.result ='1/2-1/2'`, "DESC")
-                .addOrderBy(`game.blackElo`, "DESC")
+            query.addOrderBy(`CASE 
+WHEN "game"."result" ='0-1' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
+ELSE
+  CASE 
+  WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
+  ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
+END
+END`, "ASC");
         }
 
         const moves: Move[] = await query

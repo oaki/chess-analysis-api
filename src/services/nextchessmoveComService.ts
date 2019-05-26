@@ -26,15 +26,15 @@ export class NextchessmoveComService {
         data.append("position[fen]", this.prepareFen(fen));
         data.append("movetime", "5");
         data.append("syzygy", "true");
-        data.append("uuid", "9c49c000-cd20-4888-935f-636bc497d453");
+        data.append("uuid", "79550091-eb9b-4849-851b-3cc0f486ba2f");
 
         const options: any = {
             headers: {
-                cookie: `_chess_session=${this.token}`,
+                cookie: `${this.token}`,
                 origin: "https://nextchessmove.com",
                 referer: "https://nextchessmove.com/",
                 "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-                "x-csrf-token": "kHuQAGPDtjEnfxCiB8ubo1PO3wVsNtHgTrv/1ZZ93e4tCxMly3FbSR/n9gr/oNl3eC6UpWZflVGebG6bskYUwA==",
+                "x-csrf-token": "lE4kbAn97/CbjE64nPyQOahQZAYemt4Qj8IrIZNoyYlDdTJmay2Sg1VvLVnfKlIm96Q2bId77f73VgXAy3gT2Q==",
                 "x-requested-with": "XMLHttpRequest",
                 "Content-Type": "application/x-www-form-urlencoded",
             },
@@ -53,7 +53,7 @@ export class NextchessmoveComService {
             console.log({json});
             return json;
         } else {
-            console.log("Position is not found on ChessgamesComService");
+            console.log("Position is not found on ChessgamesComService", response);
             return null;
         }
     }
@@ -124,4 +124,4 @@ export interface Response {
     saturated: boolean;
 }
 
-export default new NextchessmoveComService(getConfig().nextChessMoveToken);
+export default new NextchessmoveComService(getConfig().nextChessMoveCookie);
