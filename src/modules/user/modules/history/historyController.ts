@@ -1,21 +1,26 @@
-import {models} from "../../../../models/database";
 import * as Boom from "boom";
 import {initPgnParser} from "../../../../models/ParsePgn";
+import {appDbConnection} from "../../../../libs/connectAppDatabase";
+import {Game} from "../../entity/game";
+import {User} from "../../entity/user";
 
 const Chess = require("chess.js").Chess;
 
 export class HistoryController {
 
     async getAll(props: IGetAllProps) {
-        const games = await models.Game.findAll({
-            where: {
+
+        const db = await appDbConnection;
+        const gameRepository = await db.getRepository(Game);
+        const games = await gameRepository
+            .createQueryBuilder("Game")
+            .where({
                 user_id: props.userId
-            },
-            limit: props.limit,
-            offset: props.offset,
-            order: [["updated_at", props.order]],
-            raw: true
-        });
+            })
+            .limit(props.limit)
+            .offset(props.offset)
+            .orderBy("updated_at", props.order)
+            .execute();
 
         return games.map((game) => {
             console.log("game", game);
@@ -25,46 +30,63 @@ export class HistoryController {
     }
 
     async get(props: IGetProps) {
-        const game = await models.Game.findOne({
+        const db = await appDbConnection;
+        const gameRepository = await db.getRepository(Game);
+
+        const game = await gameRepository.findOne({
             where: {
                 user_id: props.userId,
                 id: props.id
-            },
-            raw: true
+            }
         });
 
+        console.log({game});
         game.moves = JSON.parse(game.moves);
         return game;
 
     }
 
     async getLastGame(props: IGetLastGameProps) {
-        let game = await models.Game.findOne({
-            where: {
-                user_id: props.userId
-            },
-            order: [["updated_at", "DESC"]]
-        });
 
-        if (!game) {
-            game = await models.Game.create({
-                user_id: props.userId,
-                moves: "[]"
-            });
+        const db = await appDbConnection;
+        const gameRepository = await db.getRepository(Game);
+        const userRepository = await db.getRepository(User);
+
+        const games = await gameRepository
+            .createQueryBuilder("game")
+            .leftJoinAndSelect("game.user", "user")
+            .where("user.id = :id", {id: props.userId})
+            .orderBy("updated_at", "DESC")
+            .getMany();
+
+
+        console.log({games});
+        if (games.length === 0) {
+            const game = new Game();
+            game.moves = "[]";
+            const user = await userRepository.findOne(props.userId);
+            console.log({userId: props.userId, user});
+            game.user = user;
+
+            await gameRepository.save(game);
+
+            return {...game, moves: game.getMoves()};
         } else {
-            game.moves = JSON.parse(game.moves);
+            return {...games[0], moves: games[0].getMoves()};
         }
-
-        return game;
-
     }
 
-    async addNewGame(props: IAddNewGameProps) {
-        const game = await models.Game.create({
-            user_id: props.userId,
-            moves: JSON.stringify([])
-        });
-
+    static async addNewGame(props: IAddNewGameProps) {
+        const db = await appDbConnection;
+        console.log("props-----------", props);
+        const userRepository = await db.getRepository(User);
+        const user = await userRepository.findOneOrFail(props.userId);
+        console.log("user---------------", user);
+        const game = new Game();
+        game.moves = props.moves || "[]";
+        game.user = user;
+        await db.getRepository(Game).save(game);
+        console.log("game ---------------", game);
         return game;
 
     }
@@ -103,8 +125,8 @@ export class HistoryController {
                     };
                 });
 
-                return await models.Game.create({
-                    user_id: props.userId,
+                await HistoryController.addNewGame({
+                    userId: props.userId,
                     moves: JSON.stringify(newMoves)
                 });
             }
@@ -112,18 +134,21 @@ export class HistoryController {
             console.error(e);
             throw Boom.badRequest("Fen is not valid");
         }
-
-
-        // return game;
-
     }
 
     async updateGame(props: IUpdateGameProps) {
 
-        let game = await models.Game.findOne({
+        const db = await appDbConnection;
+        const gameRepository = await db.getRepository(Game);
+        // const userRepository = await db.getRepository(User);
+
+        // const user = await userRepository.findOneOrFail(props.userId);
+
+
+        let game = await gameRepository.findOne({
             where: {
                 id: props.gameId,
-                user_id: props.userId
+                userId: props.userId
             }
         });
 
@@ -131,9 +156,9 @@ export class HistoryController {
             throw Boom.notFound();
         }
 
-        await game.update({
-            moves: JSON.stringify(props.moves)
-        });
+        game.moves = JSON.stringify(props.moves);
+
+        await gameRepository.save(game);
 
         return game;
 
@@ -145,11 +170,13 @@ interface IGetProps {
     id: number;
 }
 
+export type OrderType = "ASC" | "DESC";
+
 interface IGetAllProps {
     offset: number;
     limit: number;
     userId: number;
-    order: string;
+    order: OrderType;
 }
 
 interface IGetLastGameProps {
@@ -158,6 +185,7 @@ interface IGetLastGameProps {
 
 interface IAddNewGameProps {
     userId: number;
+    moves?: string;
 }
 
 interface IImportNewGameFromPgnProps {

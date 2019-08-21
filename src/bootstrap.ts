@@ -1,37 +1,40 @@
-import * as Hapi from 'hapi';
-import * as good from 'good';
-import * as hapiSwagger from 'hapi-swagger';
-import * as vision from 'vision';
-import * as inert from 'inert';
-import buildRoutes from './routes/buildRoutes';
+import * as Hapi from "hapi";
+import * as good from "good";
+import * as hapiSwagger from "hapi-swagger";
+import * as vision from "vision";
+import * as inert from "inert";
+import buildRoutes from "./routes/buildRoutes";
 import {SocketService} from "./sockets/initSockets";
 import {optionsGood} from "./config/optionsGood";
 import {hapiServerOptions} from "./config/hapiServerOptions";
-import {getConfig} from './config/';
+import {getConfig} from "./config/";
 import {AuthenticationController} from "./controllers/authenticationController";
+import {appDbConnection} from "./libs/connectAppDatabase";
 
 const config = getConfig();
 
 export async function initServer() {
 
+    const appDb = await appDbConnection;
+    console.log({appDb});
     const hapiServer = Hapi.server(hapiServerOptions);
 
     await hapiServer.register({
-        plugin: require('hapi-api-version'),
+        plugin: require("hapi-api-version"),
         options: {
             validVersions: [1],
             defaultVersion: 1,
-            vendorName: 'chess-analysis-api'
+            vendorName: "chess-analysis-api"
         }
     });
 
-    await hapiServer.register(require('hapi-auth-jwt2'));
+    await hapiServer.register(require("hapi-auth-jwt2"));
 
-    hapiServer.auth.strategy('jwt', 'jwt',
+    hapiServer.auth.strategy("jwt", "jwt",
         {
             key: config.jwt.key,
             validate: AuthenticationController.validateJwt,
-            verifyOptions: {algorithms: ['HS256']} // pick a strong algorithm
+            verifyOptions: {algorithms: ["HS256"]} // pick a strong algorithm
         });
 
     SocketService.connect(hapiServer);
@@ -41,11 +44,11 @@ export async function initServer() {
 
     const optionsSwagger = {
         info: {
-            title: 'Chess analysis api',
-            version: '1.0.0'
+            title: "Chess analysis api",
+            version: "2.0.1"
         },
         host: config.swagger.host,
-        basePath: '/'
+        basePath: "/"
     };
 
     await hapiServer.register([

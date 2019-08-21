@@ -6,16 +6,25 @@ import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import chessgamesComService from "../services/chessgamesComService";
 import nextchessmoveComService from "../services/nextchessmoveComService";
+import {checkEvaluation} from "../libs/checkEvaluation";
 
-const random = require("lodash/random");
+const Chess = require("chess.js").Chess;
+
+const uuid = require("uuid/v1");
 
 export default function (userSocket, usersIo, workersIo) {
     usersIo[userSocket.id] = userSocket;
     console.log("userSocket.id added to list", userSocket.id, Object.keys(usersIo));
 
     userSocket.on("setNewPosition", async (data) => {
+        console.log({uuid});
+        const processId = uuid();
+        console.log("-----------------------------------------------------------");
+        console.log("------------- START CHOOSE EVALUATION PROCESS -------------");
+        console.log(`--------- processId=${processId} -------------`);
         console.log("2. server->socket: setNewPosition", data);
         const fen: string = data.FEN;
+        const move: string = data.move;
         const previousEvaluation: IEvaluation = data.previousEvaluation;
 
         const position = {
@@ -24,116 +33,142 @@ export default function (userSocket, usersIo, workersIo) {
             fen,
         };
 
-
         //try to find in book
         const opening = await openingsService.find(position.fen);
 
         if (opening) {
-            console.log("Find in opening");
+            console.log(processId, "It is opening");
             userSocket.emit("openingMoves", {
                 fen: position.fen, data: opening
             });
-        } else {
-            // if there is only 7 and less then try to load from end-game database
+            return;
+        }
+        // if there is only 7 and less then try to load from end-game database
 
-            if (countPieces(data.FEN) <= 7) {
-                //https://tablebase.lichess.ovh/standard/mainline?fen=4k3/6KP/8/8/8/8/7p/8_w_-_-_0_1
+        if (countPieces(data.FEN) <= 7) {
+            //https://tablebase.lichess.ovh/standard/mainline?fen=4k3/6KP/8/8/8/8/7p/8_w_-_-_0_1
 
-                try {
-                    const syzygyData = await SyzygyService.find(fen);
-                    console.log("emit->syzygyEvaluation", syzygyData);
-                    userSocket.emit("syzygyEvaluation", syzygyData);
-                } catch (e) {
+            try {
+                const syzygyData = await SyzygyService.find(fen);
+                console.log(processId, "syzygyEvaluation");
+                userSocket.emit("syzygyEvaluation", syzygyData);
 
-                }
-            } else {
-                let evaluation = await positionService.findAllMoves(fen);
+                return;
+            } catch (e) {
 
-                if (evaluation === null) {
-
-                    console.log("try nextchessmoveComService");
-                    const result = await nextchessmoveComService.getResult(fen);
-
-                    if (result && result.length > 0) {
-                        console.log("I found it!!!!", result);
-
-                        positionService.add(fen, result[0]);
-                        userSocket.emit("workerEvaluation", JSON.stringify(result));
-
-                        return;
-
-                    }
-                }
-
-                //try to check portals with evaluations
-                if (evaluation === null) {
-
-                    const result = await chessgamesComService.getResult(fen);
-
-                    if (result && result.length > 0) {
-                        console.log("I found it!!!!", result);
-
-                        positionService.add(fen, result[0]);
-
-                        userSocket.emit("workerEvaluation", JSON.stringify(result));
-
-                        return;
-
-                    }
-                }
-
-                if (evaluation === null) {
-                    console.log("Send the position to worker for evaluation.");
-
-                    // @todo find BEST worker from you
-                    let workerIo = findMyWorkerInSocketList(workersIo, userSocket.handshake.user.user_id);
-
-                    // use temporary server worker
-                    if (!workerIo) {
-                        workerIo = findAvailableWorkerInSocketList(workersIo);
-                        console.log("findAvailableWorkerInSocketList");
-                    }
-
-                    if (workerIo) {
-
-                        console.log("Your worker", workerIo.worker.lastUsed, userSocket.handshake.user, workersIo.map(socket => socket.worker.user_id));
-
-                        workerIo.worker.lastUsed = Date.now();
-                        console.log("choose worker with uuid", workerIo.worker.uuid);
-                        console.log("setPositionToWorker", data);
-                        workerIo.emit("setPositionToWorker", data);
-
-
-                        // if (!w._events || !w._events.workerEvaluation) {
-                        workerIo.on("workerEvaluation", (data) => {
-                            console.log("workerEvaluation", data);
-                            userSocket.emit("workerEvaluation", data);
-                        });
-                        // }
-
-                    } else {
-                        userSocket.emit("noWorkerAvailable", fen);
-                    }
-
-                    // userSocket.emit('evaluation', JSON.stringify(position));
-                } else {
-
-                    console.log("I have it!!!!", evaluation);
-
-                    const data = {
-                        [LINE_MAP.score]: evaluation.score,
-                        [LINE_MAP.depth]: evaluation.depth,
-                        [LINE_MAP.pv]: evaluation.pv,
-                        [LINE_MAP.nodes]: evaluation.nodes,
-                        [LINE_MAP.time]: evaluation.time,
-                        [LINE_MAP.tbhits]: evaluation.tbhits,
-                        fen: fen,
-                    };
-
-                    console.log("data after normalizePv", data, data.p);
-                    userSocket.emit("workerEvaluation", JSON.stringify([data]));
-                }
             }
         }
+
+        let evaluation = await positionService.findAllMoves(fen);
+        if (evaluation) {
+            const data = {
+                [LINE_MAP.score]: evaluation.score,
+                [LINE_MAP.depth]: evaluation.depth,
+                [LINE_MAP.pv]: evaluation.pv,
+                [LINE_MAP.nodes]: evaluation.nodes,
+                [LINE_MAP.time]: evaluation.time,
+                [LINE_MAP.tbhits]: evaluation.tbhits,
+                fen: fen,
+            };
+
+            console.log(processId, "position service");
+            userSocket.emit("workerEvaluation", JSON.stringify([data]));
+            return;
+        }
+        // from FE will get previous evaluation and we check if the evaluation is good.
+        // if it's good than it's strong (lot of nodes) than use workers
+
+        if (previousEvaluation && checkEvaluation(fen, previousEvaluation, {useScore: false})) {
+
+            //check if previous evaluation is good but only score is not good than parse evaluation and send next moves back
+            const pv = previousEvaluation[LINE_MAP.pv];
+            if (pv) {
+                const moves = pv.split(" ");
+                if (moves.length > 0 && moves[0] === move) {
+                    const newChess = new Chess(fen);
+                    newChess.move(move);
+                    const newFen = newChess.fen();
+                    const newMoves = moves.slice(1);
+                    const newNodes = Math.floor(previousEvaluation[LINE_MAP.nodes] - 25 * 1000 * 1000);
+                    const newEvaluation = {...previousEvaluation};
+                    newEvaluation[LINE_MAP.pv] = newMoves.join(" ");
+                    newEvaluation[LINE_MAP.nodes] = newNodes;
+                    newEvaluation[LINE_MAP.fen] = newFen;
+                    userSocket.emit("workerEvaluation", JSON.stringify([newEvaluation]));
+                    console.log(processId, "use previous evaluation", newEvaluation);
+                    return;
+                }
+            }
+            console.log(processId, "use workers", previousEvaluation);
+            useWorkers(workersIo, userSocket, data, fen);
+            return;
+        }
+
+        try {
+            const nextchessmoveComServiceResult = await nextchessmoveComService.getResult(fen);
+
+            if (nextchessmoveComServiceResult && nextchessmoveComServiceResult.length > 0) {
+                console.log(processId, "use nextchessmoveComService");
+                positionService.add(fen, nextchessmoveComServiceResult[0]);
+                userSocket.emit("workerEvaluation", JSON.stringify(nextchessmoveComServiceResult));
+
+                return;
+
+            }
+        } catch (err) {
+        }
+
+        //try to check portals with evaluations
+
+        try {
+            const chessgamesComServiceResult = await chessgamesComService.getResult(fen);
+
+            if (chessgamesComServiceResult && chessgamesComServiceResult.length > 0) {
+                console.log(processId, "use chessgamesComService");
+                positionService.add(fen, chessgamesComServiceResult[0]);
+                userSocket.emit("workerEvaluation", JSON.stringify(chessgamesComServiceResult));
+                return;
+            }
+        } catch (err) {
+        }
+
+
+        //"Send the position to worker for evaluation."
+
+        console.log(processId, "USE WORKERS");
+        useWorkers(workersIo, userSocket, data, fen);
+
     });
+}
+
+function useWorkers(workersIo, userSocket, data, fen) {
+    // @todo find BEST worker from you
+    let workerIo = findMyWorkerInSocketList(workersIo, userSocket.handshake.user.user_id);
+
+    // use temporary server worker
+    if (!workerIo) {
+        workerIo = findAvailableWorkerInSocketList(workersIo);
+        console.log("findAvailableWorkerInSocketList");
+    }
+
+    if (workerIo) {
+
+        console.log("Your worker", workerIo.worker.lastUsed, userSocket.handshake.user, workersIo.map(socket => socket.worker.user_id));
+
+        workerIo.worker.lastUsed = Date.now();
+        console.log("choose worker with uuid", workerIo.worker.uuid);
+        console.log("setPositionToWorker", data);
+        workerIo.emit("setPositionToWorker", data);
+
+
+        // if (!w._events || !w._events.workerEvaluation) {
+        workerIo.on("workerEvaluation", (data) => {
+            console.log("workerEvaluation", data);
+            userSocket.emit("workerEvaluation", data);
+        });
+        // }
+
+    } else {
+        userSocket.emit("noWorkerAvailable", fen);
+    }
 }

@@ -59,10 +59,10 @@ export function authRoute() {
             config: {
                 tags: ["api"], // section in documentation
             },
-            handler: (request) => {
+            handler: async (request) => {
                 const payload = JSON.parse(request.payload);
                 console.log({payload});
-                return AuthController.checkTemporaryToken({
+                return await AuthController.checkTemporaryToken({
                     temporaryToken: payload.temporary_token,
                 })
             }

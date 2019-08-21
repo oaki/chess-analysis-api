@@ -1,0 +1,40 @@
+import {Connection, ConnectionOptions, getConnectionManager} from "typeorm";
+import {getConfig} from "../config";
+
+export async function connectAppDatabase(): Promise<Connection> {
+    const config = getConfig();
+
+    try {
+        const connectionManager = getConnectionManager();
+        const options: ConnectionOptions = {
+            type: "mysql",
+            host: config.appDatabase.host,
+            port: Number(config.appDatabase.port),
+            username: config.appDatabase.user,
+            password: config.appDatabase.password,
+            database: config.appDatabase.database,
+
+            synchronize: config.appDatabase.synchronize,
+            logging: true,
+
+            "entities": [
+                "dist/modules/user/entity/**/*.js"
+            ],
+            "migrations": [
+                "dist/modules/user/migration/**/*.js"
+            ],
+            "subscribers": [
+                "dist/modules/user/subscriber/**/*.js"
+            ],
+        };
+
+        const connection = connectionManager.create(options);
+
+        return await connection.connect();
+    } catch (e) {
+        console.log("Can not connect to Games Database", e);
+    }
+
+}
+
+export const appDbConnection = connectAppDatabase();

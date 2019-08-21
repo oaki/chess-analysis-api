@@ -129,8 +129,6 @@ END`, "ASC");
             return {...game, fewNextMove: this.findFenInPgn(pgn, fenHash)}
         })
 
-        console.log("Result: ", result);
-
         return result;
 
     }

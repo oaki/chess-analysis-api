@@ -6,10 +6,8 @@ import {defaultRoute} from "./default";
 import {historyRoute} from "../modules/user/modules/history/historyRouter";
 import {authRoute} from "../modules/auth/authRoutes";
 import {userRoute} from "../modules/user/userRouter";
-import {syncRoute} from "../modules/sync/syncRouter";
-import {config, Environment} from "../config";
+import {config} from "../config";
 import {workerRoute} from "../modules/user/modules/worker/workerRouter";
-import {logRoute} from "../modules/log/logRoutes";
 import {gameDatabaseRouter} from "../modules/gameDatabase/gameDatabaseRouter";
 
 export default function routes(server) {
@@ -23,11 +21,8 @@ export default function routes(server) {
     server.route(evaluationDatabaseRoute());
     server.route(historyRoute());
     server.route(workerRoute());
-    server.route(logRoute());
     server.route(gameDatabaseRouter());
 
     console.log("config.environment", config.environment);
-    if (config.environment === Environment.DEVELOPMENT) {
-        server.route(syncRoute());
-    }
+
 }

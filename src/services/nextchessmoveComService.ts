@@ -42,7 +42,7 @@ export class NextchessmoveComService {
             body: data
         };
 
-        console.log({options});
+        // console.log({options});
 // console.log({fetchTimeout});
         const response = await fetchTimeout(this.host, options, 10000, "Fetch timeout error");
 
@@ -50,7 +50,7 @@ export class NextchessmoveComService {
 
         if (response.ok) {
             const json = await response.json();
-            console.log({json});
+            // console.log({json});
             return json;
         } else {
             console.log("Position is not found on ChessgamesComService", response);
@@ -61,7 +61,7 @@ export class NextchessmoveComService {
     async getResult(fen: string) {
 
         try {
-            console.log("start nextchessmoveComService");
+            // console.log("start nextchessmoveComService");
             const response = await this.fetch(fen);
             const results = this.parseResults(response, fen);
             if (results) {
@@ -92,7 +92,6 @@ export class NextchessmoveComService {
             return null;
         }
 
-        console.log({lastMsg});
 //lineStr-> info depth 20 seldepth 33 multipv 1 score cp 18 nodes 21990437 nps 2198603 hashfull 319 tbhits 0 time 10002 pv d7d5 d2d4
         const pv = pairValues("pv", lastMsg);
         const nodes = pairValues("nodes", lastMsg);

@@ -1,24 +1,25 @@
-import {models} from "../../../../models/database";
 import * as Boom from "boom";
 import {BaseResponse} from "../../../../libs/baseResponse";
 import {SocketService} from "../../../../sockets/initSockets";
-
-import {WorkerAttributes} from "./models/workerModel";
-
+import {appDbConnection} from "../../../../libs/connectAppDatabase";
+import {Worker} from "../../entity/worker";
+import {UserController} from "../../userController";
 
 export class WorkerController {
 
     async getAll(props: IGetProps) {
-        const workerList = await models.Worker.findAll({
-            where: {
-                user_id: props.userId
-            },
-            limit: props.limit,
-            offset: props.offset,
-            raw: true
-        });
 
-        return workerList.map((worker:WorkerAttributes)=>{
+        const db = await appDbConnection;
+        const workerRepository = await db.getRepository(Worker);
+
+        const workerList = await workerRepository.createQueryBuilder("worker")
+            .where("user.id = :id", {id: props.userId})
+            .limit(props.limit)
+            .offset(props.offset)
+            .getMany();
+
+        console.log(workerList);
+        return workerList.map((worker: any) => {
             return {...worker, ready: SocketService.isWorkerOnline(worker.uuid)}
         });
 
@@ -29,13 +30,23 @@ export class WorkerController {
         return SocketService.isWorkersOnline(props.uuids);
     }
 
+    static async getWorkerRepository() {
+        const db = await appDbConnection;
+        return await db.getRepository(Worker);
+    }
+
+
     async add(props: IAddProps) {
         try {
-            const worker = await models.Worker.create({
-                uuid: props.workerUuid,
-                name: props.name,
-                user_id: props.userId
-            });
+            const repository = await WorkerController.getWorkerRepository();
+            const userRepository = await UserController.getUserRepository();
+
+            const user = await userRepository.findOne(props.userId);
+            const worker = new Worker();
+            worker.uuid = props.workerUuid;
+            worker.user = user;
+            repository.save(worker);
+
             return worker;
         } catch (e) {
             console.log(e);
@@ -44,7 +55,8 @@ export class WorkerController {
     }
 
     async delete(props: IDeleteProps) {
-        const worker = await models.Worker.findOne({
+        const repository = await WorkerController.getWorkerRepository();
+        const worker = await repository.findOne({
             where: {
                 id: props.id,
                 user_id: props.userId
@@ -52,10 +64,10 @@ export class WorkerController {
         });
 
         if (!worker) {
-            throw Boom.notFound('Worker is not found.')
+            throw Boom.notFound("Worker is not found.")
         }
 
-        await worker.destroy();
+        await repository.remove(worker);
 
 
         return BaseResponse.getSuccess();

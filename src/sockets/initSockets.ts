@@ -1,9 +1,9 @@
 import * as socketIo from "socket.io";
-import {getConfig} from "../config/index";
-import {models} from "../models/database";
+import {getConfig} from "../config";
 import userSockets from "./userSockets";
 import workerSockets from "./workerSockets";
 import {USER, WORKER} from "../const";
+import {WorkerController} from "../modules/user/modules/worker/workerController";
 
 const JWT = require("jsonwebtoken");
 
@@ -56,7 +56,10 @@ class Sockets {
             } else if (socket.handshake.query.type === WORKER) {
                 console.log("It is worker", socket.handshake.query && socket.handshake.query.token);
                 if (socket.handshake.query && socket.handshake.query.token) {
-                    let worker = await models.Worker.findOne({raw: true, where: {uuid: socket.handshake.query.token}});
+
+                    const workerRepository = await WorkerController.getWorkerRepository();
+
+                    let worker = await workerRepository.findOne({where: {uuid: socket.handshake.query.token}});
 
                     if (worker) {
                         console.log("Add worker info to the socket", worker);

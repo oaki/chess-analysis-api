@@ -1,8 +1,8 @@
 import {gameDatabase} from "./gameDatabase";
-import {database} from "./mysql";
 import {IConfig} from "./index";
 import {googleAuth} from "./googleAuth";
 import {evaluationDatabase} from "./evaluationDatabase";
+import {appDatabase} from "./appDatabase";
 
 require("dotenv").config();
 
@@ -24,7 +24,7 @@ export const config: IConfig = {
     jwt: {
         key: process.env.JWT_KEY
     },
-    database,
+    appDatabase,
     gameDatabase,
     evaluationDatabase,
 
@@ -37,13 +37,14 @@ export const config: IConfig = {
 export interface IConfig {
     server: { port: number },
     io: { port: number },
-    database: {
+    appDatabase: {
         database: string,
         user: string,
         password: string,
-        dialect: string,
+        type: string,
         host: string,
-        port: string
+        port: string,
+        synchronize: boolean;
     },
     evaluationDatabase: {
         database: string,

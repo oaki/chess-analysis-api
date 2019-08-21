@@ -320,25 +320,6 @@ export class ParsePgn {
         return allMoves;
     }
 
-    private checkResultAndWhoIsOnMove(isWhite, gameResult) {
-
-        return true; // save all imported moves
-        /*if (gameResult === '1/2-1/2') {
-            return true;
-        }
-
-        if (isWhite && (gameResult === '1-0')) {
-            return true;
-        }
-
-        if (!isWhite && gameResult === '0-1') {
-            return true;
-        }
-
-        return false;*/
-    }
-
-
     private getPv(moves: any[], startIndex: number, depth: number) {
 
         let str = "";

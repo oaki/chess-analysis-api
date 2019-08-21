@@ -1,5 +1,5 @@
 import * as Joi from "joi";
-import {HistoryController} from "./historyController";
+import {HistoryController, OrderType} from "./historyController";
 
 const historyController = new HistoryController();
 
@@ -14,7 +14,7 @@ export function historyRoute() {
                 auth: "jwt",
             },
             handler: async (request: any) => {
-                return await historyController.addNewGame({
+                return await HistoryController.addNewGame({
                     userId: request.auth.credentials.user_id,
                 });
             }
@@ -55,7 +55,7 @@ export function historyRoute() {
             handler: async (request: any) => {
                 const offset: number = request.query.offset;
                 const limit: number = request.query.limit;
-                const order: string = request.query.order;
+                const order: OrderType = request.query.order;
                 console.log("request.auth.credentials", request.auth.credentials);
                 return await historyController.getAll({
                     userId: request.auth.credentials.user_id,
