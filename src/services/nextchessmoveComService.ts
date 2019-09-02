@@ -61,7 +61,7 @@ export class NextchessmoveComService {
             body: data
         };
 
-        // console.log({options});
+        console.log({options});
 // console.log({fetchTimeout});
         const response = await fetchTimeout(host, options, 10000, "Fetch timeout error");
 
