@@ -80,7 +80,6 @@ export default function (userSocket, usersIo, workersIo) {
         // from FE will get previous evaluation and we check if the evaluation is good.
         // if it's good than it's strong (lot of nodes) than use workers
 
-        console.log("checkPreviousEvaluation", checkPreviousEvaluation(fen, previousEvaluation));
         if (previousEvaluation && checkPreviousEvaluation(fen, previousEvaluation)) {
 
             //check if previous evaluation is good but only score is not good than parse evaluation and send next moves back
