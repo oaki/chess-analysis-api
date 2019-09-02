@@ -43,3 +43,26 @@ export function checkEvaluation(fen: string, evaluation: IEvaluation, options: C
 }
 
 
+export function checkPreviousEvaluation(fen: string, evaluation: IEvaluation) {
+    const nodes = Number(evaluation[LINE_MAP.nodes]);
+    const score = Math.abs(Number(evaluation[LINE_MAP.score]));
+    const piecesCount = countPieces(fen);
+    const isMate = !!evaluation[LINE_MAP.mate];
+
+    if (
+        piecesCount > 7
+        // && depth > this.saveCriterium.depth
+        && !isMate
+        && (
+            nodes >= saveCriterium.nodes
+            || evaluation[LINE_MAP.import]
+        )
+        && (score > 3)
+        && !!evaluation[LINE_MAP.pv]
+    ) {
+        return true;
+    }
+    return false;
+}
+
+

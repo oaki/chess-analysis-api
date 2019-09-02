@@ -7,7 +7,7 @@ const fetchTimeout = require("fetch-timeout");
 const {URLSearchParams} = require("url");
 
 export class NextchessmoveComService {
-    private host = "https://nextchessmove.com/api/v4/calculate/pro";
+
     private token: string = "";
 
     constructor(token: string) {
@@ -18,35 +18,52 @@ export class NextchessmoveComService {
     async fetch(fen: string) {
 
 
-        const data = new URLSearchParams();
-
-        // const data = new FormData();
-        data.append("engine", "sf10");
-        data.append("fen", this.prepareFen(fen));
-        data.append("position[fen]", this.prepareFen(fen));
-        data.append("movetime", "5");
-        data.append("syzygy", "true");
-        data.append("uuid", "79550091-eb9b-4849-851b-3cc0f486ba2f");
-
-        const options: any = {
-            headers: {
-                cookie: `${this.token}`,
-                origin: "https://nextchessmove.com",
-                referer: "https://nextchessmove.com/",
-                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36",
-                "x-csrf-token": "lE4kbAn97/CbjE64nPyQOahQZAYemt4Qj8IrIZNoyYlDdTJmay2Sg1VvLVnfKlIm96Q2bId77f73VgXAy3gT2Q==",
-                "x-requested-with": "XMLHttpRequest",
-                "Content-Type": "application/x-www-form-urlencoded",
+        // const data = new URLSearchParams();
+        const host = "https://nextchessmove.com/api/v4/calculate/pro";
+        const data = JSON.stringify({
+            "kind": "remote",
+            "fen": this.prepareFen(fen),
+            "position": {
+                "fen": this.prepareFen(fen),
+                "moves": []
             },
+            "movetime": 5,
+            "multipv": 1,
+            "hardware": {"usePaidCpu": true, "usePaidGpu": true},
+            "engine": "sf10",
+            "syzygy": true,
+            "uuid": "84a84117-e9e4-4381-a1b0-b6bd026bd9dd"
+        });
+
+        const headers = {
+            "sec-fetch-mode": "cors",
+            "origin": "https://nextchessmove.com",
+            "accept-encoding": "gzip, deflate, br",
+            "x-csrf-token": "lSYzug1bPYYIUStebFFJqvTissF9Cxm0tB8A533z1aSVQ5EFlWygR9CYIVFmNJPMAFBUXm1EWJn5e8CWtQwlYw==",
+            "accept-language": "en-US,en;q=0.9,sk;q=0.8",
+            "cookie": this.token,
+            "pragma": "no-cache",
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36",
+            "content-type": "application/json",
+            "accept": "*/*",
+            "cache-control": "no-cache,no-cache",
+            "authority": "nextchessmove.com",
+            "referer": "https://nextchessmove.com/",
+            "sec-fetch-site": "same-origin",
+            "Postman-Token": "412d64e5-5367-4523-8c9f-7a80bf3c5356,8abe77cc-d888-4ce2-abe7-8b44376e854e",
+            "Host": "nextchessmove.com",
+            "content-length": "328",
+            "Connection": "keep-alive"
+        }
+        const options: RequestInit = {
+            headers,
             method: "POST",
             body: data
         };
 
         // console.log({options});
 // console.log({fetchTimeout});
-        const response = await fetchTimeout(this.host, options, 10000, "Fetch timeout error");
-
-        // const response = await fetch(this.host, options);
+        const response = await fetchTimeout(host, options, 10000, "Fetch timeout error");
 
         if (response.ok) {
             const json = await response.json();
@@ -61,7 +78,6 @@ export class NextchessmoveComService {
     async getResult(fen: string) {
 
         try {
-            // console.log("start nextchessmoveComService");
             const response = await this.fetch(fen);
             const results = this.parseResults(response, fen);
             if (results) {

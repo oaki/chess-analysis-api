@@ -6,7 +6,7 @@ import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import chessgamesComService from "../services/chessgamesComService";
 import nextchessmoveComService from "../services/nextchessmoveComService";
-import {checkEvaluation} from "../libs/checkEvaluation";
+import {checkPreviousEvaluation} from "../libs/checkEvaluation";
 
 const Chess = require("chess.js").Chess;
 
@@ -50,6 +50,7 @@ export default function (userSocket, usersIo, workersIo) {
 
             try {
                 const syzygyData = await SyzygyService.find(fen);
+                console.log("-----------------------------------------------------------");
                 console.log(processId, "syzygyEvaluation");
                 userSocket.emit("syzygyEvaluation", syzygyData);
 
@@ -71,6 +72,7 @@ export default function (userSocket, usersIo, workersIo) {
                 fen: fen,
             };
 
+            console.log("-----------------------------------------------------------");
             console.log(processId, "position service");
             userSocket.emit("workerEvaluation", JSON.stringify([data]));
             return;
@@ -78,7 +80,8 @@ export default function (userSocket, usersIo, workersIo) {
         // from FE will get previous evaluation and we check if the evaluation is good.
         // if it's good than it's strong (lot of nodes) than use workers
 
-        if (previousEvaluation && checkEvaluation(fen, previousEvaluation, {useScore: false})) {
+        console.log("checkPreviousEvaluation", checkPreviousEvaluation(fen, previousEvaluation));
+        if (previousEvaluation && checkPreviousEvaluation(fen, previousEvaluation)) {
 
             //check if previous evaluation is good but only score is not good than parse evaluation and send next moves back
             const pv = previousEvaluation[LINE_MAP.pv];
@@ -95,10 +98,13 @@ export default function (userSocket, usersIo, workersIo) {
                     newEvaluation[LINE_MAP.nodes] = newNodes;
                     newEvaluation[LINE_MAP.fen] = newFen;
                     userSocket.emit("workerEvaluation", JSON.stringify([newEvaluation]));
+                    console.log("-----------------------------------------------------------");
                     console.log(processId, "use previous evaluation", newEvaluation);
                     return;
                 }
             }
+
+            console.log("-----------------------------------------------------------");
             console.log(processId, "use workers", previousEvaluation);
             useWorkers(workersIo, userSocket, data, fen);
             return;
@@ -108,6 +114,8 @@ export default function (userSocket, usersIo, workersIo) {
             const nextchessmoveComServiceResult = await nextchessmoveComService.getResult(fen);
 
             if (nextchessmoveComServiceResult && nextchessmoveComServiceResult.length > 0) {
+
+                console.log("-----------------------------------------------------------");
                 console.log(processId, "use nextchessmoveComService");
                 positionService.add(fen, nextchessmoveComServiceResult[0]);
                 userSocket.emit("workerEvaluation", JSON.stringify(nextchessmoveComServiceResult));
@@ -124,6 +132,7 @@ export default function (userSocket, usersIo, workersIo) {
             const chessgamesComServiceResult = await chessgamesComService.getResult(fen);
 
             if (chessgamesComServiceResult && chessgamesComServiceResult.length > 0) {
+                console.log("-----------------------------------------------------------");
                 console.log(processId, "use chessgamesComService");
                 positionService.add(fen, chessgamesComServiceResult[0]);
                 userSocket.emit("workerEvaluation", JSON.stringify(chessgamesComServiceResult));
@@ -135,6 +144,7 @@ export default function (userSocket, usersIo, workersIo) {
 
         //"Send the position to worker for evaluation."
 
+        console.log("-----------------------------------------------------------");
         console.log(processId, "USE WORKERS");
         useWorkers(workersIo, userSocket, data, fen);
 
