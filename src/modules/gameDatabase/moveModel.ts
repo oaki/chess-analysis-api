@@ -3,7 +3,7 @@ import {indexEntities, MOVE_PREFFIX} from "./entity/indexEntities";
 export function getMoveInstance(fenHash: string) {
     const model = getMoveModel(fenHash);
     const instance = new model;
-    instance.fenHash = fenHash;
+    instance.fenHash = getFenHashWithoutPrefix(fenHash);
     return instance;
 }
 
@@ -17,4 +17,8 @@ export function getMoveModel(fenHash: string) {
     }
 
     return model;
+}
+
+export function getFenHashWithoutPrefix(fenHash:string) {
+    return fenHash.substr(2);
 }

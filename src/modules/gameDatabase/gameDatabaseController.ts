@@ -8,7 +8,7 @@ import {pgnFileReader} from "../../libs/pgnFileReader";
 import {decodeFenHash} from "../../libs/fenHash";
 import {gameDbConnection} from "../../libs/connectGameDatabase";
 import {postgreGameDbConnection} from "../../libs/connectPostgreGameDatabase";
-import {getMoveInstance, getMoveModel} from "./moveModel";
+import {getFenHashWithoutPrefix, getMoveInstance, getMoveModel} from "./moveModel";
 
 const jsMd5 = require("js-md5");
 
@@ -84,7 +84,7 @@ export class GameDatabaseController {
             .getRepository(model)
             .createQueryBuilder("move")
             .innerJoinAndSelect("move.games", "game")
-            .where({fenHash: fenHash});
+            .where({fenHash: getFenHashWithoutPrefix(fenHash)});
         // ORDER BY "game"."result"='1-0' DESC,"game"."result"='1/2-1/2' DESC LIMIT 50
 
         if (props.side === "w") {
