@@ -1,12 +1,14 @@
-import {Connection, In} from "typeorm";
+import {Connection} from "typeorm";
 import {BaseResponse} from "../../libs/baseResponse";
 import {Game} from "./entity/game";
+import {Game as PostgreGame} from "../postgreGameDatabase/entity/game";
 import * as Boom from "boom";
 import {GameDatabaseModel} from "./gameDatabaseModel";
-import {Move} from "./entity/move";
 import {pgnFileReader} from "../../libs/pgnFileReader";
 import {decodeFenHash} from "../../libs/fenHash";
 import {gameDbConnection} from "../../libs/connectGameDatabase";
+import {postgreGameDbConnection} from "../../libs/connectPostgreGameDatabase";
+import {getMoveInstance, getMoveModel} from "./moveModel";
 
 const jsMd5 = require("js-md5");
 
@@ -40,6 +42,7 @@ export class GameDatabaseController {
 
     async initConnection() {
         this.db = await gameDbConnection;
+        console.log("init finigsgs");
     }
 
     private findFenInPgn(pgn, fenHash) {
@@ -73,20 +76,12 @@ export class GameDatabaseController {
 
     async get(props: GetProps) {
 
-        console.log(props);
-        // const normalizedFen = PositionService.normalizeFen(props.fen);
-        // const moveEntity = await this.db.getRepository(Game)
-        //     .createQueryBuilder("game")
-        //     .innerJoin("move")
-        //     .where("(move.fen = :fen)")
-        //     .setParameters({fen: props.fen})
-        //     .orderBy("game.whiteElo", "DESC")
-        //     .getMany();
-
         const fenHash = decodeFenHash(props.fen);
 
+        const model = getMoveModel(fenHash);
+
         const query = this.db
-            .getRepository(Move)
+            .getRepository(model)
             .createQueryBuilder("move")
             .innerJoinAndSelect("move.games", "game")
             .where({fenHash: fenHash});
@@ -94,26 +89,26 @@ export class GameDatabaseController {
 
         if (props.side === "w") {
             query.addOrderBy(`CASE 
-WHEN "game"."result" ='1-0' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
+WHEN "game.result" ='1-0' THEN (4000 - ("game.whiteElo" + "game.blackElo")/2)
 ELSE
   CASE 
-  WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
-  ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
+  WHEN "game.result" ='1/2-1/2' THEN (4000 - ("game.whiteElo" + "game.blackElo")/2 - 200)
+  ELSE (4000 - ("game.whiteElo" + "game.blackElo")/2 - 400)
 END
 END`, "ASC");
 
         } else {
             query.addOrderBy(`CASE 
-WHEN "game"."result" ='0-1' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
+WHEN "game.result" ='0-1' THEN (4000 - ("game.whiteElo" + "game.blackElo")/2)
 ELSE
   CASE 
-  WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
-  ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
+  WHEN "game.result" ='1/2-1/2' THEN (4000 - ("game.whiteElo" + "game.blackElo")/2 - 200)
+  ELSE (4000 - ("game.whiteElo" + "game.blackElo")/2 - 400)
 END
 END`, "ASC");
         }
 
-        const moves: Move[] = await query
+        const moves = await query
             .limit(5)
             .getMany();
 
@@ -159,7 +154,6 @@ END`, "ASC");
             gameEntity.result = game.headers.result;
             gameEntity.pgn = game.pgn;
             gameEntity.pgnHash = jsMd5(game.pgn);
-            gameEntity.moves = [];
 
             // check duplicity for pgn, if pgn is already exist
             const isExist = await this.db.getRepository(Game).findOne({
@@ -170,36 +164,15 @@ END`, "ASC");
 
             if (!isExist) {
 
-                const fenHashBulk = game.positions.map((position) => {
-                    return {
-                        fenHash: position.fenHash
-                    }
-                });
+                const gameResult = await this.db.manager.save(gameEntity);
 
-                const fenHashBulkFind = game.positions.map((position) => {
-                    return position.fenHash
-                });
-                await this.db.createQueryBuilder()
-                    .insert()
-                    .into(Move)
-                    .values(fenHashBulk)
-                    .onConflict(`("fenHash") DO NOTHING`)
-                    .execute();
+                for (let i = 0; i < game.positions.length; i++) {
+                    const fenHash = game.positions[i].fenHash;
+                    const model = getMoveInstance(fenHash);
+                    model.gamesId = gameResult.id;
+                    await this.db.manager.save(model);
+                }
 
-                const moveEntities = await this.db.getRepository(Move)
-                    .createQueryBuilder("move")
-                    .where({
-
-                        fenHash: In(fenHashBulkFind)
-
-                    })
-                    .getMany();
-
-
-                gameEntity.moves = (moveEntities);
-
-
-                await this.db.manager.save(gameEntity);
                 console.log("Game was add.");
             } else {
                 console.log(isExist);
@@ -252,6 +225,107 @@ END`, "ASC");
 
         return BaseResponse.getSuccess();
 
+    }
+
+    async insert(games, moves) {
+        await this.db.createQueryBuilder()
+            .insert()
+            .into(Game)
+            .values(games)
+            .execute();
+
+        for (let i = 0; i < moves.length; i++) {
+            const move = moves[i];
+            await this.db.manager.save(move);
+        }
+
+        console.log("--------------------");
+        console.log("-----INSERT NEW GAMES--------");
+
+    }
+
+
+    async copyFromPostgre() {
+
+        console.log("Start copying from Postgre");
+
+        let offset = 10;
+
+        let length = null;
+        while (length === null || length > 0) {
+            const list = await this.getGames(offset);
+            length = list.length;
+            await this.insert(list.games, list.moves);
+        }
+
+        return BaseResponse.getSuccess();
+
+    }
+
+    async getGames(offset: number, limit: number = 100) {
+        const postgreDb = await postgreGameDbConnection;
+
+        const list = await postgreDb
+            .getRepository(PostgreGame)
+            .createQueryBuilder("game")
+            .limit(limit)
+            .offset(offset)
+            .getMany();
+
+        const games = [];
+        const moves = [];
+
+        for (let i = 0; i < list.length; i++) {
+            const item = list[i];
+
+            const game = new Game();
+
+            game.id = item.id;
+            game.white = item.white;
+            game.black = item.black;
+            game.whiteElo = item.whiteElo;
+            game.blackElo = item.blackElo;
+            game.pgn = item.pgn;
+            game.pgnHash = item.pgnHash;
+            game.result = item.result;
+
+            const oldMoves = await this.getMoves(item.id);
+
+            for (let j = 0; j < oldMoves.length; j++) {
+                const oldMove = oldMoves[j];
+                const model = getMoveInstance(oldMove.fenHash);
+                const move = new model;
+                move.fenHash = oldMove.fenHash;
+                move.gamesId = item.id;
+                moves.push(move);
+            }
+
+            games.push(game);
+        }
+
+        console.log("--------------------");
+        console.log("-----GET GAMES--------");
+
+        return {
+            games,
+            moves,
+            length: games.length
+        };
+    }
+
+    async getMoves(gameId: number) {
+        const postgreDb = await postgreGameDbConnection;
+        const res = await postgreDb
+            .getRepository(PostgreGame)
+            .createQueryBuilder("game")
+            .select("game.id")
+            .leftJoinAndSelect("game.moves", "move")
+            .where({
+                id: gameId
+            })
+            .getOne();
+
+        return res.moves;
     }
 }
 

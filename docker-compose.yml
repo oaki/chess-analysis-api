@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+
+  db_chessanalysis:
+    image: mariadb:10.3.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: chessanalysis
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3309:3306"
+    volumes:
+      - "./db-data/data-chess-analysis:/var/lib/mysql:rw"
+
+  db_chess_eval_v2:
+    image: mariadb:10.3.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: chess_eval_v2
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3310:3306"
+    volumes:
+      - "./db-data/data-maria-chess_eval_v2:/var/lib/mysql:rw"
+
+  db_chess_db_v2:
+    image: mariadb:10.3.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: chess_db_v2
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3311:3306"
+    volumes:
+      - "./db-data/data-maria-chess_db_v2:/var/lib/mysql:rw"
+
+  pgdb_chess_eval_v2:
+    image: postgres
+    environment:
+      POSTGRES_DB: chess_eval_v2
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - "./db-data/data-chess_eval_v2:/var/lib/postgresql/data:rw"
+
+  pgdb_chess_db_v2:
+    image: postgres
+    environment:
+      POSTGRES_DB: chess_db_v2
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    volumes:
+      - "./db-data/data-chess_db_v2:/var/lib/postgresql/data:rw"
+
+  adminer:
+    image: adminer
+    volumes:
+      - ./db-uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    ports:
+      - 8888:8080

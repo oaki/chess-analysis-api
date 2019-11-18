@@ -1,5 +1,4 @@
-import {Column, Entity, Index, JoinTable, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
-import {Move} from "./move";
+import {Column, Entity, Index, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity()
 export class Game {
@@ -51,8 +50,4 @@ export class Game {
         ]
     })
     result: string;
-
-    @ManyToMany(type => Move, move => move.games)
-    @JoinTable()
-    moves: Move[];
 }

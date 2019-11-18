@@ -16,7 +16,13 @@ const config = getConfig();
 export async function initServer() {
 
     const appDb = await appDbConnection;
-    console.log({appDb});
+
+    if (appDb.isConnected) {
+        console.log("App DB is connected");
+    } else {
+        throw new Error("App DB is NOT connected");
+    }
+
     const hapiServer = Hapi.server(hapiServerOptions);
 
     await hapiServer.register({

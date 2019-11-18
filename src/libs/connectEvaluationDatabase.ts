@@ -7,14 +7,14 @@ export async function connectEvaluationDatabase(): Promise<Connection> {
     try {
         const connectionManager = getConnectionManager();
         const options: ConnectionOptions = {
-            type: "postgres",
+            type: config.evaluationDatabase.type as any,
             host: config.evaluationDatabase.host,
             port: Number(config.evaluationDatabase.port),
             username: config.evaluationDatabase.user,
             password: config.evaluationDatabase.password,
             database: config.evaluationDatabase.database,
 
-            synchronize: true,
+            synchronize: config.evaluationDatabase.synchronize,
             logging: true,
 
             "entities": [

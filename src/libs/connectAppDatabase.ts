@@ -3,11 +3,11 @@ import {getConfig} from "../config";
 
 export async function connectAppDatabase(): Promise<Connection> {
     const config = getConfig();
-
+    // MysqlConnectionOptions | PostgresConnectionOptions
     try {
         const connectionManager = getConnectionManager();
         const options: ConnectionOptions = {
-            type: "mysql",
+            type: config.appDatabase.type as any,
             host: config.appDatabase.host,
             port: Number(config.appDatabase.port),
             username: config.appDatabase.user,

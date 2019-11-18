@@ -62,6 +62,19 @@ export function gameDatabaseRouter() {
 
         {
             method: "POST",
+            path: "/games-database/copy-from-postgre",
+            config: {
+                description: "Copy",
+                tags: ["api"], // section in documentation
+            },
+            handler: async (request: any) => {
+
+                return await gameDatabaseController.copyFromPostgre();
+            }
+        },
+
+        {
+            method: "POST",
             path: "/games-database/import/dir",
             config: {
                 description: "Add new game to game database",
