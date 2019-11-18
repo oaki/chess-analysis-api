@@ -9,6 +9,7 @@ import {decodeFenHash} from "../../libs/fenHash";
 import {gameDbConnection} from "../../libs/connectGameDatabase";
 import {postgreGameDbConnection} from "../../libs/connectPostgreGameDatabase";
 import {getFenHashWithoutPrefix, getMoveInstance, getMoveModel} from "./moveModel";
+import {MOVE_PREFFIX} from "./entity/indexEntities";
 
 const jsMd5 = require("js-md5");
 
@@ -116,15 +117,13 @@ END`, "ASC");
             throw Boom.notFound();
         }
 
-        const result: any = moves[0];
-        result.games = result.games.map((game) => {
-            const fenHash = result.fenHash;
+        return moves.map((move: any) => {
+            const prefix = move.constructor.name.substr(MOVE_PREFFIX.length);
+            const fenHash = `${prefix}${move.fenHash}`;
+            const game = move.games;
             const pgn = game.pgn;
-
             return {...game, fewNextMove: this.findFenInPgn(pgn, fenHash)}
-        })
-
-        return result;
+        });
 
     }
 
