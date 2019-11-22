@@ -31,6 +31,22 @@ export class Game {
     })
     blackElo: number;
 
+    @Index()
+    @Column({
+        nullable: true,
+        type: "smallint",
+        unsigned: true,
+    })
+    coefW: number;
+
+    @Index()
+    @Column({
+        nullable: true,
+        type: "smallint",
+        unsigned: true,
+    })
+    coefB: number;
+
     @Column({
         type: "text"
     })
@@ -38,7 +54,7 @@ export class Game {
 
     @Index()
     @Column({
-        length: 50
+        length: 33
     })
     pgnHash: string;
 

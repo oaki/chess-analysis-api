@@ -15,7 +15,7 @@ export async function connectPostgreGameDatabase(): Promise<Connection> {
             database: process.env.POSTGRE_DB_NAME,
 
             synchronize: false,
-            logging: false,
+            logging: true,
 
             "entities": [
                 "dist/modules/postgreGameDatabase/entity/**/*.js"

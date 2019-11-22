@@ -86,50 +86,39 @@ export class GameDatabaseController {
         const fenHash = decodeFenHash(props.fen);
 
         const query = this.db
-            .getRepository(Move)
-            .createQueryBuilder("move")
-            .innerJoinAndSelect("move.games", "game")
-            .where({fenHash: fenHash});
+            .getRepository(Game)
+            .createQueryBuilder("game")
+            .where(qb => {
+                const moveQb =
+                    qb.subQuery()
+                        .select("move.id")
+                        .from(Move, "move")
+                        .where("move.fenHash = :fenHash")
+                        .getQuery();
+                return "game.id IN " + moveQb;
+            }).setParameter("fenHash", fenHash);
         // ORDER BY "game"."result"='1-0' DESC,"game"."result"='1/2-1/2' DESC LIMIT 50
 
         if (props.side === "w") {
-            query.addOrderBy(`CASE 
-WHEN "game"."result" ='1-0' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
-ELSE
-  CASE 
-  WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
-  ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
-END
-END`, "ASC");
+            query.addOrderBy("game.coefW", "ASC");
 
         } else {
-            query.addOrderBy(`CASE 
-WHEN "game"."result" ='0-1' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
-ELSE
-  CASE 
-  WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
-  ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
-END
-END`, "ASC");
+            query.addOrderBy("game.coefW", "ASC");
         }
 
-        const moves: Move[] = await query
+        const games: Game[] = await query
             .limit(5)
             .getMany();
 
-        if (moves.length === 0) {
+        if (games.length === 0) {
             throw Boom.notFound();
         }
 
-        const result: any = moves[0];
-        result.games = result.games.map((game) => {
-            const fenHash = result.fenHash;
+        return games.map((game) => {
             const pgn = game.pgn;
-
             return {...game, fewNextMove: this.findFenInPgn(pgn, fenHash)}
         })
 
-        return result;
 
     }
 

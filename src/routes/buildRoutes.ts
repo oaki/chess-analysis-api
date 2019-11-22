@@ -8,7 +8,7 @@ import {authRoute} from "../modules/auth/authRoutes";
 import {userRoute} from "../modules/user/userRouter";
 import {config} from "../config";
 import {workerRoute} from "../modules/user/modules/worker/workerRouter";
-import {gameDatabaseRouter} from "../modules/gameDatabase/gameDatabaseRouter";
+import {gameDatabaseRouter} from "../modules/postgreGameDatabase/gameDatabaseRouter";
 
 export default function routes(server) {
     server.route(authRoute());

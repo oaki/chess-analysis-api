@@ -4,6 +4,7 @@ import {googleAuth} from "./googleAuth";
 import {evaluationDatabase} from "./evaluationDatabase";
 import {appDatabase} from "./appDatabase";
 import {DatabaseType} from "typeorm";
+import {postgreGameDatabase} from "./postgreGameDatabase";
 
 require("dotenv").config();
 
@@ -26,7 +27,7 @@ export const config: IConfig = {
         key: process.env.JWT_KEY
     },
     appDatabase,
-    gameDatabase,
+    postgreGameDatabase,
     evaluationDatabase,
 
     googleAuth,
@@ -57,7 +58,7 @@ export interface IConfig {
         port: string,
         synchronize: boolean;
     },
-    gameDatabase: {
+    postgreGameDatabase: {
         type: string,
         host: string,
         database: string,

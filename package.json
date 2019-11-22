@@ -11,7 +11,6 @@
     "server:start:dev:debug": "node --inspect dist/index.js env=dev",
     "build": "npm run clear && tsc && cp -rf ./src/books/ ./dist/books/",
     "clear": "del-cli ./dist/*",
-    "build:indexEntities": "node buildEntities.js",
     "git:update": "git pull"
   },
   "dependencies": {
