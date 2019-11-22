@@ -114,12 +114,11 @@ export class GameDatabaseController {
             throw Boom.notFound();
         }
 
-        return games.map((game) => {
-            const pgn = game.pgn;
-            return {...game, fewNextMove: this.findFenInPgn(pgn, fenHash)}
-        })
-
-
+        return {
+            games: games.map((game) => {
+                return {...game, fewNextMove: this.findFenInPgn(game.pgn, fenHash)}
+            })
+        }
     }
 
     async checkFen(props: CheckFenProps) {

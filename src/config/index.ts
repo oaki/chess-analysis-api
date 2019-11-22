@@ -1,9 +1,7 @@
-import {gameDatabase} from "./gameDatabase";
 import {IConfig} from "./index";
 import {googleAuth} from "./googleAuth";
 import {evaluationDatabase} from "./evaluationDatabase";
 import {appDatabase} from "./appDatabase";
-import {DatabaseType} from "typeorm";
 import {postgreGameDatabase} from "./postgreGameDatabase";
 
 require("dotenv").config();
@@ -34,8 +32,6 @@ export const config: IConfig = {
 
     nextChessMoveCookie: process.env.NEXT_CHESS_MOVE_COOKIE
 }
-
-export type DBType = DatabaseType;
 
 export interface IConfig {
     server: { port: number },
