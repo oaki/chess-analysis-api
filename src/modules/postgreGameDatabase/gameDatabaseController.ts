@@ -121,6 +121,7 @@ export class GameDatabaseController {
     }
 
     async get(props: GetProps) {
+        console.log(props);
         const p1 = performance.now();
 
         const fenHash = decodeFenHash(props.fen);
@@ -140,7 +141,7 @@ export class GameDatabaseController {
                     game_moves_move 
                 WHERE 
                     game_moves_move."moveId" = ${move.id} 
-                ORDER BY ${props.side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"} LIMIT 5
+                ORDER BY ${props.side === "w" ? "game_moves_move.cb" : "game_moves_move.cw"} LIMIT 5
             )
         `);
 
