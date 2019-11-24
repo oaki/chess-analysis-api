@@ -40,6 +40,7 @@
     "js-md5": "^0.7.3",
     "jsonwebtoken": "^8.4.0",
     "lodash": "^4.17.15",
+    "match-all": "^1.2.5",
     "minimatch": "^3.0.4",
     "mysql2": "^1.6.4",
     "node-fetch": "^2.6.0",
@@ -47,6 +48,7 @@
     "pgn-parser": "0.0.9",
     "reflect-metadata": "^0.1.13",
     "socket.io": "2.2.0",
+    "string.prototype.matchall": "^4.0.0",
     "supports-color": "^6.1.0",
     "typeorm": "^0.2.12",
     "uuid": "^3.3.2"
