@@ -7,6 +7,7 @@ import {Move} from "./entity/move";
 import {pgnFileReader} from "../../libs/pgnFileReader";
 import {decodeFenHash} from "../../libs/fenHash";
 import {postgreGameDbConnection} from "../../libs/connectPostgreGameDatabase";
+
 const {performance} = require("perf_hooks");
 
 const jsMd5 = require("js-md5");
@@ -43,7 +44,7 @@ export class GameDatabaseController {
         this.db = await postgreGameDbConnection;
     }
 
-    private findFenInPgn(pgn: string, fenHash, fenReferenceObj) {
+    private findFenInPgn(pgn: string, fenHash) {
         const ch1 = new Chess();
         const regex = /([0-9]{1,3})(\. )([a-zA-Z\-0-8\+\=]{1,6})( )([a-zA-Z\-0-8\+\=]{1,6})/gm;
 
@@ -51,12 +52,12 @@ export class GameDatabaseController {
         let moveCounter = 0;
         const ms = [];
         let lastMove;
-
+        let fenReferenceObj;
         while (match = regex.exec(pgn)) {
 
             lastMove = ch1.move(match[3], {sloppy: true});
 
-            if (fenReferenceObj.ref && moveCounter < 10) {
+            if (fenReferenceObj && moveCounter < 10) {
                 ms.push(lastMove);
                 moveCounter++;
             }
@@ -65,16 +66,16 @@ export class GameDatabaseController {
                 break;
             }
 
-            if (!fenReferenceObj.ref) {
+            if (!fenReferenceObj) {
                 const fen = ch1.fen();
                 if (decodeFenHash(fen) === fenHash) {
-                    fenReferenceObj.ref = fen;
+                    fenReferenceObj = fen;
                 }
             }
 
             lastMove = ch1.move(match[5], {sloppy: true});
 
-            if (fenReferenceObj.ref && moveCounter < 10) {
+            if (fenReferenceObj && moveCounter < 10) {
                 ms.push(lastMove);
                 moveCounter++;
             }
@@ -83,10 +84,10 @@ export class GameDatabaseController {
                 break;
             }
 
-            if (!fenReferenceObj.ref) {
+            if (!fenReferenceObj) {
                 const fen = ch1.fen();
                 if (decodeFenHash(fen) === fenHash) {
-                    fenReferenceObj.ref = fen;
+                    fenReferenceObj = fen;
                 }
             }
         }
@@ -132,6 +133,25 @@ export class GameDatabaseController {
             .select("id")
             .where({fenHash}).getRawOne();
 
+//         query.addOrderBy(`CASE
+// WHEN "game"."result" ='1-0' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
+// ELSE
+//   CASE
+//   WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
+//   ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
+// END
+// END`, "ASC");
+//
+//     } else {
+//     query.addOrderBy(`CASE
+// WHEN "game"."result" ='0-1' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
+// ELSE
+//   CASE
+//   WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
+//   ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
+// END
+// END`, "ASC");
+// }
         const games = await this.db.manager.query(`
         SELECT game.* FROM game WHERE game.id IN 
             (
@@ -141,8 +161,9 @@ export class GameDatabaseController {
                     game_moves_move 
                 WHERE 
                     game_moves_move."moveId" = ${move.id} 
-                ORDER BY ${props.side === "w" ? "game_moves_move.cb" : "game_moves_move.cw"} LIMIT 5
+                ORDER BY ${props.side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"} LIMIT 5
             )
+        ORDER BY ${props.side === "w" ? "game.coefW" : "game.coefB"}
         `);
 
 
@@ -152,10 +173,8 @@ export class GameDatabaseController {
 
         const p2 = performance.now();
 
-        let fenReference = {};
         const result = {
             games: games.map((game) => {
-                console.log({fenReference});
                 return {
                     id: game.id,
                     white: game.white,
@@ -164,7 +183,7 @@ export class GameDatabaseController {
                     blackElo: game.blackElo,
                     result: game.result,
                     pgnHash: game.pgnHash,
-                    fewNextMove: this.findFenInPgn(game.pgn, fenHash, fenReference)
+                    fewNextMove: this.findFenInPgn(game.pgn, fenHash)
                 }
             })
         };
