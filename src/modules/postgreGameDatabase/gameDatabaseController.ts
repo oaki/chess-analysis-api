@@ -163,7 +163,7 @@ export class GameDatabaseController {
                     game_moves_move."moveId" = ${move.id} 
                 ORDER BY ${props.side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"} LIMIT 5
             )
-        ORDER BY ${props.side === "w" ? "game.coefW" : "game.coefB"}
+        ORDER BY ${props.side === "w" ? 'game."coefW"' : 'game."coefB"'}
         `);
 
 
