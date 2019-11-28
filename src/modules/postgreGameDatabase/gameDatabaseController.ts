@@ -1,12 +1,13 @@
 import {Connection, In} from "typeorm";
-import {BaseResponse} from "../../libs/baseResponse";
-import {Game} from "./entity/game";
 import * as Boom from "boom";
-import {GameDatabaseModel} from "./gameDatabaseModel";
 import {Move} from "./entity/move";
-import {pgnFileReader} from "../../libs/pgnFileReader";
 import {decodeFenHash} from "../../libs/fenHash";
 import {postgreGameDbConnection} from "../../libs/connectPostgreGameDatabase";
+import {GameDatabaseModel} from "./gameDatabaseModel";
+import {calculationGameCoefficient, convertResult} from "../../libs/utils";
+import {Game} from "./entity/game";
+import {BaseResponse} from "../../libs/baseResponse";
+import {pgnFileReader} from "../../libs/pgnFileReader";
 
 const {performance} = require("perf_hooks");
 
@@ -91,32 +92,6 @@ export class GameDatabaseController {
                 }
             }
         }
-        // console.log({ms});
-
-        // const chess = new Chess();
-        // const chess2 = new Chess();
-        // chess.load_pgn(pgn, {sloppy: false});
-        // const moves = chess.history();
-        // const nextFewMoves = [];
-        // let counter = 0;
-        // let isFound = false;
-        // for (let i = 0; i < moves.length; i++) {
-        //     const move2 = chess2.move(moves[i]);
-        //     if (move2) {
-        //         if (!isFound) {
-        //             if (decodeFenHash(chess2.fen()) === fenHash) {
-        //                 isFound = true;
-        //             }
-        //         } else if (counter < 10) {
-        //             nextFewMoves.push(move2);
-        //             counter++;
-        //         }
-        //
-        //         if (counter > 10) {
-        //             break;
-        //         }
-        //     }
-        // }
 
         return ms.map(move => move.san);
     }
@@ -133,27 +108,13 @@ export class GameDatabaseController {
             .select("id")
             .where({fenHash}).getRawOne();
 
-//         query.addOrderBy(`CASE
-// WHEN "game"."result" ='1-0' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
-// ELSE
-//   CASE
-//   WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
-//   ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
-// END
-// END`, "ASC");
-//
-//     } else {
-//     query.addOrderBy(`CASE
-// WHEN "game"."result" ='0-1' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2)
-// ELSE
-//   CASE
-//   WHEN "game"."result" ='1/2-1/2' THEN (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 200)
-//   ELSE (4000 - ("game"."whiteElo" + "game"."blackElo")/2 - 400)
-// END
-// END`, "ASC");
-// }
+        if (!move) {
+            throw Boom.notFound();
+        }
+
+        const orderBy = props.side === "w" ? "cw" : "cb";
         const games = await this.db.manager.query(`
-        SELECT game.* FROM game WHERE game.id IN 
+        SELECT game.*, game_moves_move.${orderBy} FROM game WHERE game.id IN 
             (
                 SELECT 
                     game_moves_move."gameId" 
@@ -163,7 +124,7 @@ export class GameDatabaseController {
                     game_moves_move."moveId" = ${move.id} 
                 ORDER BY ${props.side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"} LIMIT 5
             )
-        ORDER BY ${props.side === "w" ? 'game."coefW"' : 'game."coefB"'}
+        ORDER BY ${orderBy}
         `);
 
 
@@ -224,6 +185,8 @@ export class GameDatabaseController {
             gameEntity.pgn = game.pgn;
             gameEntity.pgnHash = jsMd5(game.pgn);
             gameEntity.moves = [];
+            gameEntity.coefW = calculationGameCoefficient("w", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
+            gameEntity.coefB = calculationGameCoefficient("b", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
 
             // check duplicity for pgn, if pgn is already exist
             const isExist = await this.db.getRepository(Game).findOne({
@@ -236,6 +199,8 @@ export class GameDatabaseController {
 
                 const fenHashBulk = game.positions.map((position) => {
                     return {
+                        cW: gameEntity.coefW,
+                        cB: gameEntity.coefB,
                         fenHash: position.fenHash
                     }
                 });
@@ -247,7 +212,12 @@ export class GameDatabaseController {
                     .insert()
                     .into(Move)
                     .values(fenHashBulk)
-                    .onConflict(`("fenHash") DO NOTHING`)
+                    .onConflict(`(
+    "fenHash"
+)
+    DO
+    NOTHING
+`)
                     .execute();
 
                 const moveEntities = await this.db.getRepository(Move)
@@ -303,7 +273,8 @@ export class GameDatabaseController {
         fs.readdir(props.dirName, async (err, items) => {
 
             for (let i = 0; i < items.length; i++) {
-                const filename = `${props.dirName}${items[i]}`;
+                const filename = `${props.dirName}${items[i]}
+`;
                 console.log({filename});
                 await this.runImport({
                     filename

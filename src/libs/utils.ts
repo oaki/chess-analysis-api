@@ -119,6 +119,41 @@ export function getAllMatches(source: string, regex) {
     return matches;
 }
 
+export function calculationGameCoefficient(onMove: "w" | "b", result: Result, whiteElo: number, blackElo: number): number {
+    if (onMove === "w") {
+        if (result === Result["1-0"]) {
+            return 4000 - (whiteElo + blackElo) / 2;
+        } else if (result === Result["1/2-1/2"]) {
+            return 4000 - (whiteElo + blackElo) / 2 + 200;
+        } else {
+            return 4000 - (whiteElo + blackElo) / 2 + 400;
+        }
+    } else {
+        if (result === Result["0-1"]) {
+            return 4000 - (whiteElo + blackElo) / 2;
+        } else if (result === Result["1/2-1/2"]) {
+            return 4000 - (whiteElo + blackElo) / 2 + 200;
+        } else {
+            return 4000 - (whiteElo + blackElo) / 2 + 400;
+        }
+    }
+}
+
+export function convertResult(result: any): Result {
+    if (!Result[result]) {
+        throw new Error("Result is not correct")
+    }
+
+    return result as Result;
+}
+
+export enum Result {
+    "1-0",
+    "1/2-1/2", "0-1"
+}
+
+//
+
 interface IChessJsMove {
     from: string;
     to: string;

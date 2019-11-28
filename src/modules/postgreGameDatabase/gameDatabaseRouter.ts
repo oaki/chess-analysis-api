@@ -49,7 +49,7 @@ export function gameDatabaseRouter() {
             method: "POST",
             path: "/games-database/import",
             config: {
-                description: "Add new  game to game database",
+                description: "Add new game to game database from file",
                 tags: ["api"], // section in documentation
             },
             handler: async (request: any) => {
@@ -64,7 +64,7 @@ export function gameDatabaseRouter() {
             method: "POST",
             path: "/games-database/import/dir",
             config: {
-                description: "Add new game to game database",
+                description: "Add new game to game database from dir",
                 tags: ["api"], // section in documentation
             },
             handler: async () => {
