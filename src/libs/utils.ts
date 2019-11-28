@@ -119,40 +119,43 @@ export function getAllMatches(source: string, regex) {
     return matches;
 }
 
+function round(coefficient: number) {
+    return Math.round(coefficient);
+}
+
 export function calculationGameCoefficient(onMove: "w" | "b", result: Result, whiteElo: number, blackElo: number): number {
+    const coef = round(4000 - (whiteElo + blackElo) / 2);
     if (onMove === "w") {
-        if (result === Result["1-0"]) {
-            return 4000 - (whiteElo + blackElo) / 2;
-        } else if (result === Result["1/2-1/2"]) {
-            return 4000 - (whiteElo + blackElo) / 2 + 200;
+        if (result === "1-0") {
+            return coef;
+        } else if (result === "1/2-1/2") {
+            return coef + 200;
         } else {
-            return 4000 - (whiteElo + blackElo) / 2 + 400;
+            return coef + 400;
         }
     } else {
-        if (result === Result["0-1"]) {
-            return 4000 - (whiteElo + blackElo) / 2;
-        } else if (result === Result["1/2-1/2"]) {
-            return 4000 - (whiteElo + blackElo) / 2 + 200;
+        if (result === "0-1") {
+            return coef;
+        } else if (result === "1/2-1/2") {
+            return coef + 200;
         } else {
-            return 4000 - (whiteElo + blackElo) / 2 + 400;
+            return coef + 400;
         }
     }
 }
 
 export function convertResult(result: any): Result {
-    if (!Result[result]) {
-        throw new Error("Result is not correct")
+    if (result === "1-0" || result === "1/2-1/2" || result === "0-1") {
+        return result as Result;
     }
-
-    return result as Result;
+    throw new Error(`Result is not correct: ${result}`)
 }
 
 export enum Result {
-    "1-0",
-    "1/2-1/2", "0-1"
+    "1-0" = "1-0",
+    "1/2-1/2" = "1/2-1/2",
+    "0-1" = "0-1"
 }
-
-//
 
 interface IChessJsMove {
     from: string;

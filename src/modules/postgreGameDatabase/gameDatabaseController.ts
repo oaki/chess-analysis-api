@@ -267,8 +267,7 @@ export class GameDatabaseController {
         fs.readdir(props.dirName, async (err, items) => {
 
             for (let i = 0; i < items.length; i++) {
-                const filename = `${props.dirName}${items[i]}
-`;
+                const filename = `${props.dirName}${items[i]}`;
                 console.log({filename});
                 await this.runImport({
                     filename

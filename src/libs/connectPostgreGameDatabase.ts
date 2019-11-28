@@ -1,20 +1,22 @@
 import {Connection, ConnectionOptions, getConnectionManager} from "typeorm";
+import {getConfig} from "../config";
 
 require("dotenv").config();
 
 export async function connectPostgreGameDatabase(): Promise<Connection> {
+    const config = getConfig();
 
     try {
         const connectionManager = getConnectionManager();
         const options: ConnectionOptions = {
-            type: process.env.POSTGRE_DB_TYPE as any,
-            host: process.env.POSTGRE_DB_HOST,
-            port: process.env.POSTGRE_DB_PORT,
-            username: process.env.POSTGRE_DB_USER,
-            password: process.env.POSTGRE_DB_PASS,
-            database: process.env.POSTGRE_DB_NAME,
+            type: config.postgreGameDatabase.type as any,
+            host: config.postgreGameDatabase.host,
+            port: config.postgreGameDatabase.port,
+            username: config.postgreGameDatabase.user,
+            password: config.postgreGameDatabase.password,
+            database: config.postgreGameDatabase.database,
 
-            synchronize: false,
+            synchronize: config.postgreGameDatabase.synchronize,
             logging: true,
 
             "entities": [
