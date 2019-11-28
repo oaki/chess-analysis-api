@@ -51,49 +51,43 @@ export class GameDatabaseController {
 
         let match;
         let moveCounter = 0;
-        const ms = [];
+
         let lastMove;
         let fenReferenceObj;
+
+        const allMoves = [];
         while (match = regex.exec(pgn)) {
 
-            lastMove = ch1.move(match[3], {sloppy: true});
+            if (fenReferenceObj) {
+                allMoves.push(match[3]);
+                allMoves.push(match[5]);
 
-            if (fenReferenceObj && moveCounter < 10) {
-                ms.push(lastMove);
                 moveCounter++;
-            }
 
-            if (moveCounter > 10) {
-                break;
-            }
-
-            if (!fenReferenceObj) {
-                const fen = ch1.fen();
-                if (decodeFenHash(fen) === fenHash) {
-                    fenReferenceObj = fen;
+                if (moveCounter > 5) {
+                    break;
                 }
             }
 
-            lastMove = ch1.move(match[5], {sloppy: true});
-
-            if (fenReferenceObj && moveCounter < 10) {
-                ms.push(lastMove);
-                moveCounter++;
-            }
-
-            if (moveCounter > 10) {
-                break;
-            }
-
             if (!fenReferenceObj) {
+                lastMove = ch1.move(match[3], {sloppy: true});
                 const fen = ch1.fen();
                 if (decodeFenHash(fen) === fenHash) {
                     fenReferenceObj = fen;
+                    allMoves.push(match[5]);
+                }
+            }
+
+            if (!fenReferenceObj) {
+                lastMove = ch1.move(match[5], {sloppy: true});
+
+                const fen2 = ch1.fen();
+                if (decodeFenHash(fen2) === fenHash) {
+                    fenReferenceObj = fen2;
                 }
             }
         }
-
-        return ms.map(move => move.san);
+        return allMoves;
     }
 
     async get(props: GetProps) {
@@ -112,9 +106,9 @@ export class GameDatabaseController {
             throw Boom.notFound();
         }
 
-        const orderBy = props.side === "w" ? "cw" : "cb";
+        const orderBy = props.side === "w" ? `"coefW"` : `"coefB"`;
         const games = await this.db.manager.query(`
-        SELECT game.*, game_moves_move.${orderBy} FROM game WHERE game.id IN 
+        SELECT game.* FROM game WHERE game.id IN 
             (
                 SELECT 
                     game_moves_move."gameId" 
