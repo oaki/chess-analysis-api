@@ -14,7 +14,8 @@ export class User {
     google_user_id: string;
 
     @Column({
-        length: 255
+        length: 255,
+        nullable: true
     })
     name: string;
 
@@ -24,22 +25,26 @@ export class User {
     email: string;
 
     @Column({
-        length: 255
+        length: 255,
+        nullable: true
     })
     picture: string;
 
     @Column({
-        length: 255
+        length: 255,
+        nullable: true
     })
     given_name: string;
 
     @Column({
-        length: 255
+        length: 255,
+        nullable: true
     })
     family_name: string;
 
     @Column({
-        length: 255
+        length: 255,
+        nullable: true
     })
     locale: string;
 

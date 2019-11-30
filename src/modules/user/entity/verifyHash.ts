@@ -17,7 +17,7 @@ export class VerifyHash {
     token: string;
 
     @Column({
-        type: "text"
+        type: "text", nullable: true
     })
     google_token: string;
 

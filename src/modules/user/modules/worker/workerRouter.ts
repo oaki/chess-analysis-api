@@ -68,11 +68,8 @@ export function workerRoute() {
                 }
             },
             handler: async (request: any) => {
-
                 const workerUuid: string = request.payload.uuid;
                 const name: string = request.payload.name;
-
-                console.log('request.auth.credentials', request.auth.credentials);
 
                 return await workerController.add({
                     userId: request.auth.credentials.user_id,

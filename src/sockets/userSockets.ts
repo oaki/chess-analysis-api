@@ -5,7 +5,7 @@ import {countPieces} from "../tools";
 import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import chessgamesComService from "../services/chessgamesComService";
-import nextchessmoveComService from "../services/nextchessmoveComService";
+import {NextChessMoveComService} from "../services/nextchessmoveComService";
 import {checkPreviousEvaluation} from "../libs/checkEvaluation";
 
 const Chess = require("chess.js").Chess;
@@ -110,7 +110,7 @@ export default function (userSocket, usersIo, workersIo) {
         }
 
         try {
-            const nextchessmoveComServiceResult = await nextchessmoveComService.getResult(fen);
+            const nextchessmoveComServiceResult = await NextChessMoveComService.getResult(fen);
 
             if (nextchessmoveComServiceResult && nextchessmoveComServiceResult.length > 0) {
 

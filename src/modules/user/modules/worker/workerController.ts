@@ -13,7 +13,7 @@ export class WorkerController {
         const workerRepository = await db.getRepository(Worker);
 
         const workerList = await workerRepository.createQueryBuilder("worker")
-            .where("user.id = :id", {id: props.userId})
+            .where("userId = :id", {id: props.userId})
             .limit(props.limit)
             .offset(props.offset)
             .getMany();
@@ -45,7 +45,10 @@ export class WorkerController {
             const worker = new Worker();
             worker.uuid = props.workerUuid;
             worker.user = user;
-            repository.save(worker);
+            worker.name = props.name;
+            worker.lastUsed = 0;
+            worker.score = 0;
+            await repository.save(worker);
 
             return worker;
         } catch (e) {
