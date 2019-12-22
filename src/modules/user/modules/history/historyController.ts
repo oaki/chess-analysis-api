@@ -3,6 +3,7 @@ import {initPgnParser} from "../../../../models/ParsePgn";
 import {appDbConnection} from "../../../../libs/connectAppDatabase";
 import {Game} from "../../entity/game";
 import {User} from "../../entity/user";
+import {BaseResponse} from "../../../../libs/baseResponse";
 
 const Chess = require("chess.js").Chess;
 
@@ -125,7 +126,7 @@ export class HistoryController {
                     };
                 });
 
-                await HistoryController.addNewGame({
+                return await HistoryController.addNewGame({
                     userId: props.userId,
                     moves: JSON.stringify(newMoves)
                 });
