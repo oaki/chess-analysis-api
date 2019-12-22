@@ -13,17 +13,17 @@ export class HistoryController {
         const db = await appDbConnection;
         const gameRepository = await db.getRepository(Game);
         const games = await gameRepository
-            .createQueryBuilder("Game")
-            .where({
-                user_id: props.userId
-            })
-            .limit(props.limit)
-            .offset(props.offset)
-            .orderBy("updated_at", props.order)
-            .execute();
-
+            .find({
+                where: {
+                    user_id: props.userId
+                },
+                skip: props.offset,
+                take: props.limit,
+                order: {
+                    updated_at: props.order
+                }
+            });
         return games.map((game) => {
-            console.log("game", game);
             return {...game, moves: JSON.parse(game.moves)}
         });
 
