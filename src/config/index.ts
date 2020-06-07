@@ -1,4 +1,3 @@
-import {IConfig} from "./index";
 import {googleAuth} from "./googleAuth";
 import {evaluationDatabase} from "./evaluationDatabase";
 import {appDatabase} from "./appDatabase";
