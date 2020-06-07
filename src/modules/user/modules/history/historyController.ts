@@ -13,10 +13,13 @@ export class HistoryController {
 
         const db = await appDbConnection;
         const gameRepository = await db.getRepository(Game);
+        console.log({props});
         const games = await gameRepository
             .find({
                 where: {
-                    user_id: props.userId
+                   user: {
+                       id: props.userId
+                   }
                 },
                 skip: props.offset,
                 take: props.limit,
@@ -53,7 +56,7 @@ export class HistoryController {
         const gameRepository = await db.getRepository(Game);
         const userRepository = await db.getRepository(User);
 
-        const games = await gameRepository
+            const games = await gameRepository
             .createQueryBuilder("game")
             .leftJoinAndSelect("game.user", "user")
             .where("user.id = :id", {id: props.userId})
@@ -89,7 +92,27 @@ export class HistoryController {
         await db.getRepository(Game).save(game);
         console.log("game ---------------", game);
         return game;
+    }
 
+    static async removeGame(props: { userId: number, id: number }) {
+        const db = await appDbConnection;
+        const gameRepository = await db.getRepository(Game);
+
+        const game: any = await gameRepository.findOne({
+            select: ["id"],
+            relations: ["user"],
+            where: {
+                id: props.id
+            }
+        });
+
+        console.log({game});
+        if (game && game.user && game.user.id === props.userId) {
+            await gameRepository.delete(game);
+            return BaseResponse.getSuccess();
+        }
+
+        throw Boom.notFound();
     }
 
     async importNewGameFromPgn(props: IImportNewGameFromPgnProps) {

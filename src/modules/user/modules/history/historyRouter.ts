@@ -19,6 +19,27 @@ export function historyRoute() {
                 });
             }
         },
+
+        {
+            method: "DELETE",
+            path: "/user/history/{id}",
+            config: {
+                description: "remove game",
+                tags: ["api", "history"], // section in documentation
+                auth: "jwt",
+                validate: {
+                    params: {
+                        id: Joi.number().integer().required().description("Game id")
+                    }
+                },
+            },
+            handler: async (request: any) => {
+                return await HistoryController.removeGame({
+                    id: Number(request.params.id),
+                    userId: request.auth.credentials.user_id,
+                });
+            }
+        },
         {
             method: "POST",
             path: "/user/history/import-pgn",
