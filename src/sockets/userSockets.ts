@@ -17,7 +17,6 @@ export default function (userSocket, usersIo, workersIo) {
     console.log("userSocket.id added to list", userSocket.id, Object.keys(usersIo));
 
     userSocket.on("setNewPosition", async (data) => {
-        console.log({uuid});
         const processId = uuid();
         console.log("-----------------------------------------------------------");
         console.log("------------- START CHOOSE EVALUATION PROCESS -------------");

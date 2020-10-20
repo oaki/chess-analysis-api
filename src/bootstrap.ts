@@ -1,4 +1,4 @@
-import * as Hapi from "hapi";
+import * as Hapi from "@hapi/hapi";
 import * as good from "good";
 import * as hapiSwagger from "hapi-swagger";
 import * as vision from "vision";
@@ -24,6 +24,7 @@ export async function initServer() {
     }
 
     const hapiServer = Hapi.server(hapiServerOptions);
+    hapiServer.validator(require('@hapi/joi'));
 
     await hapiServer.register({
         plugin: require("hapi-api-version"),
@@ -69,6 +70,7 @@ export async function initServer() {
             options: optionsSwagger
         },
     ]);
+
 
 
     await hapiServer.start();

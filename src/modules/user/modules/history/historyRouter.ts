@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+import * as Joi from "@hapi/joi";
 import {HistoryController, OrderType} from "./historyController";
 
 const historyController = new HistoryController();

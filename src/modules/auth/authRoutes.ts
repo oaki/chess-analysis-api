@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+const Joi = require("@hapi/joi");
 import {AuthController} from "./authController";
 
 export function authRoute() {

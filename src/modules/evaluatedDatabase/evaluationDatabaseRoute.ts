@@ -1,4 +1,4 @@
-import * as Joi from "joi";
+const Joi = require("@hapi/joi");
 import {EvaluationDatabaseController} from "./evaluationDatabaseController";
 import * as Boom from "boom";
 import {ParseController} from "./parse/parseController";

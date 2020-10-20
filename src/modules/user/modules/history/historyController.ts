@@ -133,8 +133,6 @@ export class HistoryController {
 
                 const chess = new Chess();
                 const newMoves = moves.map((moveObj: any, index: number) => {
-
-
                     const isAdded = chess.move(moveObj.move, {sloppy: true});
                     console.log("isAdded", isAdded);
                     if (!isAdded) {
@@ -169,14 +167,11 @@ export class HistoryController {
         // const user = await userRepository.findOneOrFail(props.userId);
 
 
-        let game = await gameRepository.findOne({
-            where: {
-                id: props.gameId,
-                userId: props.userId
-            }
+        let game = await gameRepository.findOne(props.gameId, {
+            relations: ["user"]
         });
 
-        if (!game) {
+        if (!game || game.user.id !== props.userId) {
             throw Boom.notFound();
         }
 
