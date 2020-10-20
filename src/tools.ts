@@ -1,15 +1,15 @@
-export function pairValues(name, str) {
-    const tmp = str.split(' ');
+export function pairValues(name: string, str: string): string | undefined {
+    const tmp = str.split(" ");
 
     const namePosition = tmp.indexOf(name);
 
     if (namePosition === -1) {
-        return false;
+        return;
     }
 
-    if (name === 'pv') {
+    if (name === "pv") {
         const tmpArr = tmp.splice(namePosition + 1);
-        return tmpArr.join(' ');
+        return tmpArr.join(" ");
     }
     return tmp[namePosition + 1];
 }

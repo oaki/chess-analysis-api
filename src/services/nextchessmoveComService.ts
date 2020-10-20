@@ -1,6 +1,8 @@
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import {pairValues} from "../tools";
 
+const _findLastIndex = require("lodash/findLastIndex");
+
 const fetchTimeout = require("fetch-timeout");
 
 export interface Response {
@@ -68,7 +70,7 @@ const fetchPro = async (fen: string) => {
         "movetime": 5,
         "multipv": 1,
         "hardware": {"usePaidCpu": true, "usePaidGpu": true},
-        "engine": "sf10",
+        "engine": "sf12",
         "syzygy": true,
         "contempt": 24,
         "uuid": uuid
@@ -87,7 +89,8 @@ const fetchPro = async (fen: string) => {
     const response = await fetchTimeout(host, options, 10000, "Fetch timeout error");
 
     if (response.ok) {
-        return await response.json();
+        const body = await response.json();
+        return body;
     } else {
         console.log("Position is not found on nextChessMoveCom", response);
         return null;
@@ -120,12 +123,19 @@ function prepareFen(fen: string) {
     return tmp.join(" ");
 }
 
-function parseResults(json: Response, fen: string): IEvaluation {
-    const lastMsg = json.log[json.log.length - 3][1];
+function parseResults(json: Response, fen: string): IEvaluation | null {
+    const indexOfLastInfoMove = _findLastIndex(json.log, (row) => {
+        return typeof row[1] === "string" && row[1].startsWith("info ");
+    });
 
-    if (json.comment || !lastMsg) {
+    const indexOfBestMove = _findLastIndex(json.log, (row) => {
+        return typeof row[1] === "string" && row[1].startsWith("bestmove");
+    });
+
+    if (json.comment || indexOfLastInfoMove === -1 || indexOfBestMove === -1) {
         return null;
     }
+    const lastMsg = json.log[indexOfLastInfoMove][1];
 
     const pv = pairValues("pv", lastMsg);
     const nodes = pairValues("nodes", lastMsg);
@@ -134,11 +144,14 @@ function parseResults(json: Response, fen: string): IEvaluation {
     const time = pairValues("time", lastMsg);
     const score = parseFloat(pairValues("cp", lastMsg)) / 100; //score
 
+    if (typeof depth !== "string" || typeof nodes !== "string") {
+        return null;
+    }
     return {
         [LINE_MAP.score]: String(score),
-        [LINE_MAP.depth]: depth,
+        [LINE_MAP.depth]: Number(depth),
         [LINE_MAP.pv]: pv,
-        [LINE_MAP.nodes]: nodes,
+        [LINE_MAP.nodes]: Number(nodes),
         [LINE_MAP.time]: time,
         [LINE_MAP.tbhits]: tbhits,
         [LINE_MAP.mate]: false,
