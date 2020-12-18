@@ -36,7 +36,7 @@ export default function (userSocket, usersIo, workersIo) {
         };
 
         if(mode === 'engine'){
-            await engineStrategy(position.fen, workersIo, userSocket, data);
+            await engineStrategy(position.fen, userSocket, workersIo, data);
             return;
         }
 
