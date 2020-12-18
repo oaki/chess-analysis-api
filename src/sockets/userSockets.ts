@@ -2,11 +2,13 @@ import openingsService from "../services/openingsService";
 import positionService from "../services/positionService";
 import SyzygyService from "../services/syzygyService";
 import {countPieces} from "../tools";
-import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import chessgamesComService from "../services/chessgamesComService";
 import {NextChessMoveComService} from "../services/nextchessmoveComService";
 import {checkPreviousEvaluation} from "../libs/checkEvaluation";
+import {engineStrategy} from "./evaluationStrategy/engineStrategy";
+import {useWorkers} from "./useWorkers";
+
 
 const Chess = require("chess.js").Chess;
 
@@ -25,12 +27,18 @@ export default function (userSocket, usersIo, workersIo) {
         const fen: string = data.FEN;
         const move: string = data.move;
         const previousEvaluation: IEvaluation = data.previousEvaluation;
+        const mode: "engine" | "default" = data.mode || "default";
 
         const position = {
             action: "findBestMove",
             userId: userSocket.id,
             fen,
         };
+
+        if(mode === 'engine'){
+            await engineStrategy(position.fen, workersIo, userSocket, data);
+            return;
+        }
 
         //try to find in book
         const opening = await openingsService.find(position.fen);
@@ -149,34 +157,3 @@ export default function (userSocket, usersIo, workersIo) {
     });
 }
 
-function useWorkers(workersIo, userSocket, data, fen) {
-    // @todo find BEST worker from you
-    let workerIo = findMyWorkerInSocketList(workersIo, userSocket.handshake.user.user_id);
-
-    // use temporary server worker
-    if (!workerIo) {
-        workerIo = findAvailableWorkerInSocketList(workersIo);
-        console.log("findAvailableWorkerInSocketList");
-    }
-
-    if (workerIo) {
-
-        console.log("Your worker", workerIo.worker.lastUsed, userSocket.handshake.user, workersIo.map(socket => socket.worker.user_id));
-
-        workerIo.worker.lastUsed = Date.now();
-        console.log("choose worker with uuid", workerIo.worker.uuid);
-        console.log("setPositionToWorker", data);
-        workerIo.emit("setPositionToWorker", data);
-
-
-        // if (!w._events || !w._events.workerEvaluation) {
-        workerIo.on("workerEvaluation", (data) => {
-            console.log("workerEvaluation", data);
-            userSocket.emit("workerEvaluation", data);
-        });
-        // }
-
-    } else {
-        userSocket.emit("noWorkerAvailable", fen);
-    }
-}
