@@ -4,7 +4,7 @@ import {Environment, getConfig} from "../config";
 
 const Chess = require("chess.js").Chess;
 
-interface OpeningResponse {
+export interface OpeningResponse {
     move: string;
     weight: string;
     fen: string;
