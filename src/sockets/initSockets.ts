@@ -1,7 +1,9 @@
-import * as socketIo from "socket.io";
+import {Server} from "socket.io";
+// const { Server } = require('socket.io');
+
 import {getConfig} from "../config";
 import userSockets from "./userSockets";
-import workerSockets from "./workerSockets";
+import {workerSockets} from "./workerSockets";
 import {USER, WORKER} from "../const";
 import {WorkerController} from "../modules/user/modules/worker/workerController";
 
@@ -43,7 +45,7 @@ class Sockets {
 
     connect(hapiServer) {
         //create socket.io connection
-        const io = socketIo(hapiServer.listener);
+        const io = new Server(hapiServer.listener);
 
         io.use(async (socket, next) => {
 

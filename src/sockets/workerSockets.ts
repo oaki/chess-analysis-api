@@ -3,7 +3,7 @@ import {IEvaluation, IWorkerResponse} from "../interfaces";
 
 const forEach = require('lodash/forEach');
 
-export default function (workerSocket, usersIo, workerIo) {
+export function workerSockets(workerSocket, usersIo, workerIo) {
     workerIo.push(workerSocket);
     console.log("workerSocket.id added to list", workerSocket.id, Object.keys(workerIo));
 
