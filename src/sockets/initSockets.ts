@@ -47,8 +47,9 @@ class Sockets {
         //create socket.io connection
         const io = new Server(hapiServer.listener);
 
-        io.use(async (socket, next) => {
+        io.use(async (socketOrigin, next) => {
 
+            const socket: any = socketOrigin;
             console.log("io->use->start");
             if (socket.handshake.query.type === USER) {
                 const jwtToken = socket.handshake.query.token;
