@@ -4,8 +4,9 @@ import {Server} from "socket.io";
 import {getConfig} from "../config";
 import userSockets from "./userSockets";
 import {workerSockets} from "./workerSockets";
-import {USER, WORKER} from "../const";
+import {RASPBERRY, USER, WORKER} from "../const";
 import {WorkerController} from "../modules/user/modules/worker/workerController";
+import {raspberrySocket} from "./raspberry";
 
 const JWT = require("jsonwebtoken");
 
@@ -50,54 +51,76 @@ class Sockets {
         io.use(async (socketOrigin, next) => {
 
             const socket: any = socketOrigin;
-            console.log("io->use->start");
-            if (socket.handshake.query.type === USER) {
-                const jwtToken = socket.handshake.query.token;
-                socket.handshake.user = JWT.decode(jwtToken, this.config.jwt.key);
+            console.log("io->use->start", socket.handshake.query.type, socket.handshake.query.token);
+            switch (socket.handshake.query.type){
+                case USER:{
+                    const jwtToken = socket.handshake.query.token;
+                    socket.handshake.user = JWT.decode(jwtToken, this.config.jwt.key);
 
-                next();
-            } else if (socket.handshake.query.type === WORKER) {
-                console.log("It is worker", socket.handshake.query && socket.handshake.query.token);
-                if (socket.handshake.query && socket.handshake.query.token) {
+                    next();
+                    break;
+                }
 
-                    const workerRepository = await WorkerController.getWorkerRepository();
+                case WORKER:{
+                    if (socket.handshake.query && socket.handshake.query.token) {
 
-                    let worker = await workerRepository.findOne({where: {uuid: socket.handshake.query.token}});
+                        const workerRepository = await WorkerController.getWorkerRepository();
 
-                    if (worker) {
-                        console.log("Add worker info to the socket", worker);
-                        worker.lastUsed = Date.now();
-                        socket.worker = worker;
-                        next();
-                    } else {
+                        let worker = await workerRepository.findOne({where: {uuid: socket.handshake.query.token}});
 
-                        socket.worker = {
-                            lastUsed: Date.now(),
-                            isUnknown: true
+                        if (worker) {
+                            console.log("Add worker info to the socket", worker);
+                            worker.lastUsed = Date.now();
+                            socket.worker = worker;
+                            next();
+                        } else {
+
+                            socket.worker = {
+                                lastUsed: Date.now(),
+                                isUnknown: true
+                            }
+
+                            console.warn("Worker is not registered in our database.", socket.handshake.query.token);
+                            next();
                         }
 
-                        console.warn("Worker is not registered in our database.", socket.handshake.query.token);
-                        next();
+                    } else {
+                        console.error("Worker - Authentication error");
+                        next(new Error("Authentication error"));
                     }
 
-                } else {
-
-                    console.error("Worker - Authentication error");
-                    next(new Error("Authentication error"));
+                    break;
                 }
-            } else {
-                console.error("socket.handshake - Authentication error", socket.handshake);
 
-                next(new Error("Authentication error"));
+                case RASPBERRY:{
+                    const jwtToken = socket.handshake.query.token;
+                    console.log('raspberry jwtToken',jwtToken);
+                    try{
+
+                    const user = JWT.decode(jwtToken, this.config.jwt.key);
+                    console.log('Raspberry user', user);
+                    next();
+                    }catch (e){
+                        console.log('Raspberry', e);
+                    }
+                }
+
+                default:
+                    console.error("socket.handshake - Authentication error", socket.handshake);
+                    next(new Error("Authentication error"));
+                    break;
+
             }
-
-
         })
 
         io.on("connection", (socket) => {
 
             if (socket.handshake.query.type === USER) {
                 userSockets(socket, this.usersIo, this.workersIo);
+            }
+
+            if (socket.handshake.query.type === RASPBERRY) {
+                raspberrySocket(socket);
             }
 
             if (socket.handshake.query.type === WORKER) {

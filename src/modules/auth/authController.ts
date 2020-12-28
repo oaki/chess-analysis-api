@@ -128,7 +128,6 @@ export class AuthController {
                 }
             });
 
-        debugger;
             if (!res) {
                 //register
 

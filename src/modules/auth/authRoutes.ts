@@ -1,5 +1,8 @@
+import {config} from "../../config";
+
 const Joi = require("@hapi/joi");
-import {AuthController} from "./authController";
+import {AuthController, tokenOptions} from "./authController";
+const JWT = require("jsonwebtoken");
 
 export function authRoute() {
     return [
@@ -32,8 +35,6 @@ export function authRoute() {
             handler: () => {
                 return AuthController.createTemporaryJwtToken()
             }
-
-
         },
 
         {
@@ -66,7 +67,26 @@ export function authRoute() {
                     temporaryToken: payload.temporary_token,
                 })
             }
-        }
+        },
+        // {
+        //     method: "POST",
+        //     path: "/auth/registerRaspberry",
+        //     config: {
+        //         tags: ["api"], // section in documentation
+        //     },
+        //     handler: async (request) => {
+        //
+        //         const token = JWT.sign({
+        //             user_id: 1,
+        //             email: 'pavolbincik@gmail.com',
+        //             name: 'pavolbincik',
+        //             img: '',
+        //         }, config.jwt.key, tokenOptions);
+        //         return token;
+        //     }
+        //
+        //
+        // },
 
     ];
 }
