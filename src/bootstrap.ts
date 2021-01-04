@@ -1,4 +1,4 @@
-import * as Hapi from "@hapi/hapi";
+import * as Hapi from "hapi";
 import * as good from "good";
 import * as hapiSwagger from "hapi-swagger";
 import * as vision from "vision";

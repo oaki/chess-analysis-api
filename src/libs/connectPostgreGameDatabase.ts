@@ -32,7 +32,14 @@ export async function connectPostgreGameDatabase(): Promise<Connection> {
 
         const connection = connectionManager.create(options);
 
-        return await connection.connect();
+        const db = await connection.connect();
+        if (db.isConnected) {
+            console.log("App DB is connected");
+        } else {
+            throw new Error("App DB is NOT connected");
+        }
+
+        return db;
     } catch (e) {
         console.log("Can not connect to Games Database", e);
     }

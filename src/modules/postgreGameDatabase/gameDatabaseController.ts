@@ -91,7 +91,7 @@ export class GameDatabaseController {
     }
 
     async get(props: GetProps) {
-        console.log(props);
+        console.log({props, db: this.db});
         const p1 = performance.now();
 
         const fenHash = decodeFenHash(props.fen);
