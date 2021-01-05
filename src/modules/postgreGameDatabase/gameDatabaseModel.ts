@@ -1,20 +1,24 @@
-import {initPgnParser} from "../../models/ParsePgn";
+
 import {countPieces} from "../../tools";
 import {decodeFenHash} from "../../libs/fenHash";
 
 const Chess = require("chess.js").Chess;
 const uniqBy = require("lodash/uniqBy");
+const pgnParser = require("pgn-parser");
 
+type PgnHeaders = PgnHeader[];
+type PgnHeader = {name:string;value:string};
 export class GameDatabaseModel {
 
-    private getHeaderValue(headers, name: string): string {
-        if (!headers[name]) {
+    private getHeaderValue(headers: PgnHeaders, name: string): string {
+        const header = headers.find(item=>item.name==name);
+        if (!header) {
             throw new Error(`Field  ${name} is missing`);
         }
-        return headers[name];
+        return header.value;
     }
 
-    private getHeaders(headers: Record<string, string>) {
+    private getHeaders(headers: PgnHeaders) {
         return {
             white: this.getHeaderValue(headers, "White"),
             black: this.getHeaderValue(headers, "Black"),
@@ -25,11 +29,11 @@ export class GameDatabaseModel {
     }
 
     async parsePgn(pgnGame: string, uniqPositions: boolean = true, excludeEndGameNumberOfPieces: number = 7) {
-        const pgnParser: any = await initPgnParser();
+
         const pgn = pgnGame.split(/[\n\r\r\t]+/g).join(" ").trim();
 
         const game = pgnParser.parse(pgn);
-
+console.log('gamegamegamegamegamegamegame', game[0]['headers']);
         if (game.length > 0) {
             const headers = game[0].headers;
             const moves = game[0].moves;

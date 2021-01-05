@@ -9,16 +9,9 @@ const es = require("event-stream");
 
 export class EvaluationDatabaseController {
     private parser;
-    private db;
 
     constructor() {
         this.parser = new ParsePgn();
-
-        this.initConnection();
-    }
-
-    async initConnection() {
-        this.db = await evaluationConnection;
     }
 
     public loadFile(name: string, cb) {
@@ -92,7 +85,8 @@ export class EvaluationDatabaseController {
         };
         console.log("toMySql", values);
 
-        await this.db.createQueryBuilder()
+        const db = await evaluationConnection();
+        await db.createQueryBuilder()
             .insert()
             .into(ImportedGames)
             .values(values)

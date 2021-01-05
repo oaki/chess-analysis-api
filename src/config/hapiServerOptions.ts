@@ -7,7 +7,10 @@ export const hapiServerOptions = {
         stripTrailingSlash: true,
     },
     routes: {
-        cors: true,
+        cors: {
+            origin: ['http://localhost:3000'],
+            additionalHeaders: ['cache-control', 'x-requested-with', 'Accept', 'Authorization']
+        },
         validate: {
             failAction: async (request, h, err) => {
                 throw err;

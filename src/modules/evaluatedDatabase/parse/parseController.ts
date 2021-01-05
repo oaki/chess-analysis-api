@@ -9,20 +9,10 @@ const Chess = require("chess.js").Chess;
 const MIN_ELO: number = 3200;
 
 export class ParseController {
-
-    private db: Connection;
-
-    constructor() {
-        this.initConnection();
-    }
-
-    async initConnection() {
-        this.db = await evaluationConnection;
-    }
-
     async do(props: IDoProps) {
 
-        const list = await this.db
+        const db = await evaluationConnection();
+        const list = await db
             .getRepository(ImportedGames)
             .createQueryBuilder("ig")
             .where({isParsed: false})
@@ -32,7 +22,7 @@ export class ParseController {
 
         console.log({list});
 
-        const repository = await this.db.getRepository(ImportedGames);
+        const repository = await db.getRepository(ImportedGames);
 
         list.forEach(async (values) => {
 

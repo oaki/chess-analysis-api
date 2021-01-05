@@ -1,25 +1,26 @@
 import * as Boom from "boom";
-import {initPgnParser} from "../../../../models/ParsePgn";
+
 import {appDbConnection} from "../../../../libs/connectAppDatabase";
 import {Game} from "../../entity/game";
 import {User} from "../../entity/user";
 import {BaseResponse} from "../../../../libs/baseResponse";
 
 const Chess = require("chess.js").Chess;
+const pgnParser = require("pgn-parser");
 
 export class HistoryController {
 
     async getAll(props: IGetAllProps) {
 
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         const gameRepository = await db.getRepository(Game);
         console.log({props});
         const games = await gameRepository
             .find({
                 where: {
-                   user: {
-                       id: props.userId
-                   }
+                    user: {
+                        id: props.userId
+                    }
                 },
                 skip: props.offset,
                 take: props.limit,
@@ -34,7 +35,7 @@ export class HistoryController {
     }
 
     async get(props: IGetProps) {
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         const gameRepository = await db.getRepository(Game);
 
         const game = await gameRepository.findOne({
@@ -52,19 +53,17 @@ export class HistoryController {
 
     async getLastGame(props: IGetLastGameProps) {
 
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         const gameRepository = await db.getRepository(Game);
         const userRepository = await db.getRepository(User);
 
-            const games = await gameRepository
+        const games = await gameRepository
             .createQueryBuilder("game")
             .leftJoinAndSelect("game.user", "user")
             .where("user.id = :id", {id: props.userId})
             .orderBy("updated_at", "DESC")
             .getMany();
 
-
-        console.log({games});
         if (games.length === 0) {
             const game = new Game();
             game.moves = "[]";
@@ -81,7 +80,7 @@ export class HistoryController {
     }
 
     static async addNewGame(props: IAddNewGameProps) {
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         console.log("props-----------", props);
         const userRepository = await db.getRepository(User);
         const user = await userRepository.findOneOrFail(props.userId);
@@ -95,7 +94,7 @@ export class HistoryController {
     }
 
     static async removeGame(props: { userId: number, id: number }) {
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         const gameRepository = await db.getRepository(Game);
 
         const game: any = await gameRepository.findOne({
@@ -117,8 +116,6 @@ export class HistoryController {
 
     async importNewGameFromPgn(props: IImportNewGameFromPgnProps) {
         //parse pgn
-
-        const pgnParser: any = await initPgnParser();
 
         const pgn = props.pgn.split(/[\n\r\r\t]+/g).join(" ").trim();
 
@@ -160,7 +157,7 @@ export class HistoryController {
 
     async updateGame(props: IUpdateGameProps) {
 
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         const gameRepository = await db.getRepository(Game);
         // const userRepository = await db.getRepository(User);
 

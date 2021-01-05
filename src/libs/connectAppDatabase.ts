@@ -1,40 +1,41 @@
 import {Connection, ConnectionOptions, getConnectionManager} from "typeorm";
 import {getConfig} from "../config";
 
-export async function connectAppDatabase(): Promise<Connection> {
-    const config = getConfig();
-    // MysqlConnectionOptions | PostgresConnectionOptions
-    try {
-        const connectionManager = getConnectionManager();
-        const options: ConnectionOptions = {
-            type: config.appDatabase.type as any,
-            host: config.appDatabase.host,
-            port: Number(config.appDatabase.port),
-            username: config.appDatabase.user,
-            password: config.appDatabase.password,
-            database: config.appDatabase.database,
+const config = getConfig();
+// MysqlConnectionOptions | PostgresConnectionOptions
 
-            synchronize: config.appDatabase.synchronize,
-            logging: true,
+const connectionManager = getConnectionManager();
+const options: ConnectionOptions = {
+    type: config.appDatabase.type as any,
+    host: config.appDatabase.host,
+    port: Number(config.appDatabase.port),
+    username: config.appDatabase.user,
+    password: config.appDatabase.password,
+    database: config.appDatabase.database,
 
-            "entities": [
-                "dist/modules/user/entity/**/*.js"
-            ],
-            "migrations": [
-                "dist/modules/user/migration/**/*.js"
-            ],
-            "subscribers": [
-                "dist/modules/user/subscriber/**/*.js"
-            ],
-        };
+    synchronize: config.appDatabase.synchronize,
+    logging: false,
 
-        const connection = connectionManager.create(options);
+    "entities": [
+        "dist/modules/user/entity/**/*.js"
+    ],
+    "migrations": [
+        "dist/modules/user/migration/**/*.js"
+    ],
+    "subscribers": [
+        "dist/modules/user/subscriber/**/*.js"
+    ],
+};
 
-        return await connection.connect();
-    } catch (e) {
-        console.log("Can not connect to Games Database", e);
+const connection = connectionManager.create(options);
+const db = connection.connect();
+
+export async function appDbConnection(): Promise<Connection> {
+    console.log('GET APP CONNECTION');
+    const database = await db;
+    if (database.isConnected) {
+        return database;
     }
 
+    throw new Error("App DB is NOT connected");
 }
-
-export const appDbConnection = connectAppDatabase();

@@ -1,4 +1,4 @@
-import {Connection, In} from "typeorm";
+import {In} from "typeorm";
 import * as Boom from "boom";
 import {Move} from "./entity/move";
 import {decodeFenHash} from "../../libs/fenHash";
@@ -8,6 +8,7 @@ import {calculationGameCoefficient, convertResult} from "../../libs/utils";
 import {Game} from "./entity/game";
 import {BaseResponse} from "../../libs/baseResponse";
 import {pgnFileReader} from "../../libs/pgnFileReader";
+import {GameMovesMove} from "./entity/gameMovesMove";
 
 const {performance} = require("perf_hooks");
 
@@ -34,80 +35,69 @@ export interface IGameDatabase {
     games: IGames[];
 }
 
-export class GameDatabaseController {
-    private db: Connection;
+function findFenInPgn(pgn: string, fenHash) {
+    const ch1 = new Chess();
+    const regex = /([0-9]{1,3})(\. )([a-zA-Z\-0-8\+\=]{1,6})( )([a-zA-Z\-0-8\+\=]{1,6})/gm;
 
-    constructor() {
-        this.initConnection();
-    }
+    let match;
+    let moveCounter = 0;
 
-    async initConnection() {
-        this.db = await postgreGameDbConnection;
-    }
+    let lastMove;
+    let fenReferenceObj;
 
-    private findFenInPgn(pgn: string, fenHash) {
-        const ch1 = new Chess();
-        const regex = /([0-9]{1,3})(\. )([a-zA-Z\-0-8\+\=]{1,6})( )([a-zA-Z\-0-8\+\=]{1,6})/gm;
+    const allMoves = [];
+    while (match = regex.exec(pgn)) {
 
-        let match;
-        let moveCounter = 0;
+        if (fenReferenceObj) {
+            allMoves.push(match[3]);
+            allMoves.push(match[5]);
 
-        let lastMove;
-        let fenReferenceObj;
+            moveCounter++;
 
-        const allMoves = [];
-        while (match = regex.exec(pgn)) {
+            if (moveCounter > 5) {
+                break;
+            }
+        }
 
-            if (fenReferenceObj) {
-                allMoves.push(match[3]);
+        if (!fenReferenceObj) {
+            lastMove = ch1.move(match[3], {sloppy: true});
+            const fen = ch1.fen();
+            if (decodeFenHash(fen) === fenHash) {
+                fenReferenceObj = fen;
                 allMoves.push(match[5]);
-
-                moveCounter++;
-
-                if (moveCounter > 5) {
-                    break;
-                }
-            }
-
-            if (!fenReferenceObj) {
-                lastMove = ch1.move(match[3], {sloppy: true});
-                const fen = ch1.fen();
-                if (decodeFenHash(fen) === fenHash) {
-                    fenReferenceObj = fen;
-                    allMoves.push(match[5]);
-                }
-            }
-
-            if (!fenReferenceObj) {
-                lastMove = ch1.move(match[5], {sloppy: true});
-
-                const fen2 = ch1.fen();
-                if (decodeFenHash(fen2) === fenHash) {
-                    fenReferenceObj = fen2;
-                }
             }
         }
-        return allMoves;
+
+        if (!fenReferenceObj) {
+            lastMove = ch1.move(match[5], {sloppy: true});
+
+            const fen2 = ch1.fen();
+            if (decodeFenHash(fen2) === fenHash) {
+                fenReferenceObj = fen2;
+            }
+        }
+    }
+    return allMoves;
+}
+
+export async function get(props: GetProps) {
+    const p1 = performance.now();
+
+    const fenHash = decodeFenHash(props.fen);
+    console.log({fenHash});
+    const db = await postgreGameDbConnection();
+    console.log("db");
+    const move = await db.getRepository(Move)
+        .createQueryBuilder("move")
+        .select("id")
+        .where({fenHash}).getRawOne<Move>();
+    console.log("move");
+    if (!move) {
+        throw Boom.notFound();
     }
 
-    async get(props: GetProps) {
-        console.log({props, db: this.db});
-        const p1 = performance.now();
-
-        const fenHash = decodeFenHash(props.fen);
-
-        const move = await this.db
-            .getRepository(Move)
-            .createQueryBuilder("move")
-            .select("id")
-            .where({fenHash}).getRawOne();
-
-        if (!move) {
-            throw Boom.notFound();
-        }
-
-        const orderBy = props.side === "w" ? `"coefW"` : `"coefB"`;
-        const games = await this.db.manager.query(`
+    const orderBy = props.side === "w" ? `"coefW"` : `"coefB"`;
+    const games = await db.manager.query(`
         SELECT game.* FROM game WHERE game.id IN 
             (
                 SELECT 
@@ -122,165 +112,180 @@ export class GameDatabaseController {
         `);
 
 
-        if (games.length === 0) {
-            throw Boom.notFound();
-        }
+    if (games.length === 0) {
+        throw Boom.notFound();
+    }
 
-        const p2 = performance.now();
+    const p2 = performance.now();
 
-        const result = {
-            games: games.map((game) => {
+    const result = {
+        games: games.map((game) => {
+            return {
+                id: game.id,
+                white: game.white,
+                black: game.black,
+                whiteElo: game.whiteElo,
+                blackElo: game.blackElo,
+                result: game.result,
+                pgnHash: game.pgnHash,
+                fewNextMove: findFenInPgn(game.pgn, fenHash)
+            }
+        })
+    };
+
+    const p3 = performance.now();
+
+    console.log("Total time: ", p3 - p1);
+    console.log("Searching time time: ", p2 - p1);
+    console.log("Mapping time time: ", p3 - p2);
+
+    return result;
+}
+
+export async function checkFen(props: CheckFenProps) {
+    try {
+        return decodeFenHash(props.fen);
+    } catch (e) {
+        console.log(e);
+        throw Boom.badData();
+    }
+
+}
+
+export async function add(props: AddProps) {
+
+    const model = new GameDatabaseModel();
+
+    try {
+
+        const game = await model.parsePgn(props.pgn);
+        const gameEntity = new Game();
+
+        gameEntity.white = game.headers.white;
+        gameEntity.black = game.headers.black;
+        gameEntity.whiteElo = game.headers.whiteElo;
+        gameEntity.blackElo = game.headers.blackElo;
+        gameEntity.result = game.headers.result;
+        gameEntity.pgn = game.pgn;
+        gameEntity.pgnHash = jsMd5(game.pgn);
+        gameEntity.gameMovesMove = [];
+        gameEntity.coefW = calculationGameCoefficient("w", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
+        gameEntity.coefB = calculationGameCoefficient("b", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
+
+        // check duplicity for pgn, if pgn is already exist
+        const db = await postgreGameDbConnection();
+        const isExist = await db.getRepository(Game).findOne({
+            where: {
+                pgnHash: jsMd5(game.pgn)
+            }
+        });
+
+        if (!isExist) {
+
+            const newGame = await db.manager.save(gameEntity);
+
+            const fenHashBulk = game.positions.map((position) => {
                 return {
-                    id: game.id,
-                    white: game.white,
-                    black: game.black,
-                    whiteElo: game.whiteElo,
-                    blackElo: game.blackElo,
-                    result: game.result,
-                    pgnHash: game.pgnHash,
-                    fewNextMove: this.findFenInPgn(game.pgn, fenHash)
-                }
-            })
-        };
-
-        const p3 = performance.now();
-
-        console.log("Total time: ", p3 - p1);
-        console.log("Searching time time: ", p2 - p1);
-        console.log("Mapping time time: ", p3 - p2);
-
-        return result;
-    }
-
-    async checkFen(props: CheckFenProps) {
-        try {
-            return decodeFenHash(props.fen);
-        } catch (e) {
-            console.log(e);
-            throw Boom.badData();
-        }
-
-    }
-
-    async add(props: AddProps) {
-
-        const model = new GameDatabaseModel();
-
-        try {
-
-            const game = await model.parsePgn(props.pgn);
-            const gameEntity = new Game();
-
-            gameEntity.white = game.headers.white;
-            gameEntity.black = game.headers.black;
-            gameEntity.whiteElo = game.headers.whiteElo;
-            gameEntity.blackElo = game.headers.blackElo;
-            gameEntity.result = game.headers.result;
-            gameEntity.pgn = game.pgn;
-            gameEntity.pgnHash = jsMd5(game.pgn);
-            gameEntity.moves = [];
-            gameEntity.coefW = calculationGameCoefficient("w", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
-            gameEntity.coefB = calculationGameCoefficient("b", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
-
-            // check duplicity for pgn, if pgn is already exist
-            const isExist = await this.db.getRepository(Game).findOne({
-                where: {
-                    pgnHash: jsMd5(game.pgn)
+                    fenHash: position.fenHash
                 }
             });
 
-            if (!isExist) {
+            const moves = await insertAndReturnMoves(fenHashBulk);
+            const gameMovesMoveBulk: GameMovesMove[] = moves.map(move => {
 
-                const fenHashBulk = game.positions.map((position) => {
-                    return {
-                        cW: gameEntity.coefW,
-                        cB: gameEntity.coefB,
-                        fenHash: position.fenHash
-                    }
-                });
+                const obj = new GameMovesMove();
+                obj.cb = Number(newGame.coefB);
+                obj.cw = Number(newGame.coefW);
+                obj.game = newGame;
+                obj.move = move;
 
-                const fenHashBulkFind = game.positions.map((position) => {
-                    return position.fenHash
-                });
-                await this.db.createQueryBuilder()
-                    .insert()
-                    .into(Move)
-                    .values(fenHashBulk)
-                    .onConflict(`(
+                return obj;
+            });
+
+            await db.createQueryBuilder()
+                .insert()
+                .into(GameMovesMove)
+                .values(gameMovesMoveBulk)
+                .execute();
+            console.log("Game was add.");
+        } else {
+            console.log(isExist);
+            console.log("Game is already exist.");
+        }
+
+    } catch (e) {
+        console.error(e);
+        throw Boom.badRequest("Pgn is not valid");
+    }
+
+    return BaseResponse.getSuccess();
+
+}
+
+async function insertAndReturnMoves(fenHashBulk: Move[]): Promise<Move[]> {
+
+    const db = await postgreGameDbConnection();
+
+    db.createQueryBuilder()
+        .insert()
+        .into(Move)
+        .values(fenHashBulk)
+        .onConflict(`(
     "fenHash"
 )
     DO
     NOTHING
 `)
-                    .execute();
+        .execute();
 
-                const moveEntities = await this.db.getRepository(Move)
-                    .createQueryBuilder("move")
-                    .where({
+    const moves = await db.getRepository(Move)
+        .createQueryBuilder()
+        .where({
+            fenHash: In(fenHashBulk.map(m => m.fenHash))
+        }).getMany();
+    console.log("-----------------------------");
+    console.log("------------MOVES----------");
+    console.log(moves);
+    return moves;
+}
 
-                        fenHash: In(fenHashBulkFind)
+export async function runImport(props: RunImportProps) {
 
-                    })
-                    .getMany();
+    pgnFileReader(props.filename, async (pgn) => {
 
-
-                gameEntity.moves = (moveEntities);
-
-
-                await this.db.manager.save(gameEntity);
-                console.log("Game was add.");
-            } else {
-                console.log(isExist);
-                console.log("Game is already exist.");
-            }
-
+        try {
+            await add({
+                pgn
+            })
         } catch (e) {
-            console.error(e);
-            throw Boom.badRequest("Pgn is not valid");
+            console.log("PGN is not valid", e);
         }
 
-        return BaseResponse.getSuccess();
+    })
 
-    }
+    return BaseResponse.getSuccess();
 
-    async runImport(props: RunImportProps) {
+}
 
-        pgnFileReader(props.filename, async (pgn) => {
+export async function runDirImport(props: RunDirImportProps) {
 
-            try {
-                await this.add({
-                    pgn
-                })
-            } catch (e) {
-                console.log("PGN is not valid", e);
-            }
+    console.log("Start import from dir", props.dirName);
+    fs.readdir(props.dirName, async (err, items) => {
 
-        })
+        for (let i = 0; i < items.length; i++) {
+            const filename = `${props.dirName}${items[i]}`;
+            console.log({filename});
+            await runImport({
+                filename
+            });
+        }
 
-        return BaseResponse.getSuccess();
-
-    }
-
-    async runDirImport(props: RunDirImportProps) {
-
-        console.log("Start import from dir", props.dirName);
-        fs.readdir(props.dirName, async (err, items) => {
-
-            for (let i = 0; i < items.length; i++) {
-                const filename = `${props.dirName}${items[i]}`;
-                console.log({filename});
-                await this.runImport({
-                    filename
-                });
-            }
-
-            console.log("End import from dir");
-        });
+        console.log("End import from dir");
+    });
 
 
-        return BaseResponse.getSuccess();
+    return BaseResponse.getSuccess();
 
-    }
 }
 
 interface GetProps {

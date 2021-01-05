@@ -46,10 +46,18 @@ class Sockets {
 
     connect(hapiServer) {
         //create socket.io connection
-        const io = new Server(hapiServer.listener);
+        const io = new Server(hapiServer.listener,{
+            cors: {
+                origin: "http://localhost:3000",
+                methods: ["GET", "POST"],
+                credentials: true,
+                allowedHeaders:['Content-Type', 'Authorization']
+            }
+        });
 
         io.use(async (socketOrigin, next) => {
 
+            debugger;
             const socket: any = socketOrigin;
             console.log("io->use->start", socket.handshake.query.type, socket.handshake.query.token);
             switch (socket.handshake.query.type){

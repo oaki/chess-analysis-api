@@ -9,22 +9,12 @@ import {optionsGood} from "./config/optionsGood";
 import {hapiServerOptions} from "./config/hapiServerOptions";
 import {getConfig} from "./config/";
 import {AuthenticationController} from "./controllers/authenticationController";
-import {appDbConnection} from "./libs/connectAppDatabase";
 
 const config = getConfig();
 
 export async function initServer() {
-
-    const appDb = await appDbConnection;
-
-    if (appDb.isConnected) {
-        console.log("App DB is connected");
-    } else {
-        throw new Error("App DB is NOT connected");
-    }
-
     const hapiServer = Hapi.server(hapiServerOptions);
-    hapiServer.validator(require('@hapi/joi'));
+    hapiServer.validator(require("@hapi/joi"));
 
     await hapiServer.register({
         plugin: require("hapi-api-version"),
@@ -70,7 +60,6 @@ export async function initServer() {
             options: optionsSwagger
         },
     ]);
-
 
 
     await hapiServer.start();

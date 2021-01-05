@@ -1,8 +1,8 @@
 import * as Joi from "@hapi/joi";
-import {GameDatabaseController} from "./gameDatabaseController";
 import {getBasePath} from "../../config";
+import {add, checkFen, get, runDirImport, runImport} from "./gameDatabaseController";
 
-const gameDatabaseController = new GameDatabaseController();
+
 
 export function gameDatabaseRouter() {
     return [
@@ -22,10 +22,10 @@ export function gameDatabaseRouter() {
 
             handler: async (request: any, h: any) => {
                 const fen: string = request.query["fen"];
-                console.log(fen.split(" "));
+
                 const side = fen.split(" ").splice(1, 1).join("");
-                console.log({side, fen});
-                const results = await gameDatabaseController.get({fen, side: side === "w" ? "w" : "b"});
+
+                const results = await get({fen, side: side === "w" ? "w" : "b"});
 
                 return h.response(results).ttl(60 * 1000 * 60 * 24 * 14);
             }
@@ -39,7 +39,7 @@ export function gameDatabaseRouter() {
             },
             handler: async (request: any) => {
 
-                return await gameDatabaseController.add({
+                return await add({
                     pgn: request.payload.pgn
                 });
             }
@@ -54,7 +54,7 @@ export function gameDatabaseRouter() {
             },
             handler: async (request: any) => {
 
-                return await gameDatabaseController.runImport({
+                return await runImport({
                     filename: request.payload.filename
                 });
             }
@@ -69,7 +69,7 @@ export function gameDatabaseRouter() {
             },
             handler: async () => {
 
-                return await gameDatabaseController.runDirImport({
+                return await runDirImport({
                     dirName: `${getBasePath()}/games/game_database/`
                 });
             }
@@ -84,7 +84,7 @@ export function gameDatabaseRouter() {
             },
             handler: async (request: any) => {
 
-                return await gameDatabaseController.checkFen({
+                return await checkFen({
                     fen: request.payload.fen
                 });
             }

@@ -13,10 +13,10 @@ export function useWorkers(workersIo, userSocket, data, fen) {
     // use temporary server worker
     if (!workerIo) {
         workerIo = findAvailableWorkerInSocketList(workersIo);
-        console.log("findAvailableWorkerInSocketList", workerIo.id);
     }
 
     if (workerIo) {
+        console.log("findAvailableWorkerInSocketList", workerIo.id);
 
         console.log("Your worker", workerIo.worker, userSocket.handshake.user);
 

@@ -27,7 +27,7 @@ export class AuthController {
 
         console.log("token", token);
 
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         await db.createQueryBuilder()
             .delete()
             .from(VerifyHash)
@@ -56,7 +56,7 @@ export class AuthController {
 
         if (decodedObj) {
 
-            const db = await appDbConnection;
+            const db = await appDbConnection();
             const verifyHashRepository = await db.getRepository(VerifyHash);
             const res = await verifyHashRepository.findOne({where: {hash: decodedObj.hash}});
 
@@ -79,7 +79,7 @@ export class AuthController {
         const decodedObj = await JWT.decode(props.temporaryToken, config.jwt.key, tokenOptions);
         console.log({decodedObj, props});
 
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         const verifyHashRepository = await db.getRepository(VerifyHash);
 
         const res = await verifyHashRepository.findOne({
@@ -118,7 +118,7 @@ export class AuthController {
             const email = payload.email;
 
 
-            const db = await appDbConnection;
+            const db = await appDbConnection();
             const userRepository = await db.getRepository(User);
 
             const res = await userRepository.findOne({

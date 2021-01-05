@@ -9,7 +9,7 @@ export class WorkerController {
 
     async getAll(props: IGetProps) {
 
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         const workerRepository = await db.getRepository(Worker);
 
         const workerList = await workerRepository.createQueryBuilder("worker")
@@ -31,7 +31,7 @@ export class WorkerController {
     }
 
     static async getWorkerRepository() {
-        const db = await appDbConnection;
+        const db = await appDbConnection();
         return await db.getRepository(Worker);
     }
 

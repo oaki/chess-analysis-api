@@ -1,5 +1,5 @@
-import {Column, Entity, Index, JoinTable, ManyToMany, PrimaryGeneratedColumn} from "typeorm";
-import {Move} from "./move";
+import {Column, Entity, Index, JoinTable, OneToMany, PrimaryGeneratedColumn} from "typeorm";
+import {GameMovesMove} from "./gameMovesMove";
 
 @Entity()
 export class Game {
@@ -68,7 +68,7 @@ export class Game {
     })
     result: string;
 
-    @ManyToMany(type => Move, move => move.games)
+    @OneToMany(() => GameMovesMove, (gameMovesMove) => gameMovesMove.game)
     @JoinTable()
-    moves: Move[];
+    public gameMovesMove: GameMovesMove[];
 }

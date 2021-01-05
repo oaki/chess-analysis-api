@@ -1,5 +1,6 @@
-import {Column, Entity, Index, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn} from "typeorm";
+import {Column, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
 import {Game} from "./game";
+import {GameMovesMove} from "./gameMovesMove";
 
 @Entity()
 export class Move {
@@ -13,8 +14,8 @@ export class Move {
     })
     fenHash: string;
 
-    @ManyToMany(type => Game, game => game.moves)
-    games: Game[];
+    @OneToMany(() => GameMovesMove, (gameMovesMove) => gameMovesMove.move)
+    public gameMovesMove: GameMovesMove[];
 }
 //
 // @Entity("game_moves_move")
