@@ -48,7 +48,7 @@ class Sockets {
         //create socket.io connection
         const io = new Server(hapiServer.listener,{
             cors: {
-                origin: "http://localhost:3000",
+                origin: ["http://localhost:3000",'https://www.chess-analysis.com'],
                 methods: ["GET", "POST"],
                 credentials: true,
                 allowedHeaders:['Content-Type', 'Authorization']

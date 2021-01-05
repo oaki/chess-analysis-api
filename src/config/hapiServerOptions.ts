@@ -8,7 +8,7 @@ export const hapiServerOptions = {
     },
     routes: {
         cors: {
-            origin: ['http://localhost:3000'],
+            origin: ['http://localhost:3000','https://www.chess-analysis.com'],
             additionalHeaders: ['cache-control', 'x-requested-with', 'Accept', 'Authorization']
         },
         validate: {
