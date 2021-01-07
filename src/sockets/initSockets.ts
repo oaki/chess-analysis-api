@@ -56,8 +56,6 @@ class Sockets {
         });
 
         io.use(async (socketOrigin, next) => {
-
-            debugger;
             const socket: any = socketOrigin;
             console.log("io->use->start", socket.handshake.query.type, socket.handshake.query.token);
             switch (socket.handshake.query.type){
