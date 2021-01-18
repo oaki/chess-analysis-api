@@ -11,10 +11,12 @@ export class GameMovesMove {
     @PrimaryColumn()
     public gameId: number;
 
-    @Column()
+    @Index()
+    @Column({type: "smallint"})
     cw: number;
 
-    @Column()
+    @Index()
+    @Column({type: "smallint"})
     cb: number;
 
     @ManyToOne(() => Game, (game) => game.gameMovesMove)

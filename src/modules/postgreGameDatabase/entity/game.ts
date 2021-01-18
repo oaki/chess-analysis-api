@@ -52,6 +52,12 @@ export class Game {
     })
     pgn: string;
 
+    @Column({
+        type: "text",
+        nullable: true,
+    })
+    originalPgn: string;
+
     @Index()
     @Column({
         length: 33

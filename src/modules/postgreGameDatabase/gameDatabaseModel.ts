@@ -1,4 +1,3 @@
-
 import {countPieces} from "../../tools";
 import {decodeFenHash} from "../../libs/fenHash";
 
@@ -7,12 +6,16 @@ const uniqBy = require("lodash/uniqBy");
 const pgnParser = require("pgn-parser");
 
 type PgnHeaders = PgnHeader[];
-type PgnHeader = {name:string;value:string};
+type PgnHeader = { name: string; value: string };
+
 export class GameDatabaseModel {
 
-    private getHeaderValue(headers: PgnHeaders, name: string): string {
-        const header = headers.find(item=>item.name==name);
+    private getHeaderValue(headers: PgnHeaders, name: string, defaultValue?: string): string {
+        const header = headers.find(item => item.name == name);
         if (!header) {
+            if(defaultValue){
+                return defaultValue;
+            }
             throw new Error(`Field  ${name} is missing`);
         }
         return header.value;
@@ -22,18 +25,28 @@ export class GameDatabaseModel {
         return {
             white: this.getHeaderValue(headers, "White"),
             black: this.getHeaderValue(headers, "Black"),
-            whiteElo: parseInt(this.getHeaderValue(headers, "WhiteElo"), 10),
-            blackElo: parseInt(this.getHeaderValue(headers, "BlackElo"), 10),
+            whiteElo: parseInt(this.getHeaderValue(headers, "WhiteElo", '0'), 10),
+            blackElo: parseInt(this.getHeaderValue(headers, "BlackElo", '0'), 10),
             result: this.getHeaderValue(headers, "Result"),
         }
     }
 
+    static preparePgn(pgnGame: string): string {
+        let pgn = pgnGame.split(/[\n\r\r\t]+/g).join(" ").trim();
+        const pattern = new RegExp(/\(\{[a-zA-Z ]+\}/, "g");
+        pgn = pgn.replace(pattern, "(");
+
+        return pgn;
+    }
+
     async parsePgn(pgnGame: string, uniqPositions: boolean = true, excludeEndGameNumberOfPieces: number = 7) {
 
-        const pgn = pgnGame.split(/[\n\r\r\t]+/g).join(" ").trim();
+        const preparedPgn = GameDatabaseModel.preparePgn(pgnGame);
+        const game = pgnParser.parse(preparedPgn);
+        console.log("parsed pgn", game);
+        debugger;
 
-        const game = pgnParser.parse(pgn);
-console.log('gamegamegamegamegamegamegame', game[0]['headers']);
+        console.log("gamegamegamegamegamegamegame", game[0]["headers"]);
         if (game.length > 0) {
             const headers = game[0].headers;
             const moves = game[0].moves;
@@ -71,7 +84,8 @@ console.log('gamegamegamegamegamegamegame', game[0]['headers']);
             return {
                 headers: this.getHeaders(headers),
                 positions: positions,
-                pgn: chess.pgn()
+                pgn: chess.pgn(),
+                originalPgn: pgnGame,
             }
         }
 

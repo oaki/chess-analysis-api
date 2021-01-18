@@ -4,6 +4,7 @@ import {SocketService} from "../../../../sockets/initSockets";
 import {appDbConnection} from "../../../../libs/connectAppDatabase";
 import {Worker} from "../../entity/worker";
 import {UserController} from "../../userController";
+import {User} from "../../entity/user";
 
 export class WorkerController {
 
@@ -26,13 +27,12 @@ export class WorkerController {
     }
 
     async checkStatus(props: ICheckStatusProps) {
-
         return SocketService.isWorkersOnline(props.uuids);
     }
 
     static async getWorkerRepository() {
         const db = await appDbConnection();
-        return await db.getRepository(Worker);
+        return db.getRepository(Worker);
     }
 
 
@@ -59,22 +59,21 @@ export class WorkerController {
 
     async delete(props: IDeleteProps) {
         const repository = await WorkerController.getWorkerRepository();
-        const worker = await repository.findOne({
-            where: {
-                id: props.id,
-                user_id: props.userId
-            }
-        });
+        console.log('repository',repository);
+        const workers = await repository.find({where: { id: props.id}, relations: ['user']});
 
-        if (!worker) {
+        if (!workers || !workers[0]) {
             throw Boom.notFound("Worker is not found.")
         }
 
+        const worker = workers[0];
+        console.log('workerworkerworkerworker', worker);
+        if (worker.user.id !== props.userId) {
+            throw Boom.notFound("Worker is not yours!")
+        }
+
         await repository.remove(worker);
-
-
         return BaseResponse.getSuccess();
-
     }
 }
 

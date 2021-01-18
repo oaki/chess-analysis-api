@@ -9,6 +9,7 @@ import {Game} from "./entity/game";
 import {BaseResponse} from "../../libs/baseResponse";
 import {pgnFileReader} from "../../libs/pgnFileReader";
 import {GameMovesMove} from "./entity/gameMovesMove";
+import {ErrorPgnGame} from "./entity/errorPgnGame";
 
 const {performance} = require("perf_hooks");
 
@@ -84,7 +85,7 @@ export async function get(props: GetProps) {
     const p1 = performance.now();
 
     const fenHash = decodeFenHash(props.fen);
-    console.log({fenHash});
+    console.log({fen:props.fen, fenHash});
     const db = await postgreGameDbConnection();
     console.log("db");
     const move = await db.getRepository(Move)
@@ -154,6 +155,7 @@ export async function checkFen(props: CheckFenProps) {
 
 export async function add(props: AddProps) {
 
+    const db = await postgreGameDbConnection();
     const model = new GameDatabaseModel();
 
     try {
@@ -167,13 +169,12 @@ export async function add(props: AddProps) {
         gameEntity.blackElo = game.headers.blackElo;
         gameEntity.result = game.headers.result;
         gameEntity.pgn = game.pgn;
+        gameEntity.originalPgn = props.pgn;
         gameEntity.pgnHash = jsMd5(game.pgn);
         gameEntity.gameMovesMove = [];
         gameEntity.coefW = calculationGameCoefficient("w", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
         gameEntity.coefB = calculationGameCoefficient("b", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
 
-        // check duplicity for pgn, if pgn is already exist
-        const db = await postgreGameDbConnection();
         const isExist = await db.getRepository(Game).findOne({
             where: {
                 pgnHash: jsMd5(game.pgn)
@@ -215,7 +216,11 @@ export async function add(props: AddProps) {
 
     } catch (e) {
         console.error(e);
-        throw Boom.badRequest("Pgn is not valid");
+        const errorPgnGameEntity = new ErrorPgnGame();
+        errorPgnGameEntity.pgn = props.pgn;
+        errorPgnGameEntity.errorMsg = JSON.stringify(e);
+        await db.manager.save(errorPgnGameEntity);
+        throw Boom.badRequest(`Pgn is not valid: ${props.pgn}`);
     }
 
     return BaseResponse.getSuccess();
@@ -226,7 +231,7 @@ async function insertAndReturnMoves(fenHashBulk: Move[]): Promise<Move[]> {
 
     const db = await postgreGameDbConnection();
 
-    db.createQueryBuilder()
+    await db.createQueryBuilder()
         .insert()
         .into(Move)
         .values(fenHashBulk)
@@ -243,9 +248,7 @@ async function insertAndReturnMoves(fenHashBulk: Move[]): Promise<Move[]> {
         .where({
             fenHash: In(fenHashBulk.map(m => m.fenHash))
         }).getMany();
-    console.log("-----------------------------");
-    console.log("------------MOVES----------");
-    console.log(moves);
+
     return moves;
 }
 

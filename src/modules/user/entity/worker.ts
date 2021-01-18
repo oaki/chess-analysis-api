@@ -34,6 +34,6 @@ export class Worker {
     updated_at: Date;
 
     @ManyToOne(type => User, user => user.workers)
-    user: User;
+    public user: User;
 
 }
