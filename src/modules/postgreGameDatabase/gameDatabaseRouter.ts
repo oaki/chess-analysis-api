@@ -15,6 +15,8 @@ export function gameDatabaseRouter() {
                 validate: {
                     query: {
                         fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. "),
+                        offset: Joi.number().optional().max(100),
+                        limit: Joi.number().optional().max(100),
                     },
 
                 },
@@ -22,10 +24,17 @@ export function gameDatabaseRouter() {
 
             handler: async (request: any, h: any) => {
                 const fen: string = request.query["fen"];
+                const offset = request.query.offset;
+                const limit = request.query.limit;
 
                 const side = fen.split(" ").splice(1, 1).join("");
 
-                const results = await get({fen, side: side === "w" ? "w" : "b"});
+                const results = await get({
+                    fen,
+                    side: side === "w" ? "w" : "b",
+                    offset,
+                    limit
+                });
 
                 return h.response(results).ttl(60 * 1000 * 60 * 24 * 14);
             }

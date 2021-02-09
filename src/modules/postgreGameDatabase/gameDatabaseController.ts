@@ -85,9 +85,8 @@ export async function get(props: GetProps) {
     const p1 = performance.now();
 
     const fenHash = decodeFenHash(props.fen);
-    console.log({fen:props.fen, fenHash});
+    console.log({fen: props.fen, fenHash});
     const db = await postgreGameDbConnection();
-    console.log("db");
     const move = await db.getRepository(Move)
         .createQueryBuilder("move")
         .select("id")
@@ -97,21 +96,23 @@ export async function get(props: GetProps) {
         throw Boom.notFound();
     }
 
-    const orderBy = props.side === "w" ? `"coefW"` : `"coefB"`;
-    const games = await db.manager.query(`
-        SELECT game.* FROM game WHERE game.id IN 
-            (
-                SELECT 
-                    game_moves_move."gameId" 
-                FROM 
-                    game_moves_move 
-                WHERE 
-                    game_moves_move."moveId" = ${move.id} 
-                ORDER BY ${props.side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"} LIMIT 5
-            )
-        ORDER BY ${orderBy}
+    const gameIds = await db.manager.query(`
+        SELECT 
+            game_moves_move."gameId" 
+        FROM 
+            game_moves_move 
+        WHERE 
+            game_moves_move."moveId" = ${move.id} 
+        ORDER BY ${props.side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"} 
+        OFFSET ${props.offset ? props.offset : "0"}
+        LIMIT ${props.limit ? props.limit : "5"}
         `);
 
+    const ids = gameIds.map((obj) => obj.gameId).join(", ");
+    const games = await db.manager.query(`
+        SELECT game.* FROM game WHERE game.id IN (${ids})
+        ORDER BY POSITION(id::text IN '${ids}')
+        `);
 
     if (games.length === 0) {
         throw Boom.notFound();
@@ -293,6 +294,8 @@ export async function runDirImport(props: RunDirImportProps) {
 
 interface GetProps {
     fen: string;
+    offset?: number;
+    limit?: number;
     side: "b" | "w";
 }
 
