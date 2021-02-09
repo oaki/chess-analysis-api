@@ -173,8 +173,8 @@ export async function add(props: AddProps) {
         gameEntity.originalPgn = props.pgn;
         gameEntity.pgnHash = jsMd5(game.pgn);
         gameEntity.gameMovesMove = [];
-        gameEntity.coefW = calculationGameCoefficient("w", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
-        gameEntity.coefB = calculationGameCoefficient("b", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
+        const coefW = calculationGameCoefficient("w", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
+        const coefB = calculationGameCoefficient("b", convertResult(gameEntity.result), gameEntity.whiteElo, gameEntity.blackElo);
 
         const isExist = await db.getRepository(Game).findOne({
             where: {
@@ -196,8 +196,8 @@ export async function add(props: AddProps) {
             const gameMovesMoveBulk: GameMovesMove[] = moves.map(move => {
 
                 const obj = new GameMovesMove();
-                obj.cb = Number(newGame.coefB);
-                obj.cw = Number(newGame.coefW);
+                obj.cb = Number(coefB);
+                obj.cw = Number(coefW);
                 obj.game = newGame;
                 obj.move = move;
 
