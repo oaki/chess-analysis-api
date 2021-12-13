@@ -5,5 +5,5 @@ export const gameDatabase = {
     user: process.env.DB_GAMES_USER,
     password: process.env.DB_GAMES_PASS,
     port: parseInt(process.env.DB_GAMES_PORT, 10),
-    synchronize: !!process.env.DB_GAMES_SYNCHRONIZE || false
+    synchronize: process.env.DB_GAMES_SYNCHRONIZE === 'true' ? true : false
 };

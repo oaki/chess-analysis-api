@@ -8,16 +8,16 @@ const config = getConfig();
 const connectionManager = getConnectionManager();
 
 const options: ConnectionOptions = {
-    type: config.postgreGameDatabase.type as any,
-    host: config.postgreGameDatabase.host,
-    port: Number(config.postgreGameDatabase.port),
-    username: config.postgreGameDatabase.user,
-    password: config.postgreGameDatabase.password,
-    database: config.postgreGameDatabase.database,
+    type: config.gameDatabase.type as any,
+    host: config.gameDatabase.host,
+    port: Number(config.gameDatabase.port),
+    username: config.gameDatabase.user,
+    password: config.gameDatabase.password,
+    database: config.gameDatabase.database,
     connectTimeoutMS: 4000,
-    synchronize: config.postgreGameDatabase.synchronize,
+    synchronize: config.gameDatabase.synchronize,
     logging: true,
-    logNotifications: true,
+    logNotifications: false,
 
     "entities": [
         "dist/modules/postgreGameDatabase/entity/**/*.js"

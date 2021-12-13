@@ -1,17 +1,18 @@
 import {findAvailableWorkerInSocketList, findMyWorkerInSocketList} from "../libs/findWorkerInSocketList";
 
 function getAllWorkersId(workersIo){
-    return workersIo.map(worker=>{
-        return worker.id
+    return workersIo.map(socket=>{
+        return {id: socket.id, socket: socket}
     })
 }
 export function useWorkers(workersIo, userSocket, data, fen) {
     // @todo find BEST worker from you
-    console.log('useWorkers->allAvailableWorkers', getAllWorkersId(workersIo));
+    console.log('useWorkers->allAvailableWorkers', getAllWorkersId(workersIo), userSocket.handshake.user.user_id);
     let workerIo = findMyWorkerInSocketList(workersIo, userSocket.handshake.user.user_id);
 
     // use temporary server worker
     if (!workerIo) {
+        console.log('use temporary server worker');
         workerIo = findAvailableWorkerInSocketList(workersIo);
     }
 
@@ -26,7 +27,7 @@ export function useWorkers(workersIo, userSocket, data, fen) {
         workerIo.emit("setPositionToWorker", data);
 
         workerIo.on("workerEvaluation", (data) => {
-            console.log("workerEvaluation", data);
+            // console.log("workerEvaluation", data);
             userSocket.emit("workerEvaluation", data);
         });
 

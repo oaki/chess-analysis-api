@@ -39,7 +39,7 @@ async function add(fen, evaluation: IEvaluation) {
         }
 
     } else {
-        console.log("No reason to save this low analyse or there are less figures than 7", evaluation, "count:", countPieces(fen));
+        // console.log("No reason to save this low analyse or there are less figures than 7", evaluation, "count:", countPieces(fen));
     }
 }
 

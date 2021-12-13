@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import {IEvaluation, LINE_MAP} from "../interfaces";
+import {log} from "util";
 
 const cheerio = require("cheerio");
 
@@ -13,7 +14,7 @@ export class ChessgamesComService {
 
 
     async fetch(fen: string) {
-
+        console.log('fetch')
         //http://www.chessgames.com/perl/analysis?fen=5r1k/1p1r2qp/p2p1b2/P3p3/1Pp1Pnb1/R1Q2NP1/1BP2P2/4RBK1+b+-+-&move=30
         //1r1q1r1k/1p1bbppp/p2p4/P3p3/1Pp1Pn2/5N1P/1BPP1PP1/R2QRBK1+w+-+-&move=18.5
         const preparedFen = this.prepareFen(fen);

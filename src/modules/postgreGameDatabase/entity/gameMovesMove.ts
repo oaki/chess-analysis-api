@@ -5,10 +5,10 @@ import {Move} from "./move";
 @Entity()
 // @Index((relation: GameMovesMove) => [relation.move, relation.game], { unique: true })
 export class GameMovesMove {
-    @PrimaryColumn()
+    @PrimaryColumn({type: "integer", unsigned: true})
     public moveId: number;
 
-    @PrimaryColumn()
+    @PrimaryColumn({type: "integer", unsigned: true})
     public gameId: number;
 
     @Index()

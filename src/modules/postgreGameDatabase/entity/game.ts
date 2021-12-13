@@ -4,7 +4,7 @@ import {GameMovesMove} from "./gameMovesMove";
 @Entity()
 export class Game {
 
-    @PrimaryGeneratedColumn({type: "bigint"})
+    @PrimaryGeneratedColumn({type: "integer", unsigned: true})
     id: number;
 
     @Column({
@@ -17,14 +17,12 @@ export class Game {
     })
     black: string;
 
-    @Index()
     @Column({
         type: "smallint",
         unsigned: true,
     })
     whiteElo: number;
 
-    @Index()
     @Column({
         type: "smallint",
         unsigned: true,

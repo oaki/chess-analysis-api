@@ -5,5 +5,5 @@ export const postgreGameDatabase = {
     user: process.env.POSTGRE_DB_USER,
     password: process.env.POSTGRE_DB_PASS,
     port: parseInt(process.env.POSTGRE_DB_PORT, 10),
-    synchronize: !!process.env.POSTGRE_DB_SYNCHRONIZE || false
+    synchronize: process.env.POSTGRE_DB_SYNCHRONIZE === 'true' ? true : false
 };

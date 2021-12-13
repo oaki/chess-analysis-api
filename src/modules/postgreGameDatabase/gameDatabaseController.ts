@@ -132,7 +132,7 @@ export async function get(props: GetProps) {
                 pgnHash: game.pgnHash,
                 fewNextMove: findFenInPgn(game.pgn, fenHash)
             }
-        })
+        }) 
     };
 
     const p3 = performance.now();
@@ -141,6 +141,7 @@ export async function get(props: GetProps) {
     console.log("Searching time time: ", p2 - p1);
     console.log("Mapping time time: ", p3 - p2);
 
+    // await optimizePosition({fen:props.fen});
     return result;
 }
 
@@ -151,6 +152,185 @@ export async function checkFen(props: CheckFenProps) {
         console.log(e);
         throw Boom.badData();
     }
+
+}
+
+export async function deleteGame({gameId}) {
+    const db = await postgreGameDbConnection();
+    const game = await db.getRepository(Game)
+        .createQueryBuilder()
+        .where({
+            id: gameId
+        }).getOne();
+
+    if (!game) {
+        throw Boom.notFound("Game id is not exist");
+    }
+
+    const gameMovesMoves = await db.getRepository(GameMovesMove)
+        .createQueryBuilder()
+        .where({
+            gameId: gameId
+        }).getMany();
+
+    const moves = gameMovesMoves.map((gameMovesMove) => gameMovesMove.moveId);
+
+    const movesToDelete = [];
+    for (let i = 0; i < moves.length; i++) {
+        const moveId = moves[i];
+
+        const movesCount = await db.getRepository(GameMovesMove)
+            .createQueryBuilder()
+            .where({
+                moveId: moveId
+            }).limit(2).getRawMany();
+
+        if (movesCount.length === 1) {
+            movesToDelete.push(moveId);
+        }
+    }
+
+    await db.getRepository(GameMovesMove)
+        .createQueryBuilder()
+        .delete()
+        .where({
+            gameId: gameId
+        }).execute();
+
+    console.log("DELETE GameMovesMove DONE!");
+
+
+    await db.getRepository(Move)
+        .createQueryBuilder()
+        .delete()
+        .where({
+            id: In(movesToDelete)
+        }).execute();
+    console.log("DELETE Move DONE!");
+
+    await db.getRepository(Game)
+        .createQueryBuilder()
+        .delete()
+        .where({
+            id: gameId
+        }).execute();
+
+    console.log("DELETE Game DONE!");
+}
+
+
+export async function optimizePosition(props: { fen: string }) {
+    console.log('----------------------------');
+    console.log('-----optimizePosition------');
+    console.log('----------------------------');
+    const p1 = performance.now();
+    const NUM_GAMES_PER_MOVE = 2000;
+    const sideFromFen = props.fen.split(" ").splice(1, 1).join("");
+
+    const side = sideFromFen === "w" ? "w" : "b";
+
+    const fenHash = decodeFenHash(props.fen);
+    console.log({fen: props.fen, fenHash});
+    const db = await postgreGameDbConnection();
+        const move = await db.getRepository(Move)
+        .createQueryBuilder("move")
+        .select(["id",`"numOfGames"`])
+        .where({fenHash}).getRawOne<Move>();
+
+    if (!move) {
+        throw Boom.notFound();
+    }
+
+    const gamesId = await db.manager.query(`
+        SELECT 
+            "gameId"
+        FROM 
+            game_moves_move 
+        WHERE 
+            game_moves_move."moveId" = ${move.id}
+        ORDER BY ${side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"}
+        `);
+
+    if(!move.numOfGames){
+        await db.manager.query(`UPDATE move SET "numOfGames" = ${gamesId.length} WHERE id = ${move.id}`);
+    }
+
+    console.log("count", gamesId.length);
+
+    if (gamesId.length > NUM_GAMES_PER_MOVE) {
+        const gameIdsForDelete = gamesId.map(obj => obj.gameId).slice(NUM_GAMES_PER_MOVE).join(", ");
+        await db.manager.query(`DELETE FROM
+        game_moves_move
+        WHERE
+        "moveId" = ${move.id}
+        AND "gameId" IN (${gameIdsForDelete})`);
+    }
+
+    const p2 = performance.now();
+    console.log("Total time: ", p2 - p1);
+
+    return BaseResponse.getSuccess();
+    // const gameIds = await db.manager.query(`
+    //     SELECT
+    //         game_moves_move."gameId"
+    //     FROM
+    //         game_moves_move
+    //     WHERE
+    //         game_moves_move."moveId" = ${move.id}
+    //     ORDER BY ${side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"}
+    //     OFFSET ${props.offset ? props.offset : "0"}
+    //     LIMIT ${props.limit ? props.limit : "5"}
+    //     `);
+
+}
+
+export async function optimize() {
+    const db = await postgreGameDbConnection();
+
+    const p1 = performance.now();
+
+    const allGames = await db.getRepository(Game)
+        .createQueryBuilder()
+        .select("id")
+        .where({
+            whiteElo: 0,
+            blackElo: 0
+        })
+        .limit(100)
+        .getRawMany();
+
+    const p2 = performance.now();
+    console.log("allGamesId", allGames);
+    for (let i = 0; i < allGames.length; i++) {
+        const gameId = allGames[i].id;
+        const p5 = performance.now();
+        await deleteGame({gameId});
+        const p6 = performance.now();
+        console.log("DELETE on line: ", p6 - p5);
+    }
+    const p3 = performance.now();
+    console.log("Total time: ", p3 - p1);
+    console.log("get all games: ", p2 - p1);
+    console.log("Deleting time: ", p3 - p2);
+
+    ``
+//     const gameIdss = await db.manager.query(`
+//         SELECT game.*, game_moves_move.cw
+// FROM game_moves_move JOIN game ON game.id = game_moves_move."gameId"
+// WHERE game_moves_move."moveId" = 28894
+// ORDER BY game_moves_move.cw DESC
+// LIMIT 5
+//         `);
+
+//     const gameIds = await db.manager.query(`
+//         SELECT "moveId", COUNT("moveId")
+// FROM game_moves_move
+// GROUP BY "moveId"
+// ORDER BY COUNT("moveId")
+// LIMIT 5
+//         `);
+
+    return BaseResponse.getSuccess();
 
 }
 

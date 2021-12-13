@@ -5,14 +5,19 @@ import {GameMovesMove} from "./gameMovesMove";
 @Entity()
 export class Move {
 
-    @PrimaryGeneratedColumn({type: "bigint"})
+    @PrimaryGeneratedColumn({type: "integer", unsigned: true})
     id: number;
 
+    @Index()
     @Column({
-        unique: true,
         length: 74
     })
     fenHash: string;
+
+    @Column({
+        unsigned: true
+    })
+    numOfGames: number;
 
     @OneToMany(() => GameMovesMove, (gameMovesMove) => gameMovesMove.move)
     public gameMovesMove: GameMovesMove[];

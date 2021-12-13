@@ -28,7 +28,7 @@ export default function (userSocket, usersIo, workersIo) {
         const move: string = data.move;
         const previousEvaluation: IEvaluation = data.previousEvaluation;
         const mode: "engine" | "default" = data.mode || "default";
-
+        console.log('mode:', mode);
         const position = {
             action: "findBestMove",
             userId: userSocket.id,
@@ -36,6 +36,7 @@ export default function (userSocket, usersIo, workersIo) {
         };
 
         if(mode === 'engine'){
+            console.log('engineStrategy');
             await engineStrategy(position.fen, userSocket, workersIo, data);
             return;
         }
@@ -116,6 +117,7 @@ export default function (userSocket, usersIo, workersIo) {
             return;
         }
 
+        /*
         try {
             const nextchessmoveComServiceResult = await NextChessMoveComService.getResult(fen);
 
@@ -132,8 +134,11 @@ export default function (userSocket, usersIo, workersIo) {
         } catch (err) {
         }
 
+         */
+
         //try to check portals with evaluations
 
+        /*
         try {
             const chessgamesComServiceResult = await chessgamesComService.getResult(fen);
 
@@ -145,7 +150,7 @@ export default function (userSocket, usersIo, workersIo) {
                 return;
             }
         } catch (err) {
-        }
+        }*/
 
 
         //"Send the position to worker for evaluation."

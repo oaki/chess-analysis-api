@@ -1,7 +1,17 @@
 import * as Joi from "@hapi/joi";
 import {getBasePath} from "../../config";
-import {add, checkFen, get, runDirImport, runImport} from "./gameDatabaseController";
-
+import {
+    add,
+    checkFen,
+    deleteGame,
+    get,
+    optimize,
+    optimizePosition,
+    runDirImport,
+    runImport
+} from "./gameDatabaseController";
+import {decodeFenHash} from "../../libs/fenHash";
+import {BaseResponse} from "../../libs/baseResponse";
 
 
 export function gameDatabaseRouter() {
@@ -37,6 +47,71 @@ export function gameDatabaseRouter() {
                 });
 
                 return h.response(results).ttl(60 * 1000 * 60 * 24 * 14);
+            }
+        },
+
+        {
+            method: "GET",
+            path: "/games-database/optimize",
+            config: {
+                description: "Get moves connections to game which can be deleted",
+                tags: ["api"], // section in documentation
+            },
+
+            handler: async (request: any, h: any) => {
+                return await optimize();
+            }
+        },
+        {
+            method: "GET",
+            path: "/games-database/optimize-position",
+            config: {
+                description: "Remove unnecessary game connections",
+                tags: ["api"], // section in documentation
+                validate: {
+                    query: {
+                        fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. "),
+                    },
+                },
+            },
+
+            handler: async (request: any, h: any) => {
+                return await optimizePosition({fen: request.query["fen"]});
+            }
+        },
+        {
+            method: "GET",
+            path: "/games-database/convert-fen-to-hash",
+            config: {
+                description: "convert-fen-to-hash",
+                tags: ["api"], // section in documentation
+                validate: {
+                    query: {
+                        fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. "),
+                    },
+                },
+            },
+
+            handler: async (request: any, h: any) => {
+                const fen: string = request.query["fen"];
+                return decodeFenHash(fen);
+            }
+        }, {
+            method: "DELETE",
+            path: "/games-database/{id}",
+            config: {
+                description: "convert-fen-to-hash",
+                tags: ["api"], // section in documentation
+                validate: {
+                    params: {
+                        id: Joi.number().integer().required().description("Game id")
+                    }
+                },
+            },
+
+            handler: async (request: any, h: any) => {
+                await deleteGame({gameId: request.params.id});
+                return BaseResponse.getSuccess();
             }
         },
         {

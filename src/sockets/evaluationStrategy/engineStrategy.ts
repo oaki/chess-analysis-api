@@ -2,6 +2,8 @@ import positionService from "../../services/positionService";
 import {IEvaluation, LINE_MAP} from "../../interfaces";
 import {useWorkers} from "../useWorkers";
 import openingsService, {OpeningResponse} from "../../services/openingsService";
+import chessgamesComService from "../../services/chessgamesComService";
+import {NextChessMoveComService} from "../../services/nextchessmoveComService";
 
 function openingToEvaluation(fen: string, openings: OpeningResponse[]): IEvaluation[] {
     return openings.map((opening) => {
@@ -41,12 +43,17 @@ export async function engineStrategy(fen: string, userSocket, workersIo, data) {
     }
 
     // try {
-    //     const chessgamesComServiceResult = await chessgamesComService.getResult(fen);
+    //     console.log("-----------------------------------------------------------");
+    //     console.log("START use nextchessmoveComService");
+    //     const nextchessmoveComServiceResult = await NextChessMoveComService.getResult(fen);
     //
-    //     if (chessgamesComServiceResult && chessgamesComServiceResult.length > 0) {
-    //         positionService.add(fen, chessgamesComServiceResult[0]);
-    //         userSocket.emit("workerEvaluation", JSON.stringify(chessgamesComServiceResult));
+    //     if (nextchessmoveComServiceResult && nextchessmoveComServiceResult.length > 0) {
+    //
+    //         positionService.add(fen, nextchessmoveComServiceResult[0]);
+    //         userSocket.emit("workerEvaluation", JSON.stringify(nextchessmoveComServiceResult));
+    //
     //         return;
+    //
     //     }
     // } catch (err) {
     // }

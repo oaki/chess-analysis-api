@@ -9,7 +9,7 @@ export function workerSockets(workerSocket, usersIo, workerIo) {
 
     workerSocket.on('workerEvaluation', (jsonString: string) => {
         const data = JSON.parse(jsonString);
-        console.log('workerEvaluation', data);
+        // console.log('workerEvaluation', data);
         forEach(data, (workerResponse: IWorkerResponse) => {
             const fen = workerResponse.fen;
             const evaluation: IEvaluation = workerResponse;

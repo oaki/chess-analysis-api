@@ -3,7 +3,7 @@ import {Column, Entity, PrimaryGeneratedColumn} from "typeorm";
 @Entity()
 export class ErrorPgnGame {
 
-    @PrimaryGeneratedColumn({type: "bigint"})
+    @PrimaryGeneratedColumn({type: "integer", unsigned: true})
     id: number;
 
     @Column({
