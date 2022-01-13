@@ -1,16 +1,15 @@
-import {Column, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
-import {Game} from "./game";
-import {GameMovesMove} from "./gameMovesMove";
+import {Column, Entity, Index, PrimaryGeneratedColumn, Unique} from "typeorm";
 
 @Entity()
+// @Unique('fenHash')
 export class Move {
 
     @PrimaryGeneratedColumn({type: "integer", unsigned: true})
     id: number;
 
-    @Index()
     @Column({
-        length: 74
+        length: 74,
+        unique: true
     })
     fenHash: string;
 
@@ -22,6 +21,7 @@ export class Move {
     // @OneToMany(() => GameMovesMove, (gameMovesMove) => gameMovesMove.move)
     // public gameMovesMove: GameMovesMove[];
 }
+
 //
 // @Entity("game_moves_move")
 // export class GameMoves {

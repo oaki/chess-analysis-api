@@ -118,7 +118,7 @@ class Sockets {
 
                         const workerRepository = await WorkerController.getWorkerRepository();
 
-                        let worker = await workerRepository.findOne({where: {uuid: socket.handshake.query.token}});
+                        let worker = await workerRepository.findOne({where: {uuid: socket.handshake.query.token},relations: ['user']} );
 
                         if (worker) {
                             console.log("Add worker info to the socket", worker, worker.user);

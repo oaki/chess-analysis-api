@@ -8,6 +8,7 @@
   "scripts": {
     "server:start": "npm run build && node dist/index.js",
     "server:start:dev": "nodemon --watch dist --delay 2.5 dist/index.js env=dev",
+    "server:start:convertDb": "nodemon --watch dist --delay 2.5 dist/convertDb.js env=dev",
     "server:start:dev:debug": "node --inspect dist/index.js env=dev",
     "build": "npm run clear && tsc && cp -rf ./src/books/ ./dist/books/",
     "clear": "del-cli ./dist/*",

@@ -23,6 +23,8 @@ export function useWorkers(workersIo, userSocket, data, fen) {
 
         workerIo.worker.lastUsed = Date.now();
         console.log("choose worker with uuid", workerIo.worker.uuid);
+        console.log("stopWorker");
+        workerIo.emit("stopWorker");
         console.log("setPositionToWorker", data);
         workerIo.emit("setPositionToWorker", data);
 

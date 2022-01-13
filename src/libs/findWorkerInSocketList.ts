@@ -1,6 +1,6 @@
 export function findMyWorkerInSocketList(list: any[], userId) {
     return list
-        .find((socket) => socket.worker.user_id === userId);
+        .find((socket) => socket.worker.user.id === userId);
 }
 
 export function findAvailableWorkerInSocketList(list: any[]) {
