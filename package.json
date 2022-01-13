@@ -38,7 +38,7 @@
     "inert": "^5.1.2",
     "js-md5": "^0.7.3",
     "jsonwebtoken": "^8.4.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "match-all": "^1.2.5",
     "minimatch": "^3.0.4",
     "mysql2": "^1.6.4",
