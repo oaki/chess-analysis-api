@@ -42,7 +42,7 @@
     "match-all": "^1.2.5",
     "minimatch": "^3.0.4",
     "mysql2": "^1.6.4",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "pg": "^8.5.1",
     "pgn-parser": "^2.1.0",
     "reflect-metadata": "^0.1.13",
