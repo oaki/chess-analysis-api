@@ -3,7 +3,7 @@ import {Server} from "socket.io";
 import {getConfig} from "../config";
 import userSockets from "./userSockets";
 import {workerSockets} from "./workerSockets";
-import {RASPBERRY, USER, WORKER} from "../const";
+import {CONNECT_VISION, RASPBERRY, USER, WORKER} from "../const";
 import {WorkerController} from "../modules/user/modules/worker/workerController";
 import {raspberrySocket} from "./raspberry";
 /**
@@ -25,7 +25,7 @@ function connectToNextChessMoveSocket() {
     debugger;
     const socket = io("wss://nextchessmove.com/socket/websocket", {
         query: {
-            vsn: '2.0.0'
+            vsn: "2.0.0"
         },
         extraHeaders: {
             "Accept-Encoding": "gzip, deflate, br",
@@ -46,7 +46,7 @@ function connectToNextChessMoveSocket() {
     debugger;
     socket.on("connection", (socket) => {
         debugger;
-        console.log('CONNECTED TO nextchessmove.com', socket.handshake.query); // prints { x: "42", EIO: "4", transport: "polling" }
+        console.log("CONNECTED TO nextchessmove.com", socket.handshake.query); // prints { x: "42", EIO: "4", transport: "polling" }
     });
     //
     // fetch("wss://nextchessmove.com/socket/websocket?vsn=2.0.0", {
@@ -104,9 +104,6 @@ class Sockets {
         io.use(async (socketOrigin, next) => {
             const socket: any = socketOrigin;
 
-            if(typeof socket.handshake.query.type === 'undefined'){
-                next();
-            }
             console.log("io->use->start", socket.handshake.query.type, socket.handshake.query.token);
             switch (socket.handshake.query.type) {
                 case USER: {
@@ -122,7 +119,10 @@ class Sockets {
 
                         const workerRepository = await WorkerController.getWorkerRepository();
 
-                        let worker = await workerRepository.findOne({where: {uuid: socket.handshake.query.token},relations: ['user']} );
+                        let worker = await workerRepository.findOne({
+                            where: {uuid: socket.handshake.query.token},
+                            relations: ["user"]
+                        });
 
                         if (worker) {
                             console.log("Add worker info to the socket", worker, worker.user);
@@ -161,6 +161,18 @@ class Sockets {
                     }
                 }
 
+                case CONNECT_VISION: {
+                    const jwtToken = socket.handshake.query.token;
+                    console.log("CONNECT_VISION jwtToken", jwtToken);
+                    try {
+                        // const user = JWT.decode(jwtToken, this.config.jwt.key);
+                        // console.log("CONNECT_VISION user", user);
+                        next();
+                    } catch (e) {
+                        console.log("Raspberry", e);
+                    }
+                }
+
                 default:
                     console.error("socket.handshake - Authentication error", socket.handshake);
                     next(new Error("Authentication error"));
@@ -170,8 +182,7 @@ class Sockets {
         })
 
         io.on("connection", (socket) => {
-
-            if(typeof socket.handshake.query.type === 'undefined'){
+            if (socket.handshake.query.type === CONNECT_VISION) {
                 socket.on("offer", (data) => {
                     socket.broadcast.to(data.target).emit("offer", {
                         sdp: data.sdp,
@@ -192,28 +203,28 @@ class Sockets {
                         source: socket.id,
                     });
                 });
-            }else {
-
-                if (socket.handshake.query.type === USER) {
-                    userSockets(socket, this.usersIo, this.workersIo);
-                }
-
-                if (socket.handshake.query.type === RASPBERRY) {
-                    raspberrySocket(socket);
-                }
-
-                if (socket.handshake.query.type === WORKER) {
-                    workerSockets(socket, this.usersIo, this.workersIo);
-
-                    socket.on("workerIsReady", (response) => {
-                        console.log("workerIsReady response: ", response);
-                    });
-
-                    console.log("Send to worker: isReady");
-                    socket.emit("isReady", "Is worker ready");
-
-                }
             }
+
+            if (socket.handshake.query.type === USER) {
+                userSockets(socket, this.usersIo, this.workersIo);
+            }
+
+            if (socket.handshake.query.type === RASPBERRY) {
+                raspberrySocket(socket);
+            }
+
+            if (socket.handshake.query.type === WORKER) {
+                workerSockets(socket, this.usersIo, this.workersIo);
+
+                socket.on("workerIsReady", (response) => {
+                    console.log("workerIsReady response: ", response);
+                });
+
+                console.log("Send to worker: isReady");
+                socket.emit("isReady", "Is worker ready");
+
+            }
+
 
             socket.on("disconnect", () => {
                 console.log("Server: disconnected", socket.id);
