@@ -103,6 +103,10 @@ class Sockets {
 
         io.use(async (socketOrigin, next) => {
             const socket: any = socketOrigin;
+
+            if(typeof socket.handshake.query.type === 'undefined'){
+                next();
+            }
             console.log("io->use->start", socket.handshake.query.type, socket.handshake.query.token);
             switch (socket.handshake.query.type) {
                 case USER: {
@@ -167,24 +171,48 @@ class Sockets {
 
         io.on("connection", (socket) => {
 
-            if (socket.handshake.query.type === USER) {
-                userSockets(socket, this.usersIo, this.workersIo);
-            }
-
-            if (socket.handshake.query.type === RASPBERRY) {
-                raspberrySocket(socket);
-            }
-
-            if (socket.handshake.query.type === WORKER) {
-                workerSockets(socket, this.usersIo, this.workersIo);
-
-                socket.on("workerIsReady", (response) => {
-                    console.log("workerIsReady response: ", response);
+            if(typeof socket.handshake.query.type === 'undefined'){
+                socket.on("offer", (data) => {
+                    socket.broadcast.to(data.target).emit("offer", {
+                        sdp: data.sdp,
+                        source: socket.id,
+                    });
                 });
 
-                console.log("Send to worker: isReady");
-                socket.emit("isReady", "Is worker ready");
+                socket.on("answer", (data) => {
+                    socket.broadcast.to(data.target).emit("answer", {
+                        sdp: data.sdp,
+                        source: socket.id,
+                    });
+                });
 
+                socket.on("ice-candidate", (data) => {
+                    socket.broadcast.to(data.target).emit("ice-candidate", {
+                        candidate: data.candidate,
+                        source: socket.id,
+                    });
+                });
+            }else {
+
+                if (socket.handshake.query.type === USER) {
+                    userSockets(socket, this.usersIo, this.workersIo);
+                }
+
+                if (socket.handshake.query.type === RASPBERRY) {
+                    raspberrySocket(socket);
+                }
+
+                if (socket.handshake.query.type === WORKER) {
+                    workerSockets(socket, this.usersIo, this.workersIo);
+
+                    socket.on("workerIsReady", (response) => {
+                        console.log("workerIsReady response: ", response);
+                    });
+
+                    console.log("Send to worker: isReady");
+                    socket.emit("isReady", "Is worker ready");
+
+                }
             }
 
             socket.on("disconnect", () => {
