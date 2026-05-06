@@ -1,4 +1,26 @@
-# Created by .ignore support plugin (hsz.mobi)
-/node_modules/
-/.env
-/.idea/
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+
+# Build output
+dist/
+coverage/
+
+# Runtime artifacts
+log/
+logs/
+db-data/
+*.log
+
+# Local chess data artifacts
+games/**/*.pgn
+src/books/*.abk
+src/books/*.ctg
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/

@@ -3,7 +3,7 @@ import {pairValues} from "../tools";
 
 const _findLastIndex = require("lodash/findLastIndex");
 
-const fetchTimeout = require("fetch-timeout");
+import fetchTimeout from "fetch-timeout";
 
 export interface Response {
     fen: string;

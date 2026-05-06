@@ -64,6 +64,9 @@
   },
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "src/**/*.test.ts",
+    "src/test/**",
+    "vitest.config.ts"
   ]
 }
