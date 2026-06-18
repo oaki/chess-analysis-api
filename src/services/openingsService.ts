@@ -1,6 +1,7 @@
 import {Polyglot} from "../libs/polyglot";
 import * as fs from "fs";
 import {Environment, getConfig} from "../config";
+import {logger} from "../libs/logger";
 
 const Chess = require("chess.js").Chess;
 
@@ -32,8 +33,7 @@ class OpeningService {
         return new Promise((resolve) => {
             this.book.load_book(fs.createReadStream(`${__dirname}/${this.path}`));
             this.book.on("loaded", () => {
-                console.log(`book->loaded: ${this.path}`);
-                // let entries = book.find('rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1');
+                logger.info({path: this.path}, "opening book loaded");
                 this.isLoaded = true;
                 resolve(this);
             });

@@ -7,24 +7,16 @@ export class Worker {
     @PrimaryGeneratedColumn({type: "bigint"})
     id: number;
 
-    @Column({
-        length: 255
-    })
+    @Column({ type: "varchar", length: 255 })
     uuid: string;
 
-    @Column({
-        length: 255
-    })
+    @Column({ type: "varchar", length: 255 })
     name: string;
 
-    @Column({
-        type: "float"
-    })
+    @Column({ type: "float" })
     score: number;
 
-    @Column({
-        type: "integer"
-    })
+    @Column({ type: "integer" })
     lastUsed: number;
 
     @CreateDateColumn({type: "timestamp", nullable: true})
@@ -35,5 +27,4 @@ export class Worker {
 
     @ManyToOne(type => User, user => user.workers)
     public user: User;
-
 }

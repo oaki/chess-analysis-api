@@ -6,19 +6,13 @@ export class VerifyHash {
     @PrimaryGeneratedColumn({type: "bigint"})
     id: number;
 
-    @Column({
-        length: 90
-    })
+    @Column({ type: "varchar", length: 90 })
     hash: string;
 
-    @Column({
-        type: "text"
-    })
+    @Column({ type: "text" })
     token: string;
 
-    @Column({
-        type: "text", nullable: true
-    })
+    @Column({ type: "text", nullable: true })
     google_token: string;
 
     @CreateDateColumn({type: "timestamp", nullable: true})
@@ -26,5 +20,4 @@ export class VerifyHash {
 
     @UpdateDateColumn({type: "timestamp", nullable: true})
     updated_at: Date;
-
 }

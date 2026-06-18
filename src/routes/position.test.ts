@@ -2,15 +2,11 @@ import {beforeEach, describe, expect, it, vi} from "vitest";
 
 const findAllMovesMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@hapi/joi", () => ({
+vi.mock("joi", () => ({
     default: {
-        required: () => ({
-            description: () => "fen-schema",
-        }),
+        object: () => ({fen: "fen-schema"}),
+        any: () => ({required: () => ({description: () => "fen-schema"})}),
     },
-    required: () => ({
-        description: () => "fen-schema",
-    }),
 }));
 
 vi.mock("../services/positionService", () => ({
@@ -24,7 +20,6 @@ import {positionRoute} from "./position";
 describe("positionRoute", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        vi.spyOn(console, "log").mockImplementation(() => undefined);
     });
 
     it("returns fallback text when evaluation is null", async () => {

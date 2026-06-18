@@ -4,6 +4,7 @@ import positionService from "../../../services/positionService";
 import {evaluationConnection} from "../../../libs/connectEvaluationDatabase";
 import {ImportedGames} from "../entity/importedGames";
 import {Connection} from "typeorm";
+import {logger} from "../../../libs/logger";
 
 const Chess = require("chess.js").Chess;
 const MIN_ELO: number = 3200;
@@ -20,7 +21,7 @@ export class ParseController {
             .skip(props.offset)
             .getMany();
 
-        console.log({list});
+        logger.debug({count: list.length}, "games to parse");
 
         const repository = await db.getRepository(ImportedGames);
 
@@ -38,7 +39,7 @@ export class ParseController {
                 try {
                     moves = JSON.parse(values.moves);
                 } catch (e) {
-                    console.log("Error parse moves", values.moves, e);
+                    logger.error({err: e, id: values.id}, "failed to parse moves JSON");
                     let moves = [];
                 }
 
@@ -50,15 +51,15 @@ export class ParseController {
                             || (chess.turn() === "b" && saveBlack)) {
                             const fen = chess.fen();
                             const evaluation = this.map(moveObj.meta);
-                            console.log("positionService.add->fen|evaluation", fen, evaluation);
                             positionService.add(fen, evaluation);
                         } else {
-                            console.log("Player doesnt have ELO", {
+                            logger.debug({
                                 turn: chess.turn(),
                                 saveWhite,
                                 saveBlack,
-                                white_elo: values.white_elo, black_elo: values.black_elo
-                            });
+                                white_elo: values.white_elo,
+                                black_elo: values.black_elo
+                            }, "skipping position, player ELO too low");
                         }
                     }
                     chess.move(moveObj.move);

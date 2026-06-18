@@ -62,7 +62,6 @@ class ChessBook {
             // console.log('entries', entries);
 
             entries = book.find('rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq d3 0 1');
-            console.log('entries', entries);
             // for (let entry of entries) {
             //   //See entry.ts for each module to manage data.
             // }

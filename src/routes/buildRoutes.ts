@@ -6,23 +6,29 @@ import {defaultRoute} from "./default";
 import {historyRoute} from "../modules/user/modules/history/historyRouter";
 import {authRoute} from "../modules/auth/authRoutes";
 import {userRoute} from "../modules/user/userRouter";
-import {config} from "../config";
 import {workerRoute} from "../modules/user/modules/worker/workerRouter";
 import {gameDatabaseRouter} from "../modules/gameDatabase/gameDatabaseRouter";
 
-export default function routes(server) {
-    server.route(authRoute());
-    server.route(userRoute());
+function withVersion(routes: any[], version = 1): any[] {
+    return routes.map(route => ({
+        ...route,
+        path: `/v${version}${route.path}`
+    }));
+}
 
+export default function routes(server) {
     server.route(defaultRoute(server));
     server.route(filesRoute(server));
-    server.route(positionRoute());
-    server.route(openingBookRoute());
-    server.route(evaluationDatabaseRoute());
-    server.route(historyRoute());
-    server.route(workerRoute());
-    server.route(gameDatabaseRouter());
 
-    console.log("config.environment", config.environment);
-
+    const versionedRoutes = [
+        ...authRoute(),
+        ...userRoute(),
+        ...positionRoute(),
+        ...openingBookRoute(),
+        ...evaluationDatabaseRoute(),
+        ...historyRoute(),
+        ...workerRoute(),
+        ...gameDatabaseRouter(),
+    ];
+    server.route(withVersion(versionedRoutes));
 }

@@ -1,4 +1,4 @@
-import * as Joi from "@hapi/joi";
+import Joi from "joi";
 import {HistoryController, OrderType} from "./historyController";
 
 const historyController = new HistoryController();
@@ -28,9 +28,9 @@ export function historyRoute() {
                 tags: ["api", "history"], // section in documentation
                 auth: "jwt",
                 validate: {
-                    params: {
+                    params: Joi.object({
                         id: Joi.number().integer().required().description("Game id")
-                    }
+                    })
                 },
             },
             handler: async (request: any) => {
@@ -66,18 +66,17 @@ export function historyRoute() {
                 tags: ["api", "history"], // section in documentation
                 auth: "jwt",
                 validate: {
-                    query: {
+                    query: Joi.object({
                         offset: Joi.number().integer().required(),
                         limit: Joi.number().integer().max(100).required(),
-                        order: Joi.allow("ASC", "DESC").required()
-                    }
+                        order: Joi.string().valid("ASC", "DESC").required()
+                    })
                 }
             },
             handler: async (request: any) => {
                 const offset: number = request.query.offset;
                 const limit: number = request.query.limit;
                 const order: OrderType = request.query.order;
-                console.log("request.auth.credentials", request.auth.credentials);
                 return await historyController.getAll({
                     userId: request.auth.credentials.user_id,
                     offset,
@@ -96,7 +95,6 @@ export function historyRoute() {
                 auth: "jwt"
             },
             handler: async (request: any) => {
-                console.log("request.auth.credentials", request.auth.credentials);
                 return await historyController.getLastGame({
                     userId: request.auth.credentials.user_id,
                 });
@@ -111,14 +109,13 @@ export function historyRoute() {
                 tags: ["api", "history"], // section in documentation
                 auth: "jwt",
                 validate: {
-                    params: {
+                    params: Joi.object({
                         id: Joi.number().integer().required().description("Game id")
-                    }
+                    })
                 },
             },
 
             handler: async (request: any) => {
-                console.log("request.auth.credentials", request.auth.credentials);
                 return await historyController.get({
                     userId: request.auth.credentials.user_id,
                     id: request.params.id,
@@ -135,16 +132,15 @@ export function historyRoute() {
                 auth: "jwt",
 
                 validate: {
-                    payload: {
+                    payload: Joi.object({
                         moves: Joi.array().required().description("Moves"),
-                    },
-                    params: {
+                    }),
+                    params: Joi.object({
                         id: Joi.number().integer().required().description("Game id")
-                    }
+                    })
                 }
             },
             handler: async (request: any) => {
-
                 return await historyController.updateGame({
                     userId: request.auth.credentials.user_id,
                     gameId: request.params.id,

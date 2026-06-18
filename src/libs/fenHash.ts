@@ -1,4 +1,5 @@
 import {Polyglot} from "./polyglot";
+import {logger} from "./logger";
 
 const polyglot = new Polyglot();
 
@@ -6,7 +7,7 @@ export function decodeFenHash(fen: string) {
     try {
         return polyglot.generate_hash(fen);
     } catch (e) {
-        console.log("Fen is incorrect: ", fen);
+        logger.warn({fen}, "Fen is incorrect");
         throw e;
     }
 }

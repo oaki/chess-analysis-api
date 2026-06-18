@@ -8,7 +8,6 @@ const polyglot = new Polyglot();
 const fen = "rnbqkbnr/pp2pppp/2p5/3p4/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 3";
 
 const hash = polyglot.generate_hash(fen);
-console.log({hash});
 
 
 setTimeout(() => {
@@ -27,11 +26,7 @@ setTimeout(() => {
     bookCTG.load_book(fileContentCTG);
     bookCTG.on("loaded", () => {
 
-        console.log("On loaded CTG");
-
         let entries = bookCTG.find(fen);
-        console.log(entries.book_moves);
-        console.log(entries.ratings);
         // for (let entry of entries) {
         //     console.log(entry);
         //     //See entry.js for each module to manage data.

@@ -1,6 +1,4 @@
-import {Column, Entity, Index, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn} from "typeorm";
-import {Game} from "./game";
-import {GameMovesMove} from "./gameMovesMove";
+import {Column, Entity, Index, PrimaryGeneratedColumn} from "typeorm";
 
 @Entity()
 export class Move {
@@ -9,43 +7,9 @@ export class Move {
     id: number;
 
     @Index()
-    @Column({
-        length: 74
-    })
+    @Column({ type: "varchar", length: 74 })
     fenHash: string;
 
-    @Column({
-        unsigned: true
-    })
+    @Column({ type: "integer", unsigned: true })
     numOfGames: number;
-
-    // @OneToMany(() => GameMovesMove, (gameMovesMove) => gameMovesMove.move)
-    // public gameMovesMove: GameMovesMove[];
 }
-//
-// @Entity("game_moves_move")
-// export class GameMoves {
-//     @Index()
-//     @Column({
-//         nullable: true,
-//         type: "smallint",
-//         unsigned: true,
-//     })
-//     cw: number;
-//
-//     @Index()
-//     @Column({
-//         nullable: true,
-//         type: "smallint",
-//         unsigned: true,
-//     })
-//     cb: number;
-//
-//     @JoinColumn()
-//     @ManyToOne(type => Game, game => game.moves, {primary: true})
-//     game: Game;
-//
-//     @JoinColumn()
-//     @ManyToOne(type => Move, move => move.games, {primary: true})
-//     move: Move;
-// }

@@ -1,8 +1,8 @@
 import {countPieces} from "../../tools";
 import {decodeFenHash} from "../../libs/fenHash";
 
+import uniqBy from "lodash/uniqBy";
 const Chess = require("chess.js").Chess;
-const uniqBy = require("lodash/uniqBy");
 const pgnParser = require("pgn-parser");
 
 type PgnHeaders = PgnHeader[];
@@ -43,10 +43,6 @@ export class GameDatabaseModel {
 
         const preparedPgn = GameDatabaseModel.preparePgn(pgnGame);
         const game = pgnParser.parse(preparedPgn);
-        console.log("parsed pgn", game);
-        debugger;
-
-        console.log("gamegamegamegamegamegamegame", game[0]["headers"]);
         if (game.length > 0) {
             const headers = game[0].headers;
             const moves = game[0].moves;
@@ -69,9 +65,7 @@ export class GameDatabaseModel {
 
 
             if (uniqPositions) {
-                positions = uniqBy(positions, (item) => {
-                    return item.fenHash;
-                });
+                positions = uniqBy(positions, (item: {fenHash: string}) => item.fenHash);
             }
 
             if (excludeEndGameNumberOfPieces > 2) {

@@ -30,8 +30,6 @@ const options: ConnectionOptions = {
     ],
 };
 
-console.log("MYSQL DB_V4 CONFIG", options);
-
 const connection = connectionManager.create(options);
 
 const db = connection.connect();

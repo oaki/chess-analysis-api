@@ -1,7 +1,8 @@
 import {IEvaluation, LINE_MAP} from "../interfaces";
 import {pairValues} from "../tools";
+import {logger} from "../libs/logger";
 
-const _findLastIndex = require("lodash/findLastIndex");
+import _findLastIndex from "lodash/findLastIndex";
 
 import fetchTimeout from "fetch-timeout";
 
@@ -50,7 +51,7 @@ const fetch = async (fen: string) => {
     if (response.ok) {
         return await response.json();
     } else {
-        console.log("Position is not found on nextChessMoveCom", response);
+        logger.warn({status: response.status, fen}, "position not found on nextchessmove.com");
         return null;
     }
 }
@@ -92,7 +93,7 @@ const fetchPro = async (fen: string) => {
         const body = await response.json();
         return body;
     } else {
-        console.log("Position is not found on nextChessMoveCom", response);
+        logger.warn({status: response.status, fen}, "position not found on nextchessmove.com");
         return null;
     }
 }
@@ -106,7 +107,7 @@ async function getResult(fen: string) {
             return [results];
         }
     } catch (e) {
-        console.error(e);
+        logger.error({err: e, fen}, "nextchessmove.com fetch failed");
         return null;
     }
     return null;

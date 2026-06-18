@@ -1,23 +1,17 @@
-require('dotenv').config();
-import {getConfig} from "./config/";
+import 'reflect-metadata';
+import 'dotenv/config';
 import {initServer} from "./bootstrap";
+import {logger} from "./libs/logger";
 
-process.on('unhandledRejection', function (err) {
-    console.log('unhandledRejection', err);
-    // Logger.error('unhandledRejection', err);
+process.on('unhandledRejection', (err) => {
+    logger.error({err}, 'unhandledRejection');
 });
 
-process.on('uncaughtException', function (err) {
-    console.log(err);
-    // Logger.error('uncaughtException', err);
+process.on('uncaughtException', (err) => {
+    logger.error({err}, 'uncaughtException');
 });
 
-const config = getConfig();
-
-initServer().then((server) => {
-    console.info(`Server running at: ${config.server.port}`);
-})
-    .catch((err) => {
-        console.error(`Failed to start server. ${err.message}`);
-    });
-
+initServer().catch((err) => {
+    logger.error({err}, 'Failed to start server');
+    process.exit(1);
+});

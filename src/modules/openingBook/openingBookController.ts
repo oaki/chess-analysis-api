@@ -1,12 +1,11 @@
 import openingsService from "../../services/openingsService";
-import * as Boom from "boom";
+import * as Boom from "@hapi/boom";
 
 export class OpeningBookController {
 
     async get(props: GetProps) {
 
         const result = await openingsService.find(props.fen);
-        console.log('openingsService->result',result);
         if (!result) {
             throw Boom.notFound('Fen in not found.');
         }

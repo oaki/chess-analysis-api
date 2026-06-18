@@ -1,18 +1,19 @@
 import {config, getConfig} from "../../config";
-import * as Boom from "boom";
+import * as Boom from "@hapi/boom";
 import {BaseResponse} from "../../libs/baseResponse";
 import {appDbConnection} from "../../libs/connectAppDatabase";
 import {VerifyHash} from "../user/entity/verifyHash";
 import {User} from "../user/entity/user";
+import {logger} from "../../libs/logger";
 
-const JWT = require("jsonwebtoken");
-const {OAuth2Client} = require("google-auth-library");
+import jwt, {Algorithm, SignOptions, JwtPayload} from "jsonwebtoken";
+import {OAuth2Client} from "google-auth-library";
 const clientId: string = getConfig().googleAuth.googleClientId;
 const client = new OAuth2Client(clientId);
 
 const uuid = require("uuid/v1");
-export const tokenOptions = {
-    algorithm: "HS256",
+export const tokenOptions: SignOptions = {
+    algorithm: "HS256" as Algorithm,
     expiresIn: "200d",
 }
 
@@ -21,11 +22,7 @@ export class AuthController {
     static async createTemporaryJwtToken() {
         const hash = uuid();
 
-        const token = JWT.sign({
-            hash: hash,
-        }, config.jwt.key, tokenOptions);
-
-        console.log("token", token);
+        const token = jwt.sign({hash}, config.jwt.key, tokenOptions);
 
         const db = await appDbConnection();
         await db.createQueryBuilder()
@@ -37,10 +34,7 @@ export class AuthController {
         await db.createQueryBuilder()
             .insert()
             .into(VerifyHash)
-            .values({
-                hash,
-                token
-            })
+            .values({hash, token})
             .execute();
 
         return {token};
@@ -50,21 +44,16 @@ export class AuthController {
         temporaryToken: string;
         googleToken: string;
     }) {
-
-        const decodedObj = JWT.decode(props.temporaryToken, config.jwt.key, tokenOptions);
-        console.log({decodedObj, props});
+        const decodedObj = jwt.verify(props.temporaryToken, config.jwt.key) as JwtPayload;
 
         if (decodedObj) {
-
             const db = await appDbConnection();
             const verifyHashRepository = await db.getRepository(VerifyHash);
-            const res = await verifyHashRepository.findOne({where: {hash: decodedObj.hash}});
+            const res = await verifyHashRepository.findOne({where: {hash: decodedObj["hash"]}});
 
             if (res) {
-
                 res.google_token = props.googleToken;
                 await verifyHashRepository.save(res);
-
                 return BaseResponse.getSuccess();
             } else {
                 throw Boom.forbidden("Session is not found");
@@ -75,98 +64,67 @@ export class AuthController {
     }
 
     static async checkTemporaryToken(props: CheckTemporaryTokenProps) {
-
-        const decodedObj = await JWT.decode(props.temporaryToken, config.jwt.key, tokenOptions);
-        console.log({decodedObj, props});
+        const decodedObj = jwt.verify(props.temporaryToken, config.jwt.key) as JwtPayload;
 
         const db = await appDbConnection();
         const verifyHashRepository = await db.getRepository(VerifyHash);
 
-        const res = await verifyHashRepository.findOne({
-            where: {
-                hash: decodedObj.hash
-            }
-        });
+        const res = await verifyHashRepository.findOne({where: {hash: decodedObj["hash"]}});
 
         if (res && res.google_token) {
-            // console.log({google_token: res["google_token"]});
-            // return await AuthController.createJwtToken({
-            //     jwtToken: res["google_token"]
-            // })
-
             return {
                 status: "success",
                 google_token: res.google_token
             };
         }
 
-        throw Boom.notFound("Hash is not found")
+        throw Boom.notFound("Hash is not found");
     }
 
     static async createJwtToken(props: IRegisterProps) {
         try {
-            console.log("createJwtToken", {props});
             const ticket = await client.verifyIdToken({
                 idToken: props.jwtToken,
-                audience: clientId,  // Specify the CLIENT_ID of the app that accesses the backend
-                // Or, if multiple clients access the backend:
-                //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+                audience: clientId,
             });
             const payload = ticket.getPayload();
-            console.log(payload);
             const google_user_id = payload.sub;
             const email = payload.email;
-
 
             const db = await appDbConnection();
             const userRepository = await db.getRepository(User);
 
-            const res = await userRepository.findOne({
-                where: {
-                    google_user_id: google_user_id,
-                    email: email
-                }
+            let user = await userRepository.findOne({
+                where: {google_user_id, email}
             });
 
-            if (!res) {
-                //register
+            if (!user) {
+                const newUser = new User();
+                newUser.google_user_id = google_user_id;
+                newUser.email = email;
+                newUser.name = payload.name;
+                newUser.picture = payload.picture;
+                newUser.given_name = payload.given_name;
+                newUser.family_name = payload.family_name;
+                newUser.locale = payload.locale;
+                await userRepository.save(newUser);
 
-                const user = new User();
-                user.google_user_id = google_user_id;
-                user.email = email;
-                user.name = payload.name;
-                user.picture = payload.picture;
-                user.given_name = payload.given_name;
-                user.family_name = payload.family_name;
-                user.locale = payload.locale;
-
-                await userRepository.save(user);
+                user = await userRepository.findOne({where: {google_user_id, email}});
             }
 
-            const user = await userRepository.findOne({
-                where: {
-                    google_user_id: google_user_id,
-                    email: email
-                }
-            });
+            logger.info({userId: user.id, email: user.email}, "user signed in");
 
-            console.log({signInUser: user});
-
-            const token = JWT.sign({
+            const token = jwt.sign({
                 user_id: user.id,
                 email: user.email,
                 name: user.name,
-                img: payload.imageUrl,
+                img: payload.picture,
             }, config.jwt.key, tokenOptions);
 
-            console.log("token", token);
-            return {
-                token: token
-            };
-
+            return {token};
         } catch (e) {
-            console.log(e);
-            throw Boom.forbidden("User is not valid")
+            logger.warn({err: e}, "invalid Google token");
+            throw Boom.forbidden("User is not valid");
         }
     }
 }

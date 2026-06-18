@@ -1,5 +1,3 @@
-import * as Joi from '@hapi/joi';
-
 export function signRoute() {
     return [
         {
@@ -7,23 +5,18 @@ export function signRoute() {
             path: '/sign/google',
             config: {
                 tags: ['api'], // section in documentation
-                validate: {},
                 auth: {
                     strategy: 'google',
                     mode: 'try'
                 },
             },
-            handler: (request, h) =>{
-
+            handler: (request, h) => {
                 if (!request.auth.isAuthenticated) {
                     return 'Authentication failed due to: ' + request.auth.error.message;
                 }
 
                 return '<pre>' + JSON.stringify(request.auth.credentials, null, 4) + '</pre>';
             }
-
-
         }
-
     ];
 }

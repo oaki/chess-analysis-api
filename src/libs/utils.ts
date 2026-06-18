@@ -1,4 +1,5 @@
-const cloneDeep = require("lodash/cloneDeep");
+import cloneDeep from "lodash/cloneDeep";
+import {logger} from "./logger";
 const Chess = require("chess.js").Chess;
 
 
@@ -37,7 +38,6 @@ export function generatePgn(moves: IMoveObj[]) {
 }
 
 export function prepareMoves(moves: IMoveObj[]) {
-    console.log("prepareMoves", moves);
     //h3 Re8 e4 c5 a3 Nc6 Bd2 Bd7 Nb5 Be6 b3 h6 Nc3 Bd7 Qc1 Kh7 Nb5 Be6 Re1 Qb8 Rb2 Bd7 Rf1 Ra6 Rb1 Rf8 Qc2 Kg8 Qd1 Kh7 Qc1
     const newChess = new Chess();
 
@@ -62,7 +62,6 @@ export function prepareMoves(moves: IMoveObj[]) {
         if (!isAdded) {
             throw new Error(`Move is not valid: ${newMoveObj.move}`);
         }
-        console.log("halllooo", "result", {isAdded, history: newChess.history()});
 
         // console.log("chessJs.Chess.move_from_san(moveObj.move)", newChess.move_from_san(moveObj.move));
         return newMoveObj;
@@ -76,13 +75,11 @@ export function convertSanToDefaultMoveAnnotation(moveLine: string, fen: string)
     }
 
     const newChess = new Chess(fen);
-    console.log("moveLine", moveLine);
     const moves: string[] = moveLine.split(" ");
     const arr: IChessJsMove[] = moves.map((move: string) => {
         const r: IChessJsMove = newChess.move(move, {sloppy: true});
         if (!r) {
-            console.log("Error", {moves, fen, move});
-
+            logger.error({moves, fen, move}, "move does not exist");
             throw new Error(`Move does not exist: ${move}`);
         }
 
@@ -102,7 +99,6 @@ export function convertSanToDefaultMoveAnnotation(moveLine: string, fen: string)
         })
     }
 
-    console.log("convertSanToDefaultMoveAnnotation->newLine", str);
     return str.trim();
 }
 

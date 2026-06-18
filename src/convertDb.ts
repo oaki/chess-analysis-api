@@ -53,7 +53,6 @@ const postgreOptions: ConnectionOptions = {
     ],
 };
 
-console.log("POSTGRE CONFIG", options);
 
 const connectionMysql = connectionManager.create(options);
 const connectionPostgre = connectionManager.create(postgreOptions);
@@ -68,7 +67,7 @@ async function init(){
         .select("*")
         .limit(10).getMany();
 
-    console.log({game});
+    console.log({gameCount: game.length});
 }
 
 init();

@@ -1,21 +1,17 @@
 import positionService from "../services/positionService";
 import {IEvaluation, IWorkerResponse} from "../interfaces";
+import {logger} from "../libs/logger";
 
-const forEach = require('lodash/forEach');
+import forEach from "lodash/forEach";
 
 export function workerSockets(workerSocket, usersIo, workerIo) {
     workerIo.push(workerSocket);
-    console.log("workerSocket.id added to list", workerSocket.id, Object.keys(workerIo));
+    logger.debug({socketId: workerSocket.id, total: workerIo.length}, "worker connected");
 
-    workerSocket.on('workerEvaluation', (jsonString: string) => {
+    workerSocket.on("workerEvaluation", (jsonString: string) => {
         const data = JSON.parse(jsonString);
-        // console.log('workerEvaluation', data);
         forEach(data, (workerResponse: IWorkerResponse) => {
-            const fen = workerResponse.fen;
-            const evaluation: IEvaluation = workerResponse;
-            positionService.add(fen, evaluation);
+            positionService.add(workerResponse.fen, workerResponse as IEvaluation);
         });
     });
-
-
 }
