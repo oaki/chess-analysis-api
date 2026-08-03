@@ -1,5 +1,5 @@
 import {IEvaluation, LINE_MAP} from "../interfaces";
-
+import {logger} from "../libs/logger";
 import {getAllMatches, prepareMoves} from "../libs/utils";
 
 const chessJs = require("chess.js");
@@ -173,7 +173,6 @@ export class ParsePgn {
 
 
             const match = matches[i]["groups"];
-            console.log("match", match);
             const whiteMove = match[3];
             const whiteMeta = match[8];
             const blackMove = match[10];
@@ -200,7 +199,7 @@ export class ParsePgn {
         moves = prepareMoves(moves);
 
 
-        console.log("parsePgnWithJson:", {meta, moves});
+        logger.debug({meta, moveCount: moves.length}, "parsePgnWithJson");
         // convert to default move annotation e2e4 e7e5 ... h7h8d
 
         return {moves, meta};
@@ -258,21 +257,12 @@ export class ParsePgn {
         const eloBlack = game.headers["BlackElo"];
 
         if (Number(eloWhite) < 3000 && Number(eloBlack) < 3000) {
-            console.log("Elo is less than 3000");
+            logger.debug({eloWhite, eloBlack}, "elo below threshold, skipping");
             return [];
         }
 
-        console.log("ELO", eloWhite, eloBlack);
         moves.forEach((move, index) => {
             const isWhite = move.lastMove.color === "w" ? 1 : 0;
-
-            const info = {
-                onMove: move.lastMove.color,
-                eloWhite,
-                eloBlack
-            };
-
-            console.log("info", info);
 
             const pv = this.getPv(moves, index, move.depth);
             parsedGame.push({...move, pv, import: 1});

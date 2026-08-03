@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import {logger} from "./logger";
 
 const es = require("event-stream");
 
@@ -6,18 +7,14 @@ export function pgnFileReader(filename: string, cb) {
     let game: string = "";
     let count = 0;
 
-
     const parseContent = es.mapSync(function (line) {
-        // pause the readstream
         stream.pause();
 
         if (line.indexOf("[Event \"") !== -1 && count > 0) {
-
             cb(game).then(() => {
                 game = line + "\n";
                 stream.resume();
             });
-
         } else {
             game += `${line}\n`;
             stream.resume();
@@ -26,11 +23,11 @@ export function pgnFileReader(filename: string, cb) {
         count++;
     })
         .on("error", function (err) {
-            console.log("Error while reading file.", err);
+            logger.error({err, filename}, "error reading PGN file");
         })
         .on("end", function () {
             cb(game);
-            console.log("Read entire file.")
+            logger.debug({filename}, "finished reading PGN file");
         });
 
     const stream = fs.createReadStream(filename)

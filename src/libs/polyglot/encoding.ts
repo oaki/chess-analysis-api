@@ -1,4 +1,5 @@
 import * as utils from "./utils";
+import {logger} from "../logger";
 
 const Uint64BE = require("int64-buffer").Uint64BE;
 const PromoPieces = " nbrq".split("");
@@ -257,9 +258,7 @@ export const decode_move = function (move) {
     }
     moveStr[3] = toRow || '1';
     if (promotion) {
-        console.log(promotion);
-
-        console.log(PromotionPieces);
+        logger.debug({promotion, piece: PromotionPieces[promotion]}, "decode promotion");
         moveStr[4] = PromotionPieces[promotion];
     }
     let decoded = moveStr.join("");

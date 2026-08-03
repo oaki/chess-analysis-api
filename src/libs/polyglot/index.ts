@@ -1,4 +1,5 @@
 import {pieceTypes} from "./encoding";
+import {logger} from "../logger";
 
 const Uint64BE = require("int64-buffer").Uint64BE;
 const EventEmitter = require('events');
@@ -71,7 +72,7 @@ export class Polyglot extends EventEmitter {
             this.emit("loaded");
         });
         this.stream.on('error', (error) => {
-            console.log("error", error);
+            logger.error({err: error}, "polyglot stream error");
             this.emit("error", error);
         })
         stream.pipe(this.stream);

@@ -1,4 +1,4 @@
-import * as Joi from "@hapi/joi";
+import Joi from "joi";
 import {OpeningBookController} from "./openingBookController";
 
 const openingBookController = new OpeningBookController();
@@ -12,9 +12,9 @@ export function openingBookRoute() {
                 description: "Get variation from opening book",
                 tags: ["api"], // section in documentation
                 validate: {
-                    query: {
+                    query: Joi.object({
                         fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. ")
-                    }
+                    })
                 }
             },
             handler: async (request: any, h: any) => {

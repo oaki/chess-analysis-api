@@ -1,6 +1,8 @@
-export function raspberrySocket(socket){
-    console.log('raspberrySocket');
-    socket.on('pinChanged', (data)=>{
-        console.log('pinChanged->data', data);
-    })
+import {logger} from "../libs/logger";
+
+export function raspberrySocket(socket) {
+    logger.debug({socketId: socket.id}, "raspberry connected");
+    socket.on("pinChanged", (data) => {
+        logger.debug({data}, "pinChanged");
+    });
 }

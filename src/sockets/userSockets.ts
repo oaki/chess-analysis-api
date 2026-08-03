@@ -3,162 +3,91 @@ import positionService from "../services/positionService";
 import SyzygyService from "../services/syzygyService";
 import {countPieces} from "../tools";
 import {IEvaluation, LINE_MAP} from "../interfaces";
-import chessgamesComService from "../services/chessgamesComService";
-import {NextChessMoveComService} from "../services/nextchessmoveComService";
 import {checkPreviousEvaluation} from "../libs/checkEvaluation";
 import {engineStrategy} from "./evaluationStrategy/engineStrategy";
 import {useWorkers} from "./useWorkers";
-
+import {logger} from "../libs/logger";
 
 const Chess = require("chess.js").Chess;
-
 const uuid = require("uuid/v1");
 
 export default function (userSocket, usersIo, workersIo) {
     usersIo[userSocket.id] = userSocket;
-    console.log("userSocket.id added to list", userSocket.id, Object.keys(usersIo));
+    logger.debug({socketId: userSocket.id, total: Object.keys(usersIo).length}, "user connected");
 
     userSocket.on("setNewPosition", async (data) => {
         const processId = uuid();
-        console.log("-----------------------------------------------------------");
-        console.log("------------- START CHOOSE EVALUATION PROCESS -------------");
-        console.log(`--------- processId=${processId} -------------`);
-        console.log("2. server->socket: setNewPosition", data);
         const fen: string = data.FEN;
         const move: string = data.move;
         const previousEvaluation: IEvaluation = data.previousEvaluation;
         const mode: "engine" | "default" = data.mode || "default";
-        console.log('mode:', mode);
-        const position = {
-            action: "findBestMove",
-            userId: userSocket.id,
-            fen,
-        };
 
-        if(mode === 'engine'){
-            console.log('engineStrategy');
-            await engineStrategy(position.fen, userSocket, workersIo, data);
+        logger.debug({processId, fen, mode}, "setNewPosition");
+
+        if (mode === "engine") {
+            await engineStrategy(fen, userSocket, workersIo, data);
             return;
         }
 
-        //try to find in book
-        const opening = await openingsService.find(position.fen);
-
+        const opening = await openingsService.find(fen);
         if (opening) {
-            console.log(processId, "It is opening");
-            userSocket.emit("openingMoves", {
-                fen: position.fen, data: opening
-            });
+            logger.debug({processId}, "served from opening book");
+            userSocket.emit("openingMoves", {fen, data: opening});
             return;
         }
-        // if there is only 7 and less then try to load from end-game database
 
         if (countPieces(data.FEN) <= 7) {
-            //https://tablebase.lichess.ovh/standard/mainline?fen=4k3/6KP/8/8/8/8/7p/8_w_-_-_0_1
-
             try {
                 const syzygyData = await SyzygyService.find(fen);
-                console.log("-----------------------------------------------------------");
-                console.log(processId, "syzygyEvaluation");
+                logger.debug({processId}, "served from syzygy");
                 userSocket.emit("syzygyEvaluation", syzygyData);
-
                 return;
             } catch (e) {
-
+                // syzygy unavailable — fall through
             }
         }
 
-        let evaluation = await positionService.findAllMoves(fen);
+        const evaluation = await positionService.findAllMoves(fen);
         if (evaluation) {
-            const data = {
+            const response = {
                 [LINE_MAP.score]: evaluation.score,
                 [LINE_MAP.depth]: evaluation.depth,
                 [LINE_MAP.pv]: evaluation.pv,
                 [LINE_MAP.nodes]: evaluation.nodes,
                 [LINE_MAP.time]: evaluation.time,
                 [LINE_MAP.tbhits]: evaluation.tbhits,
-                fen: fen,
+                fen,
             };
-
-            console.log("-----------------------------------------------------------");
-            console.log(processId, "position service");
-            userSocket.emit("workerEvaluation", JSON.stringify([data]));
+            logger.debug({processId}, "served from position DB");
+            userSocket.emit("workerEvaluation", JSON.stringify([response]));
             return;
         }
-        // from FE will get previous evaluation and we check if the evaluation is good.
-        // if it's good than it's strong (lot of nodes) than use workers
 
         if (previousEvaluation && checkPreviousEvaluation(fen, previousEvaluation)) {
-
-            //check if previous evaluation is good but only score is not good than parse evaluation and send next moves back
             const pv = previousEvaluation[LINE_MAP.pv];
             if (pv) {
                 const moves = pv.split(" ");
                 if (moves.length > 0 && moves[0] === move) {
                     const newChess = new Chess(fen);
                     newChess.move(move);
-                    const newFen = newChess.fen();
-                    const newMoves = moves.slice(1);
-                    const newNodes = Math.floor(previousEvaluation[LINE_MAP.nodes] - 25 * 1000 * 1000);
-                    const newEvaluation = {...previousEvaluation};
-                    newEvaluation[LINE_MAP.pv] = newMoves.join(" ");
-                    newEvaluation[LINE_MAP.nodes] = newNodes;
-                    newEvaluation[LINE_MAP.fen] = newFen;
+                    const newEvaluation = {
+                        ...previousEvaluation,
+                        [LINE_MAP.pv]: moves.slice(1).join(" "),
+                        [LINE_MAP.nodes]: Math.floor(previousEvaluation[LINE_MAP.nodes] - 25_000_000),
+                        [LINE_MAP.fen]: newChess.fen(),
+                    };
+                    logger.debug({processId}, "reused previous evaluation");
                     userSocket.emit("workerEvaluation", JSON.stringify([newEvaluation]));
-                    console.log("-----------------------------------------------------------");
-                    console.log(processId, "use previous evaluation", newEvaluation);
                     return;
                 }
             }
 
-            console.log("-----------------------------------------------------------");
-            console.log(processId, "use workers", previousEvaluation);
+            logger.debug({processId}, "forwarding to workers (prev eval acceptable)");
             useWorkers(workersIo, userSocket, data, fen);
             return;
         }
 
-        /*
-        try {
-            const nextchessmoveComServiceResult = await NextChessMoveComService.getResult(fen);
-
-            if (nextchessmoveComServiceResult && nextchessmoveComServiceResult.length > 0) {
-
-                console.log("-----------------------------------------------------------");
-                console.log(processId, "use nextchessmoveComService");
-                positionService.add(fen, nextchessmoveComServiceResult[0]);
-                userSocket.emit("workerEvaluation", JSON.stringify(nextchessmoveComServiceResult));
-
-                return;
-
-            }
-        } catch (err) {
-        }
-
-         */
-
-        //try to check portals with evaluations
-
-        /*
-        try {
-            const chessgamesComServiceResult = await chessgamesComService.getResult(fen);
-
-            if (chessgamesComServiceResult && chessgamesComServiceResult.length > 0) {
-                console.log("-----------------------------------------------------------");
-                console.log(processId, "use chessgamesComService");
-                positionService.add(fen, chessgamesComServiceResult[0]);
-                userSocket.emit("workerEvaluation", JSON.stringify(chessgamesComServiceResult));
-                return;
-            }
-        } catch (err) {
-        }*/
-
-
-        //"Send the position to worker for evaluation."
-
-        console.log("-----------------------------------------------------------");
-        console.log(processId, "USE WORKERS");
+        logger.debug({processId}, "forwarding to workers");
         useWorkers(workersIo, userSocket, data, fen);
-
     });
 }
-

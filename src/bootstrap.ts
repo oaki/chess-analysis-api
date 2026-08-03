@@ -1,11 +1,9 @@
 import * as Hapi from "@hapi/hapi";
-import * as good from "good";
 import * as hapiSwagger from "hapi-swagger";
-import * as vision from "vision";
-import * as inert from "inert";
+import * as vision from "@hapi/vision";
+import * as inert from "@hapi/inert";
 import buildRoutes from "./routes/buildRoutes";
 import {SocketService} from "./sockets/initSockets";
-import {optionsGood} from "./config/optionsGood";
 import {hapiServerOptions} from "./config/hapiServerOptions";
 import {getConfig} from "./config/";
 import {AuthenticationController} from "./controllers/authenticationController";
@@ -14,7 +12,15 @@ const config = getConfig();
 
 export async function initServer() {
     const hapiServer = Hapi.server(hapiServerOptions);
-    hapiServer.validator(require("@hapi/joi"));
+    hapiServer.validator(require("joi"));
+
+    await hapiServer.register({
+        plugin: require("hapi-pino"),
+        options: {
+            logPayload: false,
+            redact: ["req.headers.authorization"],
+        }
+    });
 
     await hapiServer.register({
         plugin: require("hapi-api-version"),
@@ -31,13 +37,12 @@ export async function initServer() {
         {
             key: config.jwt.key,
             validate: AuthenticationController.validateJwt,
-            verifyOptions: {algorithms: ["HS256"]} // pick a strong algorithm
+            verifyOptions: {algorithms: ["HS256"]}
         });
 
     SocketService.connect(hapiServer);
 
     buildRoutes(hapiServer);
-
 
     const optionsSwagger = {
         info: {
@@ -49,10 +54,6 @@ export async function initServer() {
     };
 
     await hapiServer.register([
-        {
-            plugin: good,
-            options: optionsGood
-        },
         inert,
         vision,
         {
@@ -61,9 +62,8 @@ export async function initServer() {
         },
     ]);
 
-
     await hapiServer.start();
 
-    console.log(hapiServer.info.uri);
+    (hapiServer as any).logger.info({uri: hapiServer.info.uri}, "Server started");
     return hapiServer;
 }

@@ -3,8 +3,6 @@ import {evaluationDatabase} from "./evaluationDatabase";
 import {appDatabase} from "./appDatabase";
 import {gameDatabase} from "./gameDatabase";
 
-require("dotenv").config();
-
 export enum Environment {
     "PRODUCTION" = "production",
     "DEVELOPMENT" = "development",
@@ -32,7 +30,6 @@ export const config: IConfig = {
     nextChessMoveCookie: process.env.NEXT_CHESS_MOVE_COOKIE
 }
 
-console.log({config});
 export interface IConfig {
     server: { port: number },
     io: { port: number },

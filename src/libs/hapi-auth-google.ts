@@ -47,7 +47,6 @@ function generate_google_oauth2_url () {
         scope: OPTIONS.scope // can be a space-delimited string or array of scopes
     });
 
-    console.log(url);
     return url;
 }
 
@@ -89,7 +88,6 @@ module.exports = {
                     return options.handler(request, h, tokens, profile);
 
                 } catch (err) {
-                    console.log(err);
                     assert(!err, 'Google Plus API Error: '+ err);
                     return h.response('Google Plus API Error:', err);
                 }

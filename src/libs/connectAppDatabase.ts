@@ -31,7 +31,6 @@ const connection = connectionManager.create(options);
 const db = connection.connect();
 
 export async function appDbConnection(): Promise<Connection> {
-    console.log('GET APP CONNECTION');
     const database = await db;
     if (database.isConnected) {
         return database;

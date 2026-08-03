@@ -30,8 +30,6 @@ const options: ConnectionOptions = {
     ],
 };
 
-console.log("POSTGRE CONFIG", options);
-
 const connection = connectionManager.create(options);
 
 const db = connection.connect();

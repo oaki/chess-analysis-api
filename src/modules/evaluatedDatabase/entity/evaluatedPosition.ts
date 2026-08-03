@@ -7,12 +7,14 @@ export class EvaluatedPosition {
     id: number;
 
     @Column({
+        type: "varchar",
         length: 90
     })
     fen: string;
 
     @Index()
     @Column({
+        type: "varchar",
         length: 74
     })
     fenHash: string;
@@ -32,7 +34,7 @@ export class EvaluatedPosition {
     })
     nodes: number;
 
-    @Column()
+    @Column({ type: "text" })
     pv: string;
 
     @Column({

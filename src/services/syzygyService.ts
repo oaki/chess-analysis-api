@@ -1,32 +1,24 @@
 import fetch from "node-fetch";
 import {ParsePgn} from "../models/ParsePgn";
-
+import {logger} from "../libs/logger";
 
 class SyzygyService {
-    private path;
+    private path: string;
 
     constructor(path = null) {
-
-        if (!path) {
-            this.path = 'https://tablebase.lichess.ovh/standard';
-        } else {
-            this.path = path;
-        }
+        this.path = path ?? "https://tablebase.lichess.ovh/standard";
     }
 
     async find(fen: string): Promise<ITablebaseLichess[]> {
-
-        const preparedFen = ParsePgn.replaceAll(fen, ' ', '_');
-        console.log({preparedFen});
+        const preparedFen = ParsePgn.replaceAll(fen, " ", "_");
         const url = `${this.path}?fen=${preparedFen}`;
         try {
             const response = await fetch(url);
             if (response.ok) {
-                const json = await response.json();
-                return this.prepareVariants(json);
+                return this.prepareVariants(await response.json());
             }
         } catch (e) {
-            console.log('SyzygyService->find->response', e);
+            logger.warn({err: e, fen}, "syzygy lookup failed");
             throw e;
         }
     }
@@ -34,12 +26,9 @@ class SyzygyService {
     private prepareVariants(json): any {
         return json;
     }
-
 }
 
-
 export default new SyzygyService();
-
 
 export interface IMove {
     uci: string;
@@ -66,6 +55,3 @@ export interface ITablebaseLichess {
     dtm?: any;
     moves: IMove[];
 }
-
-
-

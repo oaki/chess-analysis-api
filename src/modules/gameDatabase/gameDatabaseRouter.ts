@@ -1,4 +1,4 @@
-import * as Joi from "@hapi/joi";
+import Joi from "joi";
 import {getBasePath} from "../../config";
 import {
     add,
@@ -23,12 +23,11 @@ export function gameDatabaseRouter() {
                 description: "Get games from game database",
                 tags: ["api"], // section in documentation
                 validate: {
-                    query: {
+                    query: Joi.object({
                         fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. "),
                         offset: Joi.number().optional().max(100),
                         limit: Joi.number().optional().max(100),
-                    },
-
+                    }),
                 },
             },
 
@@ -69,9 +68,9 @@ export function gameDatabaseRouter() {
                 description: "Remove unnecessary game connections",
                 tags: ["api"], // section in documentation
                 validate: {
-                    query: {
+                    query: Joi.object({
                         fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. "),
-                    },
+                    }),
                 },
             },
 
@@ -86,9 +85,9 @@ export function gameDatabaseRouter() {
                 description: "convert-fen-to-hash",
                 tags: ["api"], // section in documentation
                 validate: {
-                    query: {
+                    query: Joi.object({
                         fen: Joi.string().required().min(9).description("Forsyth–Edwards Notation (FEN) is a standard notation for describing a particular board position of a chess game. "),
-                    },
+                    }),
                 },
             },
 
@@ -96,16 +95,17 @@ export function gameDatabaseRouter() {
                 const fen: string = request.query["fen"];
                 return decodeFenHash(fen);
             }
-        }, {
+        },
+        {
             method: "DELETE",
             path: "/games-database/{id}",
             config: {
                 description: "convert-fen-to-hash",
                 tags: ["api"], // section in documentation
                 validate: {
-                    params: {
+                    params: Joi.object({
                         id: Joi.number().integer().required().description("Game id")
-                    }
+                    })
                 },
             },
 
@@ -122,7 +122,6 @@ export function gameDatabaseRouter() {
                 tags: ["api"], // section in documentation
             },
             handler: async (request: any) => {
-
                 return await add({
                     pgn: request.payload.pgn
                 });
@@ -137,7 +136,6 @@ export function gameDatabaseRouter() {
                 tags: ["api"], // section in documentation
             },
             handler: async (request: any) => {
-
                 return await runImport({
                     filename: request.payload.filename
                 });
@@ -152,7 +150,6 @@ export function gameDatabaseRouter() {
                 tags: ["api"], // section in documentation
             },
             handler: async () => {
-
                 return await runDirImport({
                     dirName: `${getBasePath()}/games/game_database/`
                 });
@@ -167,7 +164,6 @@ export function gameDatabaseRouter() {
                 tags: ["api"], // section in documentation
             },
             handler: async (request: any) => {
-
                 return await checkFen({
                     fen: request.payload.fen
                 });
