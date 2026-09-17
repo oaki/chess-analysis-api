@@ -53,6 +53,13 @@ describe("watchAnalysisRoute", () => {
         }, {response: vi.fn()})).toThrow("Invalid FEN");
     });
 
+    it("rejects a missing bearer token", () => {
+        expect(() => watchAnalysisRoute()[0].handler({
+            headers: {},
+            payload: validPayload,
+        }, {response: vi.fn()})).toThrow("Invalid analysis credentials");
+    });
+
     it("returns unavailable when no worker is connected", () => {
         createStreamMock.mockReturnValue(null);
         expect(() => watchAnalysisRoute()[0].handler({

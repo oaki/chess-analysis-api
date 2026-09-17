@@ -14,7 +14,7 @@ export function watchAnalysisRoute() {
             tags: ["api"],
             validate: {
                 headers: Joi.object({
-                    authorization: Joi.string().max(512).required(),
+                    authorization: Joi.string().max(512).optional(),
                 }).unknown(true),
                 payload: Joi.object({
                     requestID: Joi.string().guid().required(),
