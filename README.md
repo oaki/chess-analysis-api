@@ -42,7 +42,27 @@ WORKER_HOST1=5557
 WORKER_HOST2=5558
 
 JWT_KEY=jwt_key
+CHESS_WATCH_API_KEY=generate_a_random_secret
 ```
+
+## ChessWatch analysis stream
+
+`POST /v1/watch/analyze` starts an authenticated Stockfish search and returns
+newline-delimited `AnalysisResponse` JSON objects. The request must include
+`Authorization: Bearer $CHESS_WATCH_API_KEY`.
+
+```json
+{
+  "requestID": "d9428888-122b-4a4a-b15d-eceea8c9957a",
+  "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  "maxVariations": 3,
+  "milliseconds": 10000
+}
+```
+
+The server caps requests at three variations and ten seconds. Disconnecting
+the HTTP client cancels its active worker search. The API key is a deployment
+bootstrap credential for the companion app; do not embed it in source control.
 
 ## Development
 

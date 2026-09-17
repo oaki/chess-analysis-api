@@ -8,6 +8,7 @@ import {authRoute} from "../modules/auth/authRoutes";
 import {userRoute} from "../modules/user/userRouter";
 import {workerRoute} from "../modules/user/modules/worker/workerRouter";
 import {gameDatabaseRouter} from "../modules/gameDatabase/gameDatabaseRouter";
+import {watchAnalysisRoute} from "../modules/watchAnalysis/watchAnalysisRoute";
 
 function withVersion(routes: any[], version = 1): any[] {
     return routes.map(route => ({
@@ -29,6 +30,7 @@ export default function routes(server) {
         ...historyRoute(),
         ...workerRoute(),
         ...gameDatabaseRouter(),
+        ...watchAnalysisRoute(),
     ];
     server.route(withVersion(versionedRoutes));
 }

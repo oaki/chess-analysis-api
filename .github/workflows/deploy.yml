@@ -11,12 +11,8 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
-          host: 142.93.166.76
+          host: 165.22.16.160
           username: root
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /opt/apps/chess-analysis-api
-            git pull
-            npm install
-            npm run build
-            pm2 restart server
+            /opt/apps/chess-analysis-api-deploy.sh

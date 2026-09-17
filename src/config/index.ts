@@ -21,6 +21,9 @@ export const config: IConfig = {
     jwt: {
         key: process.env.JWT_KEY
     },
+    watchAnalysis: {
+        apiKey: process.env.CHESS_WATCH_API_KEY || "",
+    },
     appDatabase,
     gameDatabase,
     evaluationDatabase,
@@ -69,6 +72,10 @@ export interface IConfig {
 
     jwt: {
         key: string;
+    },
+
+    watchAnalysis: {
+        apiKey: string;
     },
 
     environment: Environment,

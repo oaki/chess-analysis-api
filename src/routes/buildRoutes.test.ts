@@ -10,6 +10,7 @@ vi.mock("../modules/auth/authRoutes", () => ({authRoute: vi.fn(() => [{path: "/a
 vi.mock("../modules/user/userRouter", () => ({userRoute: vi.fn(() => [{path: "/user"}])}));
 vi.mock("../modules/user/modules/worker/workerRouter", () => ({workerRoute: vi.fn(() => [{path: "/worker"}])}));
 vi.mock("../modules/gameDatabase/gameDatabaseRouter", () => ({gameDatabaseRouter: vi.fn(() => [{path: "/games"}])}));
+vi.mock("../modules/watchAnalysis/watchAnalysisRoute", () => ({watchAnalysisRoute: vi.fn(() => [{path: "/watch/analyze"}])}));
 
 import routes from "./buildRoutes";
 
@@ -36,12 +37,13 @@ describe("buildRoutes", () => {
         // 3 calls total: defaultRoute, filesRoute, versioned batch
         expect(route).toHaveBeenCalledTimes(3);
 
-        // 3rd call is the versioned batch — 8 route groups × 1 route each
+        // 3rd call is the versioned batch — 9 route groups × 1 route each
         const versionedRoutes = route.mock.calls[2][0];
-        expect(versionedRoutes).toHaveLength(8);
+        expect(versionedRoutes).toHaveLength(9);
         expect(versionedRoutes[0]).toEqual({path: "/v1/auth"});
         expect(versionedRoutes[1]).toEqual({path: "/v1/user"});
         expect(versionedRoutes[7]).toEqual({path: "/v1/games"});
+        expect(versionedRoutes[8]).toEqual({path: "/v1/watch/analyze"});
     });
 
     it("applies /v1 prefix to all API routes", () => {

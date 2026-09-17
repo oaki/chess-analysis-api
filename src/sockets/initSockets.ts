@@ -8,11 +8,25 @@ import {raspberrySocket} from "./raspberry";
 import {logger} from "../libs/logger";
 
 import jwt from "jsonwebtoken";
+import {PassThrough} from "stream";
+import {findAvailableWorkerInSocketList} from "../libs/findWorkerInSocketList";
+import {
+    mapWorkerEvaluation,
+    WatchAnalysisResponse,
+} from "../modules/watchAnalysis/watchAnalysisMapper";
+
+interface WatchAnalysisRequest {
+    requestID: string;
+    fen: string;
+    maxVariations: number;
+    milliseconds: number;
+}
 
 class Sockets {
     private workersIo = [];
     private usersIo = {};
     private config;
+    private activeWatchAnalyses = new Map<string, () => void>();
 
     constructor(config) {
         this.config = config;
@@ -27,6 +41,93 @@ class Sockets {
 
     isWorkerOnline(uuid: string) {
         return !!this.workersIo.find((socket) => socket.worker.uuid === uuid);
+    }
+
+    createWatchAnalysisStream(request: WatchAnalysisRequest): PassThrough | null {
+        const activeWorker = this.workersIo.find((candidate) =>
+            this.activeWatchAnalyses.has(candidate.id));
+        const worker = activeWorker || findAvailableWorkerInSocketList(this.workersIo);
+        if (!worker) {
+            return null;
+        }
+
+        this.activeWatchAnalyses.get(worker.id)?.();
+
+        const stream = new PassThrough();
+        let latestLines = [];
+        let lastEmission = Date.now();
+        let finished = false;
+
+        const writeResponse = (isFinal: boolean) => {
+            const response: WatchAnalysisResponse = {
+                requestID: request.requestID,
+                lines: latestLines,
+                isFinal,
+            };
+            stream.write(`${JSON.stringify(response)}\n`);
+        };
+
+        const remove = () => {
+            worker.off("workerEvaluation", receiveEvaluation);
+            if (this.activeWatchAnalyses.get(worker.id) === cancel) {
+                this.activeWatchAnalyses.delete(worker.id);
+                worker.worker.lastUsed = Date.now();
+            }
+        };
+
+        const finish = () => {
+            if (finished) {
+                return;
+            }
+            finished = true;
+            clearTimeout(finalTimer);
+            if (latestLines.length > 0) {
+                writeResponse(true);
+            }
+            remove();
+            stream.end();
+        };
+
+        const cancel = () => {
+            if (finished) {
+                return;
+            }
+            worker.emit("stopWorker");
+            finish();
+        };
+
+        const receiveEvaluation = (payload: string) => {
+            const lines = mapWorkerEvaluation(payload, request.fen, request.maxVariations);
+            if (!lines || lines.length === 0) {
+                return;
+            }
+
+            latestLines = lines;
+            const now = Date.now();
+            if (now - lastEmission >= 1_000) {
+                writeResponse(false);
+                lastEmission = now;
+            }
+        };
+
+        const finalTimer = setTimeout(finish, request.milliseconds + 250);
+        this.activeWatchAnalyses.set(worker.id, cancel);
+        worker.worker.lastUsed = Date.now() + request.milliseconds;
+        worker.on("workerEvaluation", receiveEvaluation);
+        worker.emit("stopWorker");
+        worker.emit("setPositionToWorker", {
+            FEN: request.fen,
+            multiPv: request.maxVariations,
+            delay: request.milliseconds,
+        });
+
+        stream.once("close", () => {
+            if (!finished) {
+                cancel();
+            }
+        });
+
+        return stream;
     }
 
     connect(hapiServer) {
