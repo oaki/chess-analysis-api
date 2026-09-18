@@ -20,7 +20,7 @@ export function watchAnalysisRoute() {
                     requestID: Joi.string().guid().required(),
                     fen: Joi.string().max(120).required(),
                     maxVariations: Joi.number().integer().min(1).max(3).required(),
-                    milliseconds: Joi.number().integer().min(100).max(10_000).required(),
+                    milliseconds: Joi.number().integer().min(100).max(120_000).required(),
                 }).required(),
             },
         },

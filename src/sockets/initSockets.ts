@@ -43,6 +43,10 @@ class Sockets {
         return !!this.workersIo.find((socket) => socket.worker.uuid === uuid);
     }
 
+    hasWatchAnalysisWorker() {
+        return this.workersIo.length > 0;
+    }
+
     createWatchAnalysisStream(request: WatchAnalysisRequest): PassThrough | null {
         const activeWorker = this.workersIo.find((candidate) =>
             this.activeWatchAnalyses.has(candidate.id));

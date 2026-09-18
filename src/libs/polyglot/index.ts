@@ -104,7 +104,7 @@ function xor_64uint(a, b) {
     return Uint64BE(n_hi, n_lo);
 }
 
-function hash(fen) {
+export function polyglotHash(fen) {
     let game = new Chess(fen);
     let result = game.validate_fen(fen);
     if (!result.valid) {
@@ -181,6 +181,7 @@ function hash(fen) {
     return output;
 }
 
+const hash = polyglotHash;
+
 Polyglot.PolyglotStream = PolyglotStream;
 Polyglot.PolyglotEntry = PolyglotEntry;
-

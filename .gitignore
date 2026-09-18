@@ -19,6 +19,7 @@ db-data/
 games/**/*.pgn
 src/books/*.abk
 src/books/*.ctg
+src/books/book_new.bin
 
 # OS/editor files
 .DS_Store
