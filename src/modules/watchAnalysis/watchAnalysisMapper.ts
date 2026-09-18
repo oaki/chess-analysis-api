@@ -7,6 +7,9 @@ export interface WatchAnalysisLine {
     evaluation: {centipawns: {_0: number}} | {mateIn: {_0: number}};
     depth: number | null;
     moves: string[];
+    uci?: string;
+    wdl?: {win: number; draw: number; loss: number};
+    pvUci?: string[];
 }
 
 export interface WatchAnalysisResponse {
@@ -45,6 +48,19 @@ function principalVariationSan(fen: string, pv: string): string[] {
     }
 
     return result;
+}
+
+function firstUciMove(pv: string): string | undefined {
+    const move = String(pv || "").trim().split(/\s+/)[0];
+    return /^[a-h][1-8][a-h][1-8][qrbn]?$/.test(move) ? move : undefined;
+}
+
+function parseWdl(value: unknown): {win: number; draw: number; loss: number} | undefined {
+    const values = String(value || "").trim().split(/\s+/).map(Number);
+    if (values.length !== 3 || values.some(item => !Number.isInteger(item) || item < 0)) {
+        return undefined;
+    }
+    return {win: values[0], draw: values[1], loss: values[2]};
 }
 
 export function mapWorkerEvaluation(
@@ -95,6 +111,9 @@ export function mapWorkerEvaluation(
                 evaluation: evaluationValue,
                 depth: Number.isFinite(depth) ? depth : null,
                 moves: principalVariationSan(fen, evaluation[LINE_MAP.pv]),
+                uci: firstUciMove(evaluation[LINE_MAP.pv]),
+                wdl: parseWdl(evaluation[LINE_MAP.wdl]),
+                pvUci: String(evaluation[LINE_MAP.pv] || "").trim().split(/\s+/).slice(0, 8),
             };
         })
         .filter((line): line is WatchAnalysisLine => line !== null)

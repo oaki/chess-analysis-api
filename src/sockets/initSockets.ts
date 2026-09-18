@@ -15,7 +15,7 @@ import {
     WatchAnalysisResponse,
 } from "../modules/watchAnalysis/watchAnalysisMapper";
 
-interface WatchAnalysisRequest {
+export interface WatchAnalysisRequest {
     requestID: string;
     fen: string;
     maxVariations: number;
@@ -55,6 +55,7 @@ class Sockets {
 
         const stream = new PassThrough();
         let latestLines = [];
+        const latestByRank = new Map<number, any>();
         let lastEmission = Date.now();
         let finished = false;
 
@@ -102,7 +103,15 @@ class Sockets {
                 return;
             }
 
-            latestLines = lines;
+            for (const line of lines) {
+                const previous = latestByRank.get(line.rank);
+                if (!previous || (line.depth ?? 0) >= (previous.depth ?? 0)) {
+                    latestByRank.set(line.rank, line);
+                }
+            }
+            latestLines = Array.from(latestByRank.values())
+                .sort((left, right) => left.rank - right.rank)
+                .slice(0, request.maxVariations);
             const now = Date.now();
             if (now - lastEmission >= 1_000) {
                 writeResponse(false);

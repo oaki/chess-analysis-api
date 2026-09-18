@@ -22,12 +22,18 @@ describe("watchAnalysisMapper", () => {
                 evaluation: {centipawns: {_0: 35}},
                 depth: 18,
                 moves: ["e4", "e5", "Nf3"],
+                uci: "e2e4",
+                wdl: undefined,
+                pvUci: ["e2e4", "e7e5", "g1f3"],
             },
             {
                 rank: 2,
                 evaluation: {centipawns: {_0: -12}},
                 depth: 17,
                 moves: ["d4", "d5"],
+                uci: "d2d4",
+                wdl: undefined,
+                pvUci: ["d2d4", "d7d5"],
             },
         ]);
     });

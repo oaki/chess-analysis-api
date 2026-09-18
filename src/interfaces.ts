@@ -10,6 +10,7 @@ export enum LINE_MAP {
     tbhits = 'h',
     import = 'i',
     fen = "fen",
+    wdl = "w",
 }
 
 export interface IWorkerResponse extends IEvaluation {
@@ -29,5 +30,5 @@ export interface IEvaluation {
     [LINE_MAP.tbhits]?: string;
     [LINE_MAP.import]?: number;
     [LINE_MAP.fen]?: string;
+    [LINE_MAP.wdl]?: string;
 }
-

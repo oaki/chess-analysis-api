@@ -57,6 +57,9 @@ describe("SocketService watch analysis stream", () => {
                 evaluation: {centipawns: {_0: 21}},
                 depth: 14,
                 moves: ["e4", "e5"],
+                uci: "e2e4",
+                wdl: undefined,
+                pvUci: ["e2e4", "e7e5"],
             }],
             isFinal: true,
         });
