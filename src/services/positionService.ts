@@ -63,7 +63,11 @@ async function findAllMoves(fen) {
 async function findCompleteAnalysis(fen) {
     const position: any = await findAllMoves(fen);
     if (!position) return null;
-    if (position.nodes < 80 * 1000 * 1000 && !position.import) return null;
+    if (
+        position.nodes < 80 * 1000 * 1000
+        && Number(position.time) < 119_000
+        && !position.import
+    ) return null;
     return {
         [LINE_MAP.depth]: position.depth,
         [LINE_MAP.score]: String(position.score),

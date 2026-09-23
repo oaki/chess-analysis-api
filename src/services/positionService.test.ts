@@ -191,4 +191,31 @@ describe("positionService", () => {
             [LINE_MAP.fen]: "fen",
         });
     });
+
+    it("findCompleteAnalysis accepts a max-time result below the node threshold", async () => {
+        mocks.mockDecodeFenHash.mockReturnValue("hash");
+        const selectBuilder = {
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            getOne: vi.fn().mockResolvedValue({
+                nodes: 50,
+                depth: 24,
+                score: 0.12,
+                time: 120000,
+                pv: "d2d4 d7d5",
+                tbhits: 0,
+                import: false,
+            }),
+        };
+        mocks.mockEvaluationConnection.mockResolvedValue({
+            getRepository: vi.fn().mockReturnValue({
+                createQueryBuilder: vi.fn().mockReturnValue(selectBuilder),
+            }),
+        });
+
+        await expect(positionService.findCompleteAnalysis("fen")).resolves.toMatchObject({
+            [LINE_MAP.nodes]: 50_000_000,
+            [LINE_MAP.time]: "120000",
+        });
+    });
 });
