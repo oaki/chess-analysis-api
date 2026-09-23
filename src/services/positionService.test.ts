@@ -159,4 +159,36 @@ describe("positionService", () => {
         const result = await positionService.findAllMoves("fen");
         expect(result).toBeNull();
     });
+
+    it("findCompleteAnalysis returns only a sufficiently calculated position", async () => {
+        mocks.mockDecodeFenHash.mockReturnValue("hash");
+        const selectBuilder = {
+            where: vi.fn().mockReturnThis(),
+            orderBy: vi.fn().mockReturnThis(),
+            getOne: vi.fn().mockResolvedValue({
+                nodes: 90,
+                depth: 28,
+                score: 0.42,
+                time: 120000,
+                pv: "e2e4 e7e5",
+                tbhits: 0,
+                import: false,
+            }),
+        };
+        mocks.mockEvaluationConnection.mockResolvedValue({
+            getRepository: vi.fn().mockReturnValue({
+                createQueryBuilder: vi.fn().mockReturnValue(selectBuilder),
+            }),
+        });
+
+        const result = await positionService.findCompleteAnalysis("fen");
+
+        expect(result).toMatchObject({
+            [LINE_MAP.depth]: 28,
+            [LINE_MAP.score]: "0.42",
+            [LINE_MAP.nodes]: 90_000_000,
+            [LINE_MAP.pv]: "e2e4 e7e5",
+            [LINE_MAP.fen]: "fen",
+        });
+    });
 });

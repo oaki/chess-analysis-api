@@ -20,6 +20,7 @@ export interface WatchAnalysisRequest {
     fen: string;
     maxVariations: number;
     milliseconds: number;
+    forceRecompute?: boolean;
 }
 
 class Sockets {

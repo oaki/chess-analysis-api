@@ -16,7 +16,7 @@ export interface MoveAdvice {
     quality: MoveQuality;
     hangsMaterial: boolean;
     capturedValue?: number;
-    opening?: {weight: number; share: number};
+    opening?: {weight: number; share: number; bookName?: string};
 }
 
 export interface MoveAdviceResponse {
@@ -71,6 +71,7 @@ export function buildMoveAdvice(
     fen: string,
     lines: WatchAnalysisLine[],
     openings: OpeningResponse[],
+    bookName?: string,
 ): MoveAdviceResponse {
     const chess = new Chess(fen);
     const legalMoves = chess.moves({verbose: true});
@@ -105,10 +106,13 @@ export function buildMoveAdvice(
             opening: opening ? {
                 weight: Number(opening.weight),
                 share: totalOpeningWeight > 0 ? Number(opening.weight) / totalOpeningWeight : 0,
+                bookName,
             } : undefined,
         };
     }).sort((left, right) => {
         if (left.rank !== right.rank) return left.rank - right.rank;
+        const openingWeightDifference = (right.opening?.weight ?? 0) - (left.opening?.weight ?? 0);
+        if (openingWeightDifference !== 0) return openingWeightDifference;
         return left.uci.localeCompare(right.uci);
     });
 

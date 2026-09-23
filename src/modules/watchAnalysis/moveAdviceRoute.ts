@@ -65,22 +65,19 @@ export function moveAdviceRoute() {
                 maxVariations: legalMoveCount,
                 milliseconds: MOVE_ADVICE_MILLISECONDS,
             });
-            if (!stream) throw Boom.serverUnavailable("No analysis worker is available");
 
             const {default: openingsService} = await import("../../services/openingsService");
             const [analysis, openings] = await Promise.all([
-                finalAnalysis(stream),
-                openingsService.find(request.payload.fen),
+                stream ? finalAnalysis(stream).catch(() => null) : Promise.resolve(null),
+                openingsService.find(request.payload.fen).catch(() => []),
             ]);
-            if (!analysis?.lines.length) {
-                throw Boom.serverUnavailable("Move advice is unavailable");
-            }
 
             return h.response(buildMoveAdvice(
                 request.payload.requestID,
                 request.payload.fen,
-                analysis.lines,
+                analysis?.lines || [],
                 openings || [],
+                openingsService.status().name,
             )).header("Cache-Control", "private, max-age=86400");
         },
     }];

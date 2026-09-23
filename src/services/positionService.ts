@@ -60,7 +60,26 @@ async function findAllMoves(fen) {
     return null;
 }
 
+async function findCompleteAnalysis(fen) {
+    const position: any = await findAllMoves(fen);
+    if (!position) return null;
+    if (position.nodes < 80 * 1000 * 1000 && !position.import) return null;
+    return {
+        [LINE_MAP.depth]: position.depth,
+        [LINE_MAP.score]: String(position.score),
+        [LINE_MAP.nodes]: position.nodes,
+        [LINE_MAP.time]: String(position.time),
+        [LINE_MAP.pv]: position.pv,
+        [LINE_MAP.tbhits]: String(position.tbhits || 0),
+        [LINE_MAP.import]: position.import ? 1 : 0,
+        [LINE_MAP.mate]: false,
+        [LINE_MAP.multipv]: "1",
+        [LINE_MAP.fen]: fen,
+    };
+}
+
 export default {
     findAllMoves,
+    findCompleteAnalysis,
     add
 };
