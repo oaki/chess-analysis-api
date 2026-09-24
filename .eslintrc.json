@@ -1,0 +1,40 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 2020,
+        "sourceType": "module"
+    },
+    "plugins": ["@typescript-eslint"],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "env": {
+        "node": true,
+        "es2020": true
+    },
+    "rules": {
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": ["warn", {"argsIgnorePattern": "^_"}]
+    },
+    "overrides": [
+        {
+            "files": [
+                "src/libs/moveEncoding.ts",
+                "src/libs/computeScore.ts",
+                "src/modules/bestMoves/**/*.ts",
+                "src/services/positionService.ts",
+                "src/scripts/migrate.ts",
+                "src/scripts/migrateLib.ts"
+            ],
+            "excludedFiles": ["*.test.ts"],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "error",
+                "@typescript-eslint/consistent-type-definitions": ["error", "type"],
+                "@typescript-eslint/consistent-type-assertions": ["error", {"assertionStyle": "never"}]
+            }
+        }
+    ],
+    "ignorePatterns": ["dist/", "node_modules/", "coverage/"]
+}

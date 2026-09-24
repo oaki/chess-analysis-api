@@ -78,25 +78,31 @@ export async function get(props: GetProps) {
 
     const move = await db.getRepository(Move)
         .createQueryBuilder("move")
-        .select("id")
+        .select("move.id", "id")
         .where({fenHash}).getRawOne<Move>();
 
     if (!move) {
         throw Boom.notFound();
     }
 
-    const gameIds = await db.manager.query(`
-        SELECT game_moves_move."gameId" FROM game_moves_move
-        WHERE game_moves_move."moveId" = ${move.id}
-        ORDER BY ${props.side === "w" ? "game_moves_move.cw" : "game_moves_move.cb"}
-        OFFSET ${props.offset ?? 0} LIMIT ${props.limit ?? 5}
-    `);
+    const gameIds = await db.getRepository(GameMovesMove)
+        .createQueryBuilder("gameMove")
+        .select("gameMove.gameId", "gameId")
+        .where("gameMove.moveId = :moveId", {moveId: move.id})
+        .orderBy(props.side === "w" ? "gameMove.cw" : "gameMove.cb", "ASC")
+        .offset(props.offset ?? 0)
+        .limit(props.limit ?? 5)
+        .getRawMany<{gameId: number}>();
 
-    const ids = gameIds.map((obj) => obj.gameId).join(", ");
-    const games = await db.manager.query(`
-        SELECT game.* FROM game WHERE game.id IN (${ids})
-        ORDER BY POSITION(id::text IN '${ids}')
-    `);
+    if (gameIds.length === 0) {
+        throw Boom.notFound();
+    }
+
+    const ids = gameIds.map(({gameId}) => gameId);
+    const gamesById = new Map(
+        (await db.getRepository(Game).findByIds(ids)).map(game => [game.id, game]),
+    );
+    const games = ids.map(id => gamesById.get(id)).filter(Boolean);
 
     if (games.length === 0) {
         throw Boom.notFound();

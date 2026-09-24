@@ -17,6 +17,7 @@ const options: ConnectionOptions = {
 
     "entities": [
         "dist/modules/evaluatedDatabase/entity/**/*.js",
+        "dist/modules/bestMoves/entity/**/*.js",
     ],
 };
 

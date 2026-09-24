@@ -15,6 +15,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "lint": "eslint 'src/**/*.ts'",
+    "db:migrate": "tsx src/scripts/migrate.ts",
+    "db:migrate:dry-run": "tsx src/scripts/migrate.ts --dry-run",
     "git:update": "git pull"
   },
   "dependencies": {
@@ -69,12 +72,10 @@
     "@types/lodash": "^4.17.24",
     "@types/node": "^14.14.16",
     "@types/node-fetch": "^2.1.4",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
     "@vitest/coverage-v8": "^4.1.5",
-    "eslint": "^5.13.0",
-    "eslint-config-airbnb": "^17.1.0",
-    "eslint-plugin-import": "^2.16.0",
-    "eslint-plugin-jsx-a11y": "^6.2.1",
-    "eslint-plugin-react": "^7.12.4",
+    "eslint": "^8.57.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.1.5"
